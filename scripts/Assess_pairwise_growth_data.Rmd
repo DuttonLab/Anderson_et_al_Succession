@@ -1,0 +1,155 @@
+---
+title: "Assess pairwise growth data"
+author: "Brooke Anderson"
+date: "7/13/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(ggplot2)
+library(cowplot)
+here::i_am("scripts/Assess_pairwise_growth_data.Rmd")
+```
+
+## load in data
+
+```{r load data objects, echo = F}
+d.18 <- readRDS(here("wrangled_data/all_pairwise.rds"))
+```
+
+## Pairwise data assessment
+
+Are data normally distributed? -- run shapiro tests
+
+```{r run shaprio tests for normality, echo = F, message = F, warning = F}
+# define all conditions to run through
+spec <- levels(d.18$species)
+cond <- levels(d.18$condition)
+pH <- levels(d.18$pH)
+
+# are data normally distributed?
+for (s in spec) {
+  for (c in cond[which(cond != s)]) {
+    for (p in pH) {
+      for (d in c(3, 10, 21)) {
+        dat <- d.18 %>% filter(species == s, condition == c, pH == p, day == d)
+        if (sum(dat$total.CFUs) == 0 | nrow(dat) < 3) next
+        if (shapiro.test(dat$total.CFUs)$"p.value" <= 0.05) {
+          print(paste(s, "under condition", c, "at pH", p, "on day", d, "is not normal, with p value",
+                     shapiro.test(dat$total.CFUs)$"p.value"))
+        }
+      }
+    }
+  }
+}
+```
+
+Obviously, many samples are not normally distributed. Ah, biology. Anyway. Does log10 transformation help?
+
+Are log-transformed data normally distributed? -- run shapiro tests
+
+```{r run shaprio tests on log-transformed data, echo = F, message = F, warning = F}
+# define all conditions to run through
+spec <- levels(d.18$species)
+cond <- levels(d.18$condition)
+pH <- levels(d.18$pH)
+
+# are data normally distributed?
+for (s in spec) {
+  for (c in cond[which(cond != s)]) {
+    for (p in pH) {
+      for (d in c(3, 10, 21)) {
+        dat <- d.18 %>% filter(species == s, condition == c, pH == p, day == d) %>%
+          mutate(log.CFUs = log10(total.CFUs))
+        if (any(is.infinite(dat$log.CFUs)) | nrow(dat) < 3) next
+        if (shapiro.test(dat$log.CFUs)$"p.value" <= 0.05) {
+          print(paste(s, "CFUs under condition", c, "at pH", p, "on day", d, "is not normal, with p value",
+                     shapiro.test(dat$log.CFUs)$"p.value"))
+        }
+      }
+    }
+  }
+}
+```
+
+
+Better but still many samples are not normally distributed. 
+
+Thinking ahead to the t-tests we'll want to do to compare coculture growth to alone growth, let's check how similar variances are between comparable samples. -- Levene's Test (of equality of variances for non-normally distributed data)
+Start with raw colony-forming units:
+
+```{r check variances for coculture vs. alone data, echo = F, message = F, warning = F}
+# define all conditions to run through
+spec <- levels(d.18$species)
+cond <- levels(d.18$condition)[which(levels(d.18$condition) != "alone")]
+pH <- levels(d.18$pH)
+
+# for each species in each condition at each pH at each time, test for equal variance with alone sample
+for (s in spec) {
+  for (c in cond[which(cond != s)]) {
+    for (p in pH) {
+      for (d in c(3,10,21)) {
+        # get cfu data for growth with partners
+        dat.part <- d.18 %>% 
+          filter(species == s, condition == c, pH == p, day == d)
+        # get cfu data for growth alone
+        dat.alone <- d.18 %>% 
+          filter(species == s, condition == "alone", pH == p, day == d)
+        # check similarity of variance using Levene's test
+        levene.test <- car::leveneTest(total.CFUs ~ condition, data = rbind(dat.alone, dat.part))
+        if (levene.test$"Pr(>F)"[1] <= 0.05) {
+          print(paste(s, "CFUs alone versus with", c, "at pH", p, "on day", d, 
+                      "do not have equal variance, with p value", levene.test$"Pr(>F)"[1]))
+        }
+      }
+    }
+  }
+}
+```
+
+That's also not great. What happens to variances when CFU data is log-transformed? -- Levene's Test (of equality of variances for non-normally distributed data)
+
+```{r check variances for log-transformed coculture vs. alone data, echo = F, message = F, warning = F}
+# define all conditions to run through
+spec <- levels(d.18$species)
+cond <- levels(d.18$condition)[which(levels(d.18$condition) != "alone")]
+pH <- levels(d.18$pH)
+
+# for each species in each condition at each pH at each time, test for equal variance with alone sample
+for (s in spec) {
+  for (c in cond[which(cond != s)]) {
+    for (p in pH) {
+      for (d in c(3,10,21)) {
+        # get cfu data for growth with partners
+        dat.part <- d.18 %>% 
+          filter(species == s, condition == c, pH == p, day == d) %>%
+          mutate(log.CFUs = log10(total.CFUs))
+        # get cfu data for growth alone
+        dat.alone <- d.18 %>% 
+          filter(species == s, condition == "alone", pH == p, day == d) %>%
+          mutate(log.CFUs = log10(total.CFUs))
+        # some samples will have 0's which become "-Inf" in log-transform, or all all 0's and can't be assessed
+        if(!any(is.infinite(dat.part$log.CFUs))) {
+          # check similarity of variance using Levene's test
+          levene.test <- car::leveneTest(log.CFUs ~ condition, data = rbind(dat.alone, dat.part))
+          if (levene.test$"Pr(>F)"[1] <= 0.05) {
+            print(paste(s, "CFUs alone versus with", c, "at pH", p, "on day", d, 
+                        "do not have equal variance, with p value", levene.test$"Pr(>F)"[1]))
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Just like for normality, that's a bit better. 
+
+But the problem with log-transformed data is it turns real 0's into infinite numbers. And those can't be statistically assessed. So I lose lots of very real information when these zero-values are practically eliminated.
+
+**So no log-transformation**, despite its help in normalizing sample distributions.
+**Also use non-parametric tests.** Wilcoxon Rank-Sums tests compare the shift in two samples.
+

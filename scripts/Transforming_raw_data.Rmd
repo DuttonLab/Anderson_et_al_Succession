@@ -2,19 +2,23 @@
 title: "Transforming raw data"
 author: "Brooke Anderson"
 date: "7/13/2021"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
-here::i_am("Transforming_raw_data.Rmd")
+here::i_am("scripts/Transforming_raw_data.Rmd")
 ```
 
 ## Pairwise data
 
-```{r import 2018 PW data, echo = F, warning = F, message = F}
+All PW combinations of 7 species, plus the alone condition & the complete 7-member community condition; all these assemblages repeated 5 times for experiments started on CCA pH 5 and CCA pH 7.
+
+```{r import 2018 PW data}
 # pH-factored growth data of alone, pairwise, and full communities
 d.18 <- read.csv(file = here("raw_data/2018_08_21_Bayley_allPW.csv"))
 d.18$pH <- as.factor(d.18$pH)
@@ -36,7 +40,7 @@ d.18.summ <- d.18 %>%
 
 ```
 
-```{r write out 2018 PW data, echo = F, warning = F, message = F}
+```{r write out 2018 PW data}
 write_csv(d.18, file = here("wrangled_data/all_pairwise.csv"))
 saveRDS(d.18, file = here("wrangled_data/all_pairwise.rds"))
 
@@ -56,7 +60,7 @@ Species left out
 * Staphyloccocus xylosus BC10 ("comm-BC10")
 * Candida/Diutina 135E & S. xylosus BC10 ("community minus early deacidifiers" or "comm-eD")
 
-```{r import pH 5 LOO data, echo = F, warning = F, message = F}
+```{r import pH 5 LOO data}
 d.loo5 <- read_csv(file = here("raw_data/2020_11_09_LeaveOneOut - Data.csv"), col_types = "ffffddddd")
 
 # calculate change in pH from beginning
@@ -65,7 +69,7 @@ d.loo5 <- d.loo5 %>% mutate(delta.pH.fromDay0 = ifelse(day == 0, 0, pH-average.s
 
 ```
 
-```{r write out pH 5 LOO data, echo = F, warning = F, message = F}
+```{r write out pH 5 LOO data}
 write_csv(d.loo5, file = here("wrangled_data/leave-one-out_pH5.csv"))
 saveRDS(d.loo5, file = here("wrangled_data/leave-one-out_pH5.rds"))
 ```
@@ -81,12 +85,16 @@ Community conditions
 * Penicillium JBC ("comm-JBC")
 * each of 7 Bayley species grown alone
 
-```{r import pH 7 LOO data, echo = F, warning = F, message = F}
-d.loo7 <- read_csv(file = "raw_data/2020_11_17_pH7LOO - Data.csv", col_types = "ffffdddddd")
+```{r import pH 7 LOO data}
+d.loo7 <- read_csv(file = here("raw_data/2020_11_17_pH7LOO - Data.csv"), col_types = "ffffdddddd")
 ```
 
-```{r write out pH 7 LOO data, echo = F, warning = F, message = F}
+```{r write out pH 7 LOO data}
 write_csv(d.loo7, file = here("wrangled_data/leave-one-out_pH7.csv"))
 saveRDS(d.loo7, file = here("wrangled_data/leave-one-out_pH7.rds"))
+```
+
+```{r save data objects for other scripts}
+save(d.18, d.18.summ, d.loo5, d.loo7, file = here("wrangled_data/all_data.RData"))
 ```
 
