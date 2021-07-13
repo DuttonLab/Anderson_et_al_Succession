@@ -1,0 +1,253 @@
+---
+title: "Assess pH 5 Leave-One-Out data"
+author: "Brooke Anderson"
+date: "7/13/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(cowplot)
+library(broom)
+library(here)
+here::i_am("scripts/Assess_pH5-Leave-One-Out_growth_data.Rmd")
+```
+
+## Background info
+
+The objective of this experiment was to assess the net contributions of key Bayley species, as identified by strong roles in pairwise interaction assays. To assess their overall contribution in the community, each of the following species was left out of the community when plates in equal ratio on cheese curd agar, pH 5.
+
+Species left out
+* none ("community" or "comm")
+* Penicillium JBC ("comm-JBC")
+* Candida/Diutina 135E ("comm-135E")
+* Staphyloccocus xylosus BC10 ("comm-BC10")
+* Candida/Diutina 135E & S. xylosus BC10 ("community minus early deacidifiers" or "comm-eD")
+
+```{r import data}
+d.loo5 <- readRDS(here("wrangled_data/leave-one-out_pH5.rds"))
+d.18 <- readRDS(here("wrangled_data/all_pairwise.rds"))
+```
+
+
+## Inoculation quality assessment
+
+Are the inoculations around 200 CFUs each? Any noteable biases?
+
+```{r plot inoculation, echo=FALSE}
+p.inoc.1 <- ggplot(d.loo5 %>% filter(day == 0) %>% 
+                     mutate(species = fct_reorder(species, total.CFUs)), 
+       aes(x = species, y = total.CFUs)) +
+  geom_point(alpha = 0.7) +
+  stat_summary(fun.y = "mean", geom = "point", size = 3, color = "red", alpha = 0.7) +
+  scale_y_continuous(limits = c(40, 500)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p.inoc.2 <- ggplot(d.loo5 %>% filter(day == 0) %>% 
+                     mutate(condition = fct_reorder(condition, total.CFUs)), 
+       aes(x = condition, y = total.CFUs)) +
+  geom_point(alpha = 0.7) +
+  stat_summary(fun.y = "mean", geom = "point", size = 3, color = "red", alpha = 0.7) +
+  scale_y_continuous(limits = c(40, 500)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot_grid(plotlist = list(p.inoc.1, p.inoc.2), align = "hv", axis = "tb", ncol = 2)
+```
+
+Representative inoculation of each species in each condition in black, and the mean within species (left) or within condition (right) in red.
+
+So there's definitely some species that were inoculated lower than target (mean ~130 CFUs), and some species that were ioculated higher than target, namely Brevibacterium JB5 with average ~300 CFUs. S. xylosus BC10 was right about on target, and then Penicillium JBC was all over the place, from 150 - 400 CFUs inoculated.
+
+However, overall the average inoculation within each community was right about at 200, or at least between 150 - 220 CFUs, which is pretty good. 
+
+# pH probe variability
+
+Interested in seeing whether pH of "control" (uninoculated but from same 96-well plate as community samples) cheese at time of harvest is changing at different timepoints, given that I've found strong ability of some Bayley species to raise the pH of the media through volatiles alone (namely, Penicillium, Brevibacterium, and Scopulariopsis, and this effect gets stronger between 7 & 10 days of growth). 
+
+Note that each "replicate" was the pH of uninoculated cheese at harvest day 3 (rep./harvest # 1), day 10 (rep./harvest # 2), and day 21 (rep./harvest # 3).
+
+```{r plot initial pH, echo=F, message=F, warning=F, fig.height=3.5}
+ggplot(d.loo5 %>% filter(day == 0, species == "BC9"), aes(x = replicate, y = pH)) +
+  geom_jitter(width = 0.1) + theme_minimal() +
+  labs(x = "harvest #")
+```
+
+So what I'm really seeing here is just a bias according to harvest date (note, pH probe re-calibrated at day 3 and day 10). 
+
+I also wan't to check that there isn't some systematic pH change over time of use.
+
+```{r pH time bias, echo=F, message=F, warning=F, fig.height=3.5}
+# day 3
+d3.ph.data <- ggplot(d.loo5 %>% filter(species == "BC9", day == 3) %>% rownames_to_column(),
+       aes(x = as.numeric(rowname), y = pH)) +
+  geom_point() +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(1, 15, by = 1)) +
+  scale_y_continuous(limits = c(5, 7)) +
+  labs(title = "pH over time measuring: day 3 community samples",
+      x = "sample # measured")
+d3.ph.control <- ggplot(d.loo5 %>% filter(species == "BC9", day == 0, replicate == 1) %>%
+                          rownames_to_column(),
+       aes(x = as.numeric(rowname), y = pH)) +
+  geom_point() +
+  theme_minimal() +
+  scale_y_continuous(limits = c(5, 7)) +
+  labs(title = "day 3 control CCA",
+      x = "sample # measured")
+plot_grid(plotlist = list(d3.ph.data, d3.ph.control), ncol = 2, 
+          rel_widths = c(1, .4), align = "v", axis = "lr")
+
+# day 10
+d10.ph.data <- ggplot(d.loo5 %>% filter(species == "BC9", day == 10) %>% rownames_to_column(),
+       aes(x = as.numeric(rowname), y = pH)) +
+  geom_point() +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(1, 15, by = 1)) +
+  scale_y_continuous(limits = c(5, 8.5)) +
+  labs(title = "pH over time measuring: day 10 community samples",
+      x = "sample # measured")
+d10.ph.control <- ggplot(d.loo5 %>% filter(species == "BC9", day == 0, replicate == 2) %>%
+                          rownames_to_column(),
+       aes(x = as.numeric(rowname), y = pH)) +
+  geom_point() +
+  theme_minimal() +
+  scale_y_continuous(limits = c(5, 8.5)) +
+  labs(title = "day 10 control CCA",
+      x = "sample # measured")
+plot_grid(plotlist = list(d10.ph.data, d10.ph.control), ncol = 2, 
+          rel_widths = c(1, .4), align = "v", axis = "lr")
+```
+
+I can't help but feel there is like some smallllll bias towards pH measurement decline over time. But even if so, from looking at any trend in the control (uninocuated) data and comparing it to the scale of differences in the community sample data, I don't think it's going to have an effect in the analysis. (could do a linear model assessment if I really cared to eliminate this).
+
+# Is complete community data replicating what has been seen before (i.e. 08_2018)
+
+```{r plotting objects, include = F}
+species.palette <- c("alone" = "#FFFFFF", "JB7" = "#85e6fb", "JB5" = "#1451a2", "BC10" = "#00b153",
+                     "BC9" = "#2ee863", "JB370" = "#a15100", "JBC" = "#a2a2a2",
+                     "135E" = "#d7cb6c", "community" = "#000000")
+
+names <- c(`comm`="community",
+           `comm-JBC`="community lacking Penicillium",
+           `comm-135E`="community lacking Candida", 
+           `comm-BC10`="community lacking S. xylosus", 
+           `comm-eD`="community lacking Candida and S. xylosus")
+
+```
+
+```{r compare community growth, echo = F, message=F, warning=F, fig.height=4}
+d.compare <- rbind(d.18 %>% 
+                     filter(condition == "community", pH == 5, !is.na(count)) %>%
+                     mutate(expt = "2018") %>%
+                     select(species, condition, replicate, day, total.CFUs, expt), 
+                   d.loo5 %>% filter(condition == "comm", !is.na(count)) %>%
+                     select("species", "condition", "replicate", "day", "total.CFUs") %>%
+                     mutate(expt = "current"))
+
+ggplot(d.compare %>% 
+         group_by(species, day, expt) %>% summarize(mean.CFUs = mean(total.CFUs)),
+       aes(x = day, y = mean.CFUs, color = species)) +
+  geom_line(aes(linetype = expt)) +
+  geom_point(data = d.compare, aes(x = day, y = total.CFUs, shape = expt)) +
+  scale_y_log10() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  theme_bw() +
+  facet_grid(. ~ species)
+  
+# each growth curve individual (don't average)
+ggplot(d.compare, aes(x = day, y = total.CFUs, color = species)) +
+  geom_line(aes(linetype = expt, group = interaction(expt, replicate))) +
+  geom_point(aes(shape = expt)) +
+  scale_y_log10() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  theme_bw() +
+  facet_grid(. ~ species)
+```
+
+See if there's something predictive about the difference in growth patterns between day3 & day10
+```{r model difference in growth, echo = F, message = F, warning = F}
+d.comp.growth <- d.compare %>% 
+  pivot_wider(names_from = day, names_prefix = "day_", values_from = total.CFUs) %>%
+  mutate("delt_0_3" = day_3/day_0, 
+         "delt_3_10" = day_10/day_3, 
+         "delt_10_21" = day_21/day_10)
+
+# which growth changes are significantly different in 2018 vs. 2020
+d.comp.growth %>%
+  nest(data = -species) %>%
+  mutate(
+    time.1 = map(data, ~ lm(delt_0_3 ~ expt, data = .x)),
+    time.2 = map(data, ~ lm(delt_3_10 ~ expt, data = .x)),
+    time.3 = map(data, ~ lm(delt_10_21 ~ expt, data = .x)),
+    tidied.1 = map(time.1, broom::tidy),
+    tidied.2 = map(time.2, broom::tidy),
+    tidied.3 = map(time.3, broom::tidy)
+  ) %>% 
+  unnest(tidied.1, tidied.2, tidied.3) %>%
+  filter(term == "conditioncomm") %>%
+  pivot_longer(col = contains("p.value"), names_to = "time", values_to = "p.value") %>%
+  mutate(growth_period = recode_factor(time, p.value = "0-3", p.value1 = "3-10", p.value2 = "10-21")) %>%
+  filter(p.value < 0.05) %>%
+  select(species, growth_period, p.value)
+
+# does inoculation matter?
+d.comp.growth %>%
+  nest(data = -species) %>%
+  mutate(
+    time.1 = map(data, ~ lm(delt_0_3 ~ expt * day_0, data = .x)),
+    time.2 = map(data, ~ lm(delt_3_10 ~ expt * day_0, data = .x)),
+    time.3 = map(data, ~ lm(delt_10_21 ~ expt * day_0, data = .x)),
+    tidied.1 = map(time.1, broom::tidy),
+    tidied.2 = map(time.2, broom::tidy),
+    tidied.3 = map(time.3, broom::tidy)
+  ) %>% 
+  unnest(tidied.1, tidied.2, tidied.3) %>%
+  filter(term != "(Intercept)") %>%
+  pivot_longer(col = contains("p.value"), names_to = "time", values_to = "p.value") %>%
+  mutate(growth_period = recode_factor(time, p.value = "0-3", p.value1 = "3-10", p.value2 = "10-21")) %>%
+  filter(p.value < 0.05) %>%
+  select(species, growth_period, term, p.value)
+
+ggplot(d.comp.growth, aes(x = day_0, y = delt_3_10)) +
+  geom_point((aes(shape = expt))) +
+  scale_y_log10() +
+  scale_x_log10() +
+  geom_smooth(method = "lm", se=F)
+```
+
+
+
+Compare community succession pattern
+
+```{r compare recent and previous community succession, echo = F, message=F, warning=F, fig.height=4}
+ggplot(d.compare %>% 
+         group_by(species, day, expt) %>% 
+         summarize(mean.CFUs = mean(total.CFUs)) %>%
+         mutate(class = ifelse(species %in% c("JB370", "JBC", "135E"),
+                                    "fungi", "bacteria")) %>%
+         mutate(dayChar = as.factor(day)),
+       aes(dayChar, mean.CFUs)) + 
+  geom_bar(aes(fill=factor(species, levels = c("JB7","JB5","BC10","BC9",
+                                                "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill") + 
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  scale_fill_manual(values = c("JB7" = "#85e6fb", "JB5" = "#1451a2", "BC10" = "#00b153", 
+                               "BC9" = "#2ee863", "JB370" = "#a15100", "JBC" = "#a2a2a2", 
+                               "135E" = "#d7cb6c"), name = "Species", 
+                    labels = c("Brachybacterium", "Brevibacterium", 
+                               "Staph. xylosus", "Staph. equorum", 
+                               "Scopulariopsis", "Penicillium", "Candida")) +
+  labs(x = "days", y = "relative composition",
+       title = "Relative composition of Bayley community bacteria and fungi") +
+  theme_classic() + 
+  theme(legend.text = element_text(face = "italic"),
+        panel.spacing.x = unit(0.5, "lines"),
+        plot.title = element_text(size = 15), 
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        legend.title = element_text(size = 12),
+        plot.subtitle=element_text(size=13)) +
+  facet_grid(class ~ expt, scales = "free_x")
+```
+
