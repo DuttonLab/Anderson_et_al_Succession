@@ -7,24 +7,86 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+here::i_am("Transforming_raw_data.Rmd")
 ```
 
-## R Markdown
+## Pairwise data
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r import 2018 PW data, echo = F, warning = F, message = F}
+# pH-factored growth data of alone, pairwise, and full communities
+d.18 <- read.csv(file = here("raw_data/2018_08_21_Bayley_allPW.csv"))
+d.18$pH <- as.factor(d.18$pH)
+colnames(d.18)[c(1,2,4,8)] <- c("species", "condition", "replicate", "total.CFUs")
+d.18$condition <- factor(d.18$condition, levels = c("alone", "135E", "BC10", "BC9", "JB5", "JB7", "JBC", "JB370", "community"))
+d.18$species <- factor(d.18$species, levels = c("135E", "BC10", "BC9", "JB5", "JB7", "JBC", "JB370"))
+d.18 <- d.18 %>% mutate(log.CFUs = log10(total.CFUs))
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+# get means & medians from replicates
+d.18.summ <- d.18 %>%
+  group_by(species, condition, day, pH, class) %>%
+  summarize(mean.CFUs = mean(total.CFUs, na.rm = TRUE),
+            mean.measured.pH = mean(measured.pH, na.rm = TRUE),
+            med.CFUs = median(total.CFUs, na.rm = TRUE),
+            med.measured.pH = median(measured.pH, na.rm = TRUE)) %>%
+  mutate(mean.log.CFUs = log10(mean.CFUs),
+         med.log.CFUs = log10(med.CFUs),
+         dayChar = as.factor(day))
 
-```{r cars}
-summary(cars)
 ```
 
-## Including Plots
+```{r write out 2018 PW data, echo = F, warning = F, message = F}
+write_csv(d.18, file = here("wrangled_data/all_pairwise.csv"))
+saveRDS(d.18, file = here("wrangled_data/all_pairwise.rds"))
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+write_csv(d.18.summ, file = here("wrangled_data/pairwise_summary_stats.csv"))
+saveRDS(d.18.summ, file = here("wrangled_data/pairwise_summary_stats.rds"))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Leave-one-out communities on CCA pH 5
+
+The objective of this experiment was to assess the net contributions of key Bayley species, as identified by strong roles in pairwise interaction assays. To assess their overall contribution in the community, each of the following species was left out of the community when plates in equal ratio on cheese curd agar, pH 5.
+
+Species left out
+* none ("community" or "comm")
+* Penicillium JBC ("comm-JBC")
+* Candida/Diutina 135E ("comm-135E")
+* Staphyloccocus xylosus BC10 ("comm-BC10")
+* Candida/Diutina 135E & S. xylosus BC10 ("community minus early deacidifiers" or "comm-eD")
+
+```{r import pH 5 LOO data, echo = F, warning = F, message = F}
+d.loo5 <- read_csv(file = here("raw_data/2020_11_09_LeaveOneOut - Data.csv"), col_types = "ffffddddd")
+
+# calculate change in pH from beginning
+average.start.pH <- d.loo5 %>% filter(day == 0) %>% pull(pH) %>% mean(na.rm = T)
+d.loo5 <- d.loo5 %>% mutate(delta.pH.fromDay0 = ifelse(day == 0, 0, pH-average.start.pH))
+
+```
+
+```{r write out pH 5 LOO data, echo = F, warning = F, message = F}
+write_csv(d.loo5, file = here("wrangled_data/leave-one-out_pH5.csv"))
+saveRDS(d.loo5, file = here("wrangled_data/leave-one-out_pH5.rds"))
+```
+
+## Leave-one-out communities on CCA pH 7
+
+The objective of this experiment was to reconstruct the Bayley community to have no (or rather minimized) net growth effects. This community eliminates stimulatory effects of deacidification by growing the community at pH 7 and also eliminated inhibitory effects due to *Penicillium* JBC by removing it from the community.
+Comparison of the growth each species grown alone at pH 7 to growth in the community lacking Penicillium will reveal any additional interactions not accounted for by these two growth affectors. 
+
+Community conditions
+
+* none ("community" or "comm")
+* Penicillium JBC ("comm-JBC")
+* each of 7 Bayley species grown alone
+
+```{r import pH 7 LOO data, echo = F, warning = F, message = F}
+d.loo7 <- read_csv(file = "raw_data/2020_11_17_pH7LOO - Data.csv", col_types = "ffffdddddd")
+```
+
+```{r write out pH 7 LOO data, echo = F, warning = F, message = F}
+write_csv(d.loo7, file = here("wrangled_data/leave-one-out_pH7.csv"))
+saveRDS(d.loo7, file = here("wrangled_data/leave-one-out_pH7.rds"))
+```
+
