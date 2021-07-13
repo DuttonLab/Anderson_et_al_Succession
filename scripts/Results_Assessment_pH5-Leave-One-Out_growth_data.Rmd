@@ -1,0 +1,605 @@
+---
+title: "Results and Assessment of pH 5 Leave-One-Out data"
+author: "Brooke Anderson"
+date: "7/13/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(cowplot)
+library(broom)
+library(here)
+here::i_am("scripts/Results_Assessment_pH5-Leave-One-Out_growth_data.Rmd")
+```
+
+## Background info
+
+The objective of this experiment was to assess the net contributions of key Bayley species, as identified by strong roles in pairwise interaction assays. To assess their overall contribution in the community, each of the following species was left out of the community when plates in equal ratio on cheese curd agar, pH 5.
+
+Species left out
+* none ("community" or "comm")
+* Penicillium JBC ("comm-JBC")
+* Candida/Diutina 135E ("comm-135E")
+* Staphyloccocus xylosus BC10 ("comm-BC10")
+* Candida/Diutina 135E & S. xylosus BC10 ("community minus early deacidifiers" or "comm-eD")
+
+```{r import data}
+d.loo5 <- readRDS(here("wrangled_data/leave-one-out_pH5.rds"))
+d.18 <- readRDS(here("wrangled_data/all_pairwise.rds"))
+```
+
+
+## Inoculation quality assessment
+
+Are the inoculations around 200 CFUs each? Any noteable biases?
+
+```{r plot inoculation, echo=FALSE}
+p.inoc.1 <- ggplot(d.loo5 %>% filter(day == 0) %>% 
+                     mutate(species = fct_reorder(species, total.CFUs)), 
+       aes(x = species, y = total.CFUs)) +
+  geom_point(alpha = 0.7) +
+  stat_summary(fun.y = "mean", geom = "point", size = 3, color = "red", alpha = 0.7) +
+  scale_y_continuous(limits = c(40, 500)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p.inoc.2 <- ggplot(d.loo5 %>% filter(day == 0) %>% 
+                     mutate(condition = fct_reorder(condition, total.CFUs)), 
+       aes(x = condition, y = total.CFUs)) +
+  geom_point(alpha = 0.7) +
+  stat_summary(fun.y = "mean", geom = "point", size = 3, color = "red", alpha = 0.7) +
+  scale_y_continuous(limits = c(40, 500)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot_grid(plotlist = list(p.inoc.1, p.inoc.2), align = "hv", axis = "tb", ncol = 2)
+```
+
+Representative inoculation of each species in each condition in black, and the mean within species (left) or within condition (right) in red.
+
+So there's definitely some species that were inoculated lower than target (mean ~130 CFUs), and some species that were ioculated higher than target, namely Brevibacterium JB5 with average ~300 CFUs. S. xylosus BC10 was right about on target, and then Penicillium JBC was all over the place, from 150 - 400 CFUs inoculated.
+
+However, overall the average inoculation within each community was right about at 200, or at least between 150 - 220 CFUs, which is pretty good. 
+
+# pH probe variability
+
+Interested in seeing whether pH of "control" (uninoculated but from same 96-well plate as community samples) cheese at time of harvest is changing at different timepoints, given that I've found strong ability of some Bayley species to raise the pH of the media through volatiles alone (namely, Penicillium, Brevibacterium, and Scopulariopsis, and this effect gets stronger between 7 & 10 days of growth). 
+
+Note that each "replicate" was the pH of uninoculated cheese at harvest day 3 (rep./harvest # 1), day 10 (rep./harvest # 2), and day 21 (rep./harvest # 3).
+
+```{r plot initial pH, echo=F, message=F, warning=F, fig.height=3.5}
+ggplot(d.loo5 %>% filter(day == 0, species == "BC9"), aes(x = replicate, y = pH)) +
+  geom_jitter(width = 0.1) + theme_minimal() +
+  labs(x = "harvest #")
+```
+
+So what I'm really seeing here is just a bias according to harvest date (note, pH probe re-calibrated at day 3 and day 10). 
+
+I also wan't to check that there isn't some systematic pH change over time of use.
+
+```{r pH time bias, echo=F, message=F, warning=F, fig.height=3.5}
+# day 3
+d3.ph.data <- ggplot(d.loo5 %>% filter(species == "BC9", day == 3) %>% rownames_to_column(),
+       aes(x = as.numeric(rowname), y = pH)) +
+  geom_point() +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(1, 15, by = 1)) +
+  scale_y_continuous(limits = c(5, 7)) +
+  labs(title = "pH over time measuring: day 3 community samples",
+      x = "sample # measured")
+d3.ph.control <- ggplot(d.loo5 %>% filter(species == "BC9", day == 0, replicate == 1) %>%
+                          rownames_to_column(),
+       aes(x = as.numeric(rowname), y = pH)) +
+  geom_point() +
+  theme_minimal() +
+  scale_y_continuous(limits = c(5, 7)) +
+  labs(title = "day 3 control CCA",
+      x = "sample # measured")
+plot_grid(plotlist = list(d3.ph.data, d3.ph.control), ncol = 2, 
+          rel_widths = c(1, .4), align = "v", axis = "lr")
+
+# day 10
+d10.ph.data <- ggplot(d.loo5 %>% filter(species == "BC9", day == 10) %>% rownames_to_column(),
+       aes(x = as.numeric(rowname), y = pH)) +
+  geom_point() +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(1, 15, by = 1)) +
+  scale_y_continuous(limits = c(5, 8.5)) +
+  labs(title = "pH over time measuring: day 10 community samples",
+      x = "sample # measured")
+d10.ph.control <- ggplot(d.loo5 %>% filter(species == "BC9", day == 0, replicate == 2) %>%
+                          rownames_to_column(),
+       aes(x = as.numeric(rowname), y = pH)) +
+  geom_point() +
+  theme_minimal() +
+  scale_y_continuous(limits = c(5, 8.5)) +
+  labs(title = "day 10 control CCA",
+      x = "sample # measured")
+plot_grid(plotlist = list(d10.ph.data, d10.ph.control), ncol = 2, 
+          rel_widths = c(1, .4), align = "v", axis = "lr")
+```
+
+I can't help but feel there is like some smallllll bias towards pH measurement decline over time. But even if so, from looking at any trend in the control (uninocuated) data and comparing it to the scale of differences in the community sample data, I don't think it's going to have an effect in the analysis. (could do a linear model assessment if I really cared to eliminate this).
+
+# Is complete community data replicating what has been seen before (i.e. 08_2018)
+
+```{r plotting objects, include = F}
+species.palette <- c("alone" = "#FFFFFF", "JB7" = "#85e6fb", "JB5" = "#1451a2", "BC10" = "#00b153",
+                     "BC9" = "#2ee863", "JB370" = "#a15100", "JBC" = "#a2a2a2",
+                     "135E" = "#d7cb6c", "community" = "#000000")
+
+names <- c(`comm`="community",
+           `comm-JBC`="community lacking Penicillium",
+           `comm-135E`="community lacking Candida", 
+           `comm-BC10`="community lacking S. xylosus", 
+           `comm-eD`="community lacking Candida and S. xylosus")
+
+```
+
+```{r compare community growth, echo = F, message=F, warning=F, fig.height=4}
+d.compare <- rbind(d.18 %>% 
+                     filter(condition == "community", pH == 5, !is.na(count)) %>%
+                     mutate(expt = "2018") %>%
+                     select(species, condition, replicate, day, total.CFUs, expt), 
+                   d.loo5 %>% filter(condition == "comm", !is.na(count)) %>%
+                     select("species", "condition", "replicate", "day", "total.CFUs") %>%
+                     mutate(expt = "current"))
+
+ggplot(d.compare %>% 
+         group_by(species, day, expt) %>% summarize(mean.CFUs = mean(total.CFUs)),
+       aes(x = day, y = mean.CFUs, color = species)) +
+  geom_line(aes(linetype = expt)) +
+  geom_point(data = d.compare, aes(x = day, y = total.CFUs, shape = expt)) +
+  scale_y_log10() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  theme_bw() +
+  facet_grid(. ~ species)
+  
+# each growth curve individual (don't average)
+ggplot(d.compare, aes(x = day, y = total.CFUs, color = species)) +
+  geom_line(aes(linetype = expt, group = interaction(expt, replicate))) +
+  geom_point(aes(shape = expt)) +
+  scale_y_log10() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  theme_bw() +
+  facet_grid(. ~ species)
+```
+
+See if there's something predictive about the difference in growth patterns between day3 & day10
+```{r model difference in growth, echo = F, message = F, warning = F}
+d.comp.growth <- d.compare %>% 
+  pivot_wider(names_from = day, names_prefix = "day_", values_from = total.CFUs) %>%
+  mutate("delt_0_3" = day_3/day_0, 
+         "delt_3_10" = day_10/day_3, 
+         "delt_10_21" = day_21/day_10)
+
+# which growth changes are significantly different in 2018 vs. 2020
+d.comp.growth %>%
+  nest(data = -species) %>%
+  mutate(
+    time.1 = map(data, ~ lm(delt_0_3 ~ expt, data = .x)),
+    time.2 = map(data, ~ lm(delt_3_10 ~ expt, data = .x)),
+    time.3 = map(data, ~ lm(delt_10_21 ~ expt, data = .x)),
+    tidied.1 = map(time.1, broom::tidy),
+    tidied.2 = map(time.2, broom::tidy),
+    tidied.3 = map(time.3, broom::tidy)
+  ) %>% 
+  unnest(tidied.1, tidied.2, tidied.3) %>%
+  filter(term == "conditioncomm") %>%
+  pivot_longer(col = contains("p.value"), names_to = "time", values_to = "p.value") %>%
+  mutate(growth_period = recode_factor(time, p.value = "0-3", p.value1 = "3-10", p.value2 = "10-21")) %>%
+  filter(p.value < 0.05) %>%
+  select(species, growth_period, p.value)
+
+# does inoculation matter?
+d.comp.growth %>%
+  nest(data = -species) %>%
+  mutate(
+    time.1 = map(data, ~ lm(delt_0_3 ~ expt * day_0, data = .x)),
+    time.2 = map(data, ~ lm(delt_3_10 ~ expt * day_0, data = .x)),
+    time.3 = map(data, ~ lm(delt_10_21 ~ expt * day_0, data = .x)),
+    tidied.1 = map(time.1, broom::tidy),
+    tidied.2 = map(time.2, broom::tidy),
+    tidied.3 = map(time.3, broom::tidy)
+  ) %>% 
+  unnest(tidied.1, tidied.2, tidied.3) %>%
+  filter(term != "(Intercept)") %>%
+  pivot_longer(col = contains("p.value"), names_to = "time", values_to = "p.value") %>%
+  mutate(growth_period = recode_factor(time, p.value = "0-3", p.value1 = "3-10", p.value2 = "10-21")) %>%
+  filter(p.value < 0.05) %>%
+  select(species, growth_period, term, p.value)
+
+ggplot(d.comp.growth, aes(x = day_0, y = delt_3_10)) +
+  geom_point((aes(shape = expt))) +
+  scale_y_log10() +
+  scale_x_log10() +
+  geom_smooth(method = "lm", se=F)
+```
+
+
+
+Compare community succession pattern
+
+```{r compare recent and previous community succession, echo = F, message=F, warning=F, fig.height=4}
+ggplot(d.compare %>% 
+         group_by(species, day, expt) %>% 
+         summarize(mean.CFUs = mean(total.CFUs)) %>%
+         mutate(class = ifelse(species %in% c("JB370", "JBC", "135E"),
+                                    "fungi", "bacteria")) %>%
+         mutate(dayChar = as.factor(day)),
+       aes(dayChar, mean.CFUs)) + 
+  geom_bar(aes(fill=factor(species, levels = c("JB7","JB5","BC10","BC9",
+                                                "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill") + 
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  scale_fill_manual(values = c("JB7" = "#85e6fb", "JB5" = "#1451a2", "BC10" = "#00b153", 
+                               "BC9" = "#2ee863", "JB370" = "#a15100", "JBC" = "#a2a2a2", 
+                               "135E" = "#d7cb6c"), name = "Species", 
+                    labels = c("Brachybacterium", "Brevibacterium", 
+                               "Staph. xylosus", "Staph. equorum", 
+                               "Scopulariopsis", "Penicillium", "Candida")) +
+  labs(x = "days", y = "relative composition",
+       title = "Relative composition of Bayley community bacteria and fungi") +
+  theme_classic() + 
+  theme(legend.text = element_text(face = "italic"),
+        panel.spacing.x = unit(0.5, "lines"),
+        plot.title = element_text(size = 15), 
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        legend.title = element_text(size = 12),
+        plot.subtitle=element_text(size=13)) +
+  facet_grid(class ~ expt, scales = "free_x")
+```
+
+
+## pH data
+
+First let's plot the data to know what we're working with:
+
+```{r plotting pH, echo = F}
+ggplot(d.loo5 %>% filter(day != 0, species == "BC9"), aes(x = condition, y = pH)) +
+  geom_point(alpha = 0.7) +
+  stat_summary(fun = "mean", geom = "point", size = 3, color = "red", alpha = 0.7) +
+  scale_y_continuous(limits = c(5, 8.5)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_grid(.~day, labeller=as_labeller(function(day) paste0("day ", day, " pH measurements")))
+```
+
+
+## growth data & ttests
+
+```{r statistical tests and summary, echo = F, warning = F}
+l.tests <- list()
+
+cond <- levels(d.loo5$condition)[which(levels(d.loo5$condition) != "comm")]
+
+for (c in cond) {
+  dat.tests <- d.loo5[0,-c(4,6:10)]
+  spec <- d.loo5 %>% filter(condition == c) %>% 
+    pull(species) %>% unique() %>% as.character()
+  for (s in spec) {
+    for (d in c(3,10,21)) {
+      # get CFU data for growth in a leave-one-out community
+      dat.LOO <- d.loo5 %>% 
+          filter(species == s, condition == c, day == d, !is.na(count))
+      # get CFU data for growth in the full community
+      dat.full <- d.loo5 %>% 
+          filter(species == s, condition == "comm", day == d, !is.na(count))
+      if(nrow(dat.LOO) <= 1 | nrow(dat.full) <= 1) next
+      # set up dataframe with metadata
+      dat.tests[nrow(dat.tests)+1, "species"] <- s
+      dat.tests[nrow(dat.tests), "condition"] <- c
+      dat.tests[nrow(dat.tests), "media"] <- "pH 5"
+      dat.tests[nrow(dat.tests), "day"] <- d
+      dat.tests[nrow(dat.tests), "ave.pH.cond"] <- mean(d.loo5 %>% 
+                                                          filter(species == s, condition == c, day == d, !is.na(pH)) %>% 
+                                                          pull(pH))
+      dat.tests[nrow(dat.tests), "ave.pH.comm"] <- mean(d.loo5 %>% 
+                                                          filter(species == s, condition == "comm", day == d, !is.na(pH)) %>%
+                                                          pull(pH))
+      dat.tests[nrow(dat.tests), "ave.delt.ph.fromDay0"] <- mean(d.loo5 %>% 
+                                                          filter(species == s, condition == c, day == d,
+                                                                 !is.na(delta.pH.fromDay0)) %>% 
+                                                            pull(delta.pH.fromDay0))
+      dat.tests[nrow(dat.tests), "LOO.median"] <- median(dat.LOO$total.CFUs)
+      dat.tests[nrow(dat.tests), "comm.median"] <- median(dat.full$total.CFUs)
+      # median fold-change
+      fcs <- vector()  
+      for(i in intersect(dat.LOO$replicate, dat.full$replicate)) {
+        LOO.cfus <- dat.LOO %>% filter(replicate == i) %>% pull(total.CFUs)
+        full.cfus <- dat.full %>% filter(replicate == i) %>% pull(total.CFUs)
+        fcs[length(fcs)+1] <- LOO.cfus / full.cfus
+      }
+      dat.tests[nrow(dat.tests), "med.fc.part.alone"] <- median(fcs)
+      # do mann-whitney-wilcoxon tests on raw data
+      ttest <- wilcox.test(dat.LOO$total.CFUs, dat.full$total.CFUs, 
+                           alternative = "two.sided", var.equal = F, conf.int = T)
+      # back-calculate confidence intervals
+      dat.tests[nrow(dat.tests), "times.diff.CI.low"] <- ttest$"conf.int"[1]
+      dat.tests[nrow(dat.tests), "times.diff.CI.high"] <- ttest$"conf.int"[2]
+      # record p-value testing whether two samples look like they're from the same population
+      dat.tests[nrow(dat.tests), "pval"] <- ttest$p.value
+      if(ttest$p.value < 0.05 & ttest$p.value >= 0.01) dat.tests[nrow(dat.tests), "sig"] = "*"
+      if(ttest$p.value < 0.01 & ttest$p.value >= 0.001) dat.tests[nrow(dat.tests), "sig"] = "**"
+      if(ttest$p.value < 0.001) dat.tests[nrow(dat.tests), "sig"] = "***"
+    }
+  }
+  l.tests[[length(l.tests)+1]] <- dat.tests
+}
+names(l.tests) <- cond
+# turn into dataframe
+d.tests <- lapply(l.tests, as.data.frame) %>% bind_rows()
+```
+
+
+
+
+Comparing growth curves for each species in each condition:
+
+```{r growth curves, echo = F, message = F, warning=F}
+ggplot(d.loo5 %>% filter(!is.na(count)) %>%
+         group_by(species, day, condition) %>% summarize(mean.CFUs = mean(total.CFUs)),
+       aes(x = day, y = mean.CFUs, color = species)) +
+  geom_line(aes(linetype = condition)) +
+  geom_point(data = d.loo5, aes(x = day, y = total.CFUs, shape = condition), alpha = .5) +
+  scale_y_log10() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  theme_bw() +
+  facet_grid(. ~ species)
+```
+
+Assess how dropping certain community members from the community affects growth, using growth in the full community as a baseline for comparison (indicated by horizontal gray bar, CFUs of the species in full community at that timepoint). Each large dot is the average of the smaller dots, which show the growth of that species in that community at that time point, and the vertical line connecting the dots to the horizontal gray line highlights the difference in growth between the dropout community and the full community. Points are colored by sample pH.
+
+```{r compare pH of dropouts to community, echo = F, warning = F, message = F}
+d.loo5 <- d.loo5 %>% pivot_wider(id_cols = c(species, day, replicate), 
+                     names_from = condition, values_from = pH) %>%
+  mutate(delt.comm = 0,
+         `delt.comm-JBC` = `comm-JBC` - comm,
+         `delt.comm-135E` = `comm-135E` - comm,
+         `delt.comm-BC10` = `comm-BC10` - comm,
+         `delt.comm-eD` = `comm-eD` - comm) %>%
+  pivot_longer(cols = starts_with("delt."), values_to = "pH.vs.comm", 
+               names_to = "condition", names_prefix = "delt.") %>%
+  select(-starts_with("comm")) %>% 
+  left_join(d.loo5, .)
+
+d.tests <- d.tests %>% 
+  mutate(pH.vs.comm = ave.pH.cond - ave.pH.comm)
+```
+
+
+```{r growth fold-changes, echo = F, warning=F, message = F, fig.height=6}
+p.compare.growth <- ggplot(d.tests, aes(x = condition, y = LOO.median)) +
+  geom_point(aes(color = ave.delt.ph.fromDay0)) +
+  geom_jitter(data = d.loo5 %>% filter(!is.na(count), day != 0, condition != "comm"), 
+             aes(x = condition, y = total.CFUs, color = pH), 
+             size = .6, alpha = .7, width = .3) +
+  geom_hline(aes(yintercept = comm.median), color = "gray70") +
+  geom_segment(aes(y = comm.median, yend = LOO.median,
+                   x = condition, xend = condition), color = "gray70") +
+  scale_y_log10(limits = c(3e2, 7e8)) +
+  scale_color_gradient2(low = "darkorange2", mid = "gold", high = "green3", midpoint = 7) +
+  facet_grid(species ~ day, 
+             labeller = as_labeller(c(`3` = "Day 3", `10` = "Day 10", `21` = "Day 21",
+                                      `BC9` = "S. equorum", `BC10` = "S. xylosus",
+                                      `JB5` = "Brevibacterium", `JB7` = "Brachybacterium",
+                                      `135E` = "Candida", `JBC` = "Penicillium", 
+                                      `JB370` = "Scopulariopsis"))) +
+  theme_minimal() +
+  labs(y = "colony forming units") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.text.y = element_text(angle = 0, face = "italic"),
+        legend.position = "top",
+        panel.background = element_rect(fill = "gray97", color = NA),
+        strip.background = element_rect(fill = NA, color = "gray90"))
+
+p.compare.growth 
+
+## narrow in on looking at just JB5 & JB7
+ggplot(d.tests %>% filter(species %in% c("JB5", "JB7")), 
+       aes(x = condition, y = LOO.median)) +
+  geom_point(aes(color = ave.delt.ph.fromDay0)) +
+  geom_jitter(data = d.loo5 %>% filter(!is.na(count), day != 0, condition != "comm",
+                                      species %in% c("JB5", "JB7")), 
+             aes(x = condition, y = total.CFUs, color = delta.pH.fromDay0), 
+             size = .6, alpha = .7, width = .3) +
+  geom_hline(aes(yintercept = comm.median), color = "gray70") +
+  geom_segment(aes(y = comm.median, yend = LOO.median,
+                   x = condition, xend = condition), color = "gray70") +
+  scale_y_log10(limits = c(3e2, 7e8)) +
+  scale_x_discrete(labels=c("comm-JBC" = "Penicillium", "comm-135E" = "Candida",
+                            "comm-BC10" = "S. xylosus", "comm-eD" = "Candida & S. xylosus"),
+                   name = "species dropped from community") +
+  scale_color_gradient(low = "gold", high = "green3", limits = c(0, 3.2),
+                        name = expression(Delta*"pH")) +
+  facet_grid(species ~ day, 
+             labeller = as_labeller(c(`3` = "Day 3", `10` = "Day 10", `21` = "Day 21",
+                                      `BC9` = "S. equorum", `BC10` = "S. xylosus",
+                                      `JB5` = "Brevibacterium", `JB7` = "Brachybacterium",
+                                      `135E` = "Candida", `JBC` = "Penicillium", 
+                                      `JB370` = "Scopulariopsis"))) +
+  theme_bw() +
+  labs(y = "colony forming units") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "italic"),
+        strip.text.y = element_text(angle = 0, face = "italic"),
+        strip.background = element_rect(fill = NA, color = "gray90"))
+
+## narrow in on just the effects of removing Penicillium
+ggplot(d.tests %>% filter(condition == "comm-JBC"), aes(x = species, y = LOO.median)) +
+  geom_point(color = "black") +
+  geom_jitter(data = d.loo5 %>% filter(!is.na(count), day != 0, condition == "comm-JBC"), 
+             aes(x = species, y = total.CFUs), color = "black",
+             size = .6, alpha = .7, width = .3) +
+  geom_point(aes(y = comm.median), color = "gray70") +
+  geom_segment(aes(y = comm.median, yend = LOO.median,
+                   x = species, xend = species), color = "gray70") +
+  scale_y_log10(limits = c(3e2, 7e8)) +
+  scale_x_discrete(labels=c("BC9" = "S. equorum", "BC10" = "S. xylosus",
+                            "JB5" = "Brevibacterium", "JB7" = "Brachybacterium",
+                            "135E" = "Candida", "JBC" = "Penicillium", 
+                            "JB370" = "Scopulariopsis"),
+                   name = "species growing") +
+  facet_grid(. ~ day, 
+             labeller = as_labeller(c(`3` = "Day 3", `10` = "Day 10", `21` = "Day 21"))) +
+  theme_minimal() +
+  labs(y = "colony forming units") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "italic"),
+        panel.background = element_rect(fill = "gray97", color = NA),
+        strip.background = element_rect(fill = NA, color = "gray90"))
+```
+
+Statistical tests on differences in growth
+
+```{r growth tests, echo = F, message = F, warning=F}
+
+df.anovas <- tibble("species" = character(), "day" = numeric(), 
+                    "p-value" = numeric(), "sig.by.condition" = character())
+for(s in levels(d.loo5$species)) {
+  for(d in c(3, 10, 21)) {
+    mod.growth3 <- aov(total.CFUs ~ condition, data = d.loo5 %>% filter(day == d, species == s))
+    p.val <- anova(mod.growth3) %>% tidy %>% .[1, "p.value", drop = T]
+    df.anovas[nrow(df.anovas)+1, "species"] <- s
+    df.anovas[nrow(df.anovas), "day"] <- d
+    df.anovas[nrow(df.anovas), "p-value"] <- p.val
+    df.anovas[nrow(df.anovas), "sig.by.condition"] <- ifelse(p.val <= 0.05, "*", "")
+  }
+}
+df.anovas
+
+# Summarizing contrasts each species, each timepoint
+for(s in levels(d.loo5$species)) {
+  for(d in c(3, 10, 21)) {
+    print(paste0("Contrasts for ", s, " on day ", d))
+    print(summary.aov(aov(total.CFUs ~ condition, data = d.loo5 %>% filter(day == d, species == s)), 
+                      split = list(condition = list("minus Penicillium versus full" = 1,
+                                                    "minus Candida versus full" = 2,
+                                                    "minus S. xylosus versus full" = 3,
+                                                    "minus eD versus full" = 4))))
+  }
+}
+
+```
+
+## patterns of succession
+Compare patterns of succession when certain species are dropped from the community
+
+```{r succession for LOO communities, echo = F, message = F, warning = F, fig.height=4}
+ggplot(d.loo5 %>% filter(!is.na(count)) %>%
+         group_by(species, day, condition) %>% 
+         summarize(mean.CFUs = mean(total.CFUs)) %>%
+         mutate(class = ifelse(species %in% c("JB370", "JBC", "135E"),
+                                    "fungi", "bacteria")) %>%
+         mutate(dayChar = as.factor(day)),
+       aes(dayChar, mean.CFUs)) + 
+  geom_bar(aes(fill=factor(species, levels = c("JB7","JB5","BC10","BC9",
+                                                "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill") + 
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  scale_fill_manual(values = c("JB7" = "#85e6fb", "JB5" = "#1451a2", "BC10" = "#00b153", 
+                               "BC9" = "#2ee863", "JB370" = "#a15100", "JBC" = "#a2a2a2", 
+                               "135E" = "#d7cb6c"), name = "Species", 
+                    labels = c("Brachybacterium", "Brevibacterium", 
+                               "Staph. xylosus", "Staph. equorum", 
+                               "Scopulariopsis", "Penicillium", "Candida")) +
+  labs(x = "days", y = "relative composition",
+       title = "Relative composition of Bayley community bacteria and fungi") +
+  theme_classic() + 
+  theme(legend.text = element_text(face = "italic"),
+        panel.spacing.x = unit(0.5, "lines"),
+        plot.title = element_text(size = 15), 
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        legend.title = element_text(size = 12),
+        plot.subtitle=element_text(size=13)) +
+  facet_grid(class ~ condition, scales = "free_x")
+
+## compare without candida to complete
+ggplot(d.loo5 %>% filter(!is.na(count), condition %in% c("comm", "comm-135E")) %>%
+         group_by(species, day, condition) %>% 
+         summarize(mean.CFUs = mean(total.CFUs)) %>%
+         mutate(class = ifelse(species %in% c("JB370", "JBC", "135E"),
+                                    "fungi", "bacteria")) %>%
+         filter(class == "bacteria") %>%
+         mutate(dayChar = as.factor(day)),
+       aes(dayChar, mean.CFUs)) + 
+  geom_bar(aes(fill=factor(species, levels = c("JB7","JB5","BC10","BC9",
+                                                "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill") + 
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  scale_fill_manual(values = c("JB7" = "#85e6fb", "JB5" = "#1451a2", "BC10" = "#00b153", 
+                               "BC9" = "#2ee863"), name = "Species", 
+                    labels = c("Brachybacterium", "Brevibacterium", 
+                               "Staph. xylosus", "Staph. equorum")) +
+  labs(x = "days", y = "relative composition") +
+  theme_classic() + 
+  theme(legend.text = element_text(face = "italic"),
+        panel.spacing.x = unit(0.5, "lines"),
+        plot.title = element_text(size = 15), 
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        legend.title = element_text(size = 12)) +
+  facet_grid(class ~ condition, scales = "free_x")
+```
+
+Obviously this is a little hard to interpret because, e.g. in the community minus BC10, there is no bar for BC10 anymore and so the percent abundance of the remaining bacteria can't be directly compared to conditions that also have BC10.
+
+Let's first look at just the bacteria that are in all the community conditions -- BC9, JB5, and JB7:
+
+```{r 3-bact succession for LOO communities, echo = F, message = F, warning = F, fig.height=3}
+ggplot(d.loo5 %>% filter(!is.na(count), species %in% c("BC9", "JB5", "JB7")) %>%
+         group_by(species, day, condition) %>% 
+         summarize(mean.CFUs = mean(total.CFUs)) %>%
+         mutate(dayChar = as.factor(day)),
+       aes(dayChar, mean.CFUs)) + 
+  geom_bar(aes(fill=factor(species, levels = c("JB7","JB5","BC10","BC9",
+                                                "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill") + 
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  scale_fill_manual(values = c("JB7" = "#85e6fb", "JB5" = "#1451a2", "BC10" = "#00b153", 
+                               "BC9" = "#2ee863", "JB370" = "#a15100", "JBC" = "#a2a2a2", 
+                               "135E" = "#d7cb6c"), name = "Species", 
+                    labels = c("Brachybacterium", "Brevibacterium", 
+                               "Staph. xylosus", "Staph. equorum", 
+                               "Scopulariopsis", "Penicillium", "Candida")) +
+  labs(x = "days", y = "relative composition",
+       title = "Relative composition of Bayley community bacteria and fungi") +
+  theme_classic() + 
+  theme(legend.text = element_text(face = "italic"),
+        panel.spacing.x = unit(0.5, "lines"),
+        plot.title = element_text(size = 15), 
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        legend.title = element_text(size = 12),
+        plot.subtitle=element_text(size=13)) +
+  facet_grid(. ~ condition, scales = "free_x")
+```
+
+Let's also look at the balance between fungi and bacteria, although I suppose it's a little funny to consider this since the dropout of any one fungus or bacterium necessitates that the  amount of fungi vs. bacteria from the start is different as compared to the complete community.
+
+```{r bact-vs.-fungi succession for LOO communities, echo = F, message = F, warning = F, fig.height=3}
+ggplot(d.loo5 %>% filter(!is.na(count)) %>%
+         group_by(species, day, condition) %>% 
+         summarize(mean.CFUs = mean(total.CFUs)) %>%
+         mutate(class = ifelse(species %in% c("JB370", "JBC", "135E"),
+                                    "fungi", "bacteria")) %>%
+         mutate(dayChar = as.factor(day)),
+       aes(dayChar, mean.CFUs)) + 
+  geom_bar(aes(fill=as.factor(class)), 
+           stat = "identity", position = "fill") + 
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  scale_fill_manual(values = c("fungi" = "gray80", "bacteria" = "gray55")) +
+  labs(x = "days", y = "relative composition",
+       title = "Relative composition of Bayley community bacteria and fungi") +
+  theme_classic() + 
+  theme(panel.spacing.x = unit(0.5, "lines"),
+        plot.title = element_text(size = 15), 
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        legend.title = element_text(size = 12),
+        plot.subtitle=element_text(size=13)) +
+  facet_grid(. ~ condition, scales = "free_x")
+```
+
+
+

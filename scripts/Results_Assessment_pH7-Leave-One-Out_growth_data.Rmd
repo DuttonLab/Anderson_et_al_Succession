@@ -1,5 +1,5 @@
 ---
-title: "Assess pH 7 Leave-Out-Out data"
+title: "Results & Assessment of pH 7 Leave-Out-Out data"
 author: "Brooke Anderson"
 date: "7/13/2021"
 output: pdf_document
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(cowplot)
 library(here)
-here::i_am("scripts/Assess_pH7-Leave-One-Out_growth_data.Rmd")
+here::i_am("scripts/Results_Assessment_pH7-Leave-One-Out_growth_data.Rmd")
 ```
 
 ## Background info
@@ -97,7 +97,7 @@ ggplot(d.loo7 %>% filter(day == 0) %>%
 
 Again, from early timepoints, I can't help but feel there is like some small bias towards pH measurement decline over time. Obviously the effects of volatiles on the pH after 21 days is too great to get a sense for this anymore
 
-# Is complete community & alone data replicating what has been seen before (i.e. 08_2018)
+# Is complete community & alone data replicating what has been seen before (i.e. the complete pairwise experiment done in 08_2018)
 
 
 ```{r useful stuff, include = F}
@@ -201,3 +201,102 @@ ggplot(d.compare.comm %>%
         plot.subtitle=element_text(size=13)) +
   facet_grid(class ~ expt, scales = "free_x")
 ```
+
+## pH data
+
+First let's plot the data to know what we're working with:
+
+```{r plotting pH, echo = F, warning = F, message = F, fig.height=3.5}
+
+ggplot(d.loo7 %>% filter(day != 0, (condition == "alone" | species == "BC9")) %>%
+         mutate(species_condition = ifelse(condition=="alone", 
+                                           paste(species, condition, sep = "-"), 
+                                           paste(condition))) %>%
+         mutate(species_condition = fct_reorder(species_condition, pH)), 
+                  aes(x = species_condition, y = pH)) +
+  geom_point(alpha = 0.7) +
+  stat_summary(fun = "mean", geom = "point", size = 3, color = "red", alpha = 0.7) +
+  scale_y_continuous(limits = c(6, 8.5)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_grid(. ~ day, labeller = as_labeller(c(`3` = "day 3", `10` = "day 10", `21` = "day 21")))
+
+```
+
+## growth data & ttests
+
+```{r calulcate growth fold-changes & t-tests against community, echo = F, message = F, warning = F}
+l.tests <- list()
+
+cond <- levels(d.loo7$condition)[which(levels(d.loo7$condition) != "alone")]
+
+for (c in cond) {
+  dat.tests <- d.loo7[0,-c(4,6:10)]
+  spec <- d.loo7 %>% filter(condition == c) %>% 
+    pull(species) %>% unique() %>% as.character()
+  for (s in spec) {
+    for (d in c(3,10,21)) {
+      # get CFU data for growth in a community
+      dat.cond <- d.loo7 %>% 
+          filter(species == s, condition == c, day == d, !is.na(count))
+      # get CFU data for growth alone
+      dat.alone <- d.loo7 %>% 
+          filter(species == s, condition == "alone", day == d, !is.na(count))
+      if(nrow(dat.cond) == 0 | nrow(dat.alone) == 0) next
+      # set up dataframe with metadata
+      dat.tests[nrow(dat.tests)+1, "species"] <- s
+      dat.tests[nrow(dat.tests), "condition"] <- c
+      dat.tests[nrow(dat.tests), "media"] <- "pH 7"
+      dat.tests[nrow(dat.tests), "day"] <- d
+      dat.tests[nrow(dat.tests), "ave.pH.cond"] <- mean(d.loo7 %>% 
+                                                          filter(species == s, condition == c, day == d, !is.na(pH)) %>% 
+                                                          pull(pH))
+      dat.tests[nrow(dat.tests), "ave.pH.alone"] <- mean(d.loo7 %>% 
+                                                          filter(species == s, condition == "alone", day == d, !is.na(pH)) %>%
+                                                          pull(pH))
+      dat.tests[nrow(dat.tests), "cond.median"] <- median(dat.cond$total.CFUs)
+      dat.tests[nrow(dat.tests), "alone.median"] <- median(dat.alone$total.CFUs)
+      # median fold-change
+      fcs <- vector()  
+      for(i in intersect(dat.cond$replicate, dat.alone$replicate)) {
+        cond.cfus <- dat.cond %>% filter(replicate == i) %>% pull(total.CFUs)
+        alone.cfus <- dat.alone %>% filter(replicate == i) %>% pull(total.CFUs)
+        fcs[length(fcs)+1] <- cond.cfus / alone.cfus
+      }
+      dat.tests[nrow(dat.tests), "med.fc.part.alone"] <- median(fcs)
+      # do mann-whitney-wilcoxon tests on raw data
+      ttest <- wilcox.test(dat.cond$total.CFUs, dat.alone$total.CFUs, 
+                           alternative = "two.sided", var.equal = F, conf.int = T)
+      # back-calculate confidence intervals
+      dat.tests[nrow(dat.tests), "times.diff.CI.low"] <- ttest$"conf.int"[1]
+      dat.tests[nrow(dat.tests), "times.diff.CI.high"] <- ttest$"conf.int"[2]
+      # record p-value testing whether two samples look like they're from the same population
+      dat.tests[nrow(dat.tests), "pval"] <- ttest$p.value
+      if(ttest$p.value < 0.05 & ttest$p.value >= 0.01) dat.tests[nrow(dat.tests), "sig"] = "*"
+      if(ttest$p.value < 0.01 & ttest$p.value >= 0.001) dat.tests[nrow(dat.tests), "sig"] = "**"
+      if(ttest$p.value < 0.001) dat.tests[nrow(dat.tests), "sig"] = "***"
+    }
+  }
+  l.tests[[length(l.tests)+1]] <- dat.tests
+}
+names(l.tests) <- cond
+# turn into dataframe
+d.tests <- lapply(l.tests, as.data.frame) %>% bind_rows()
+
+```
+
+Comparing growth curves for each species in each condition:
+
+```{r growth curves, echo = F, message = F, warning=F, fig.height=4}
+ggplot(d.loo7 %>% filter(!is.na(count)) %>%
+         group_by(species, day, condition) %>% summarize(mean.CFUs = mean(total.CFUs)),
+       aes(x = day, y = mean.CFUs, color = species)) +
+  geom_line(aes(linetype = condition)) +
+  geom_point(data = d.loo7, aes(x = day, y = total.CFUs, shape = condition), alpha = .5) +
+  scale_y_log10() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  theme_bw() +
+  facet_grid(. ~ species)
+```
+
+
