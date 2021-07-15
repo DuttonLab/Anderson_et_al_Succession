@@ -1,0 +1,2430 @@
+---
+title: "Results from Pairwise Growth Assays"
+author: "Brooke Anderson"
+date: "7/14/2021"
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_crop: no
+  html_document:
+    df_print: paged
+header-includes: \usepackage{float}
+geometry: margin=2cm
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyverse)
+library(scales)
+library(cowplot)
+library(ggpubr)
+library(lemon)
+knit_print.data.frame <- lemon_print
+library(here)
+here::i_am("scripts/Results_pairwise_growth_data.Rmd")
+```
+
+```{r read in data}
+d.18 <- readRDS(here("wrangled_data/all_pairwise.rds"))
+d.18.summ <- readRDS(here("wrangled_data/pairwise_summary_stats.rds"))
+load(here("wrangled_data/pairwise_test_summaries.RData"))
+```
+
+```{r plotting details}
+load(here("figures/plotting_objects.RData"))
+```
+
+# The rind community modulates growth phenotypes of each individual species
+
+##Each species can be isolated and all but one grow alone on cheese
+```{r growth alone, echo = F, warning = F, message = F, fig.height = 4, fig.align="center"}
+# 2018 data: growth alone
+p.18.alone <- ggplot(d.18.summ %>% filter(condition == "alone", pH == 5)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_color_manual(values = species.palette, guide = "none") + 
+  theme_bw() +
+  scale_y_log10(breaks = c(1e2, 1e4, 1e6, 1e8), 
+                labels = trans_format("log10", label_math(10^.x)),) +
+  geom_point(data = d.18 %>% filter(condition == "alone", pH == 5), 
+             aes(x=day, y=total.CFUs, color = species, group = replicate), alpha = 0.5) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(strip.text = element_text(size = 9, face = "italic"),
+        axis.title.x = element_blank()) +
+  labs(title = "Median growth of rind members alone at pH 5 (Aug 2018 data)",
+       y="colony forming units")
+
+# pH of Aug 2018 data
+p.18.pH.alone <- ggplot(d.18.summ %>% filter(condition == "alone", pH == 5), 
+       aes(x=day, y=med.measured.pH)) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  geom_line(size = .8, color = "gray40") +
+  theme_bw() +
+  geom_point(data = d.18 %>% filter(condition == "alone", pH == 5),
+             aes(x = day, y = measured.pH, group = "replicate"), 
+             color = "gray40", alpha = 0.5) +
+  scale_y_continuous(breaks = seq(5, 8, by= 1)) +
+  labs(y = "measured pH") +
+  theme(strip.text.x = element_blank())
+
+plot_grid(p.18.alone, p.18.pH.alone, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+```
+
+## Community impacts individual member's growth
+```{r alone v. community, echo = F, warning = F, message = F, fig.height = 3.5, fig.align = "center"}
+# for plotting significance values
+max <- max(d.18 %>% filter(condition %in% c("alone", "community"), pH == 5) %>% 
+      select("total.CFUs"))
+d.tests.p <- data.frame(day=d.tests$day, sig=d.tests$sig, pH=d.tests$pH,
+                        species=d.tests$species, condition=d.tests$condition,
+                        total.cfus=rep((max*1.05),nrow(d.tests)))
+
+# Growth data from Aug 2018 community v. alone data, grouped by species
+p.alone.comm <- ggplot(d.18.summ %>% filter(condition %in% c("alone", "community"), pH == 5),
+                       aes(linetype = condition)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "community"), pH == 5),
+             aes(x = day, y = total.CFUs, color = species, 
+                 group = replicate, shape = condition), alpha = 0.5) + 
+  scale_y_log10(labels = trans_format("log10", label_math(10^.x))) +
+  labs(y = "colony forming units") + 
+  scale_color_manual(values = species.palette, guide = "none") + 
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme_bw() + theme(legend.position="top", 
+                     legend.box.spacing = unit(0, "cm"),
+                     legend.key = element_rect(),
+                     strip.text = element_text(face = "italic"),
+                     legend.key.width = unit(40,"pt"),
+                     axis.title.x = element_blank()) +
+  geom_text(data    = d.tests.p %>% filter(condition == "community", pH == 5),
+            mapping = aes(x = day, y = (total.cfus), label = sig))
+
+# group all species growth curves by community v. alone data
+p.alone.comm.bycond <- ggplot(d.18.summ %>% filter(condition %in% c("alone", "community"), pH == 5) %>%
+                                mutate(condition = fct_relevel(condition, "community"))) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "community"), pH == 5),
+             aes(x = day, y = total.CFUs, color = species, 
+                 group = replicate), alpha = 0.5) + 
+  scale_y_log10(labels = trans_format("log10", label_math(10^.x))) +
+  labs(y = "colony forming units") + 
+  scale_color_manual(values = species.palette, guide = "none") + 
+  facet_grid(.~condition, labeller = labeller(condition = names)) +
+  theme_bw() + theme(legend.position="top", 
+                     legend.box.spacing = unit(0, "cm"),
+                     legend.key = element_rect(),
+                     legend.key.width = unit(40,"pt"),
+                     axis.title.x = element_blank())
+
+# pH data from Aug 2018 community v. alone data
+p.alone.comm.ph <- ggplot(data = d.18.summ %>% 
+                            filter(condition %in% c("alone", "community"), pH == 5), 
+                          aes(x=day, y=med.measured.pH, group = condition, linetype = condition)) +
+  geom_line(size = .8, color = "gray40") +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "community"), pH == 5),
+             aes(x = day, y = measured.pH, group = replicate, shape = condition), 
+             color = "gray40", alpha = 0.5) + 
+  scale_y_continuous(breaks = pretty_breaks(n=3)) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  labs(y = "measured pH") +
+  theme_bw() +
+  theme(legend.box.spacing = unit(.2, "cm"), 
+        legend.position = "none",
+        strip.text = element_blank()) +
+  guides(linetype = guide_legend(override.aes = list(size=.5)),
+         shape = guide_legend(override.aes = list(size=2)))
+
+plot_grid(p.alone.comm, p.alone.comm.ph, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+
+# barplot of fold-change (median fold change, +community vs. alone)
+comm.alone.barplot <- ggplot(d.tests %>% filter(condition == "community", pH == 5),
+       aes(x = species, y=med.fc.part.alone, fill = species, group = factor(day, levels = c(3,10,21)))) +
+  geom_bar(position = "dodge", stat = "identity", color = "white") +
+  annotate("text", x=c(.7,1,1.3), y=c(1.5,1.5,1.5), size = 3,
+           label=c("day 3", "day 10", "day 21"), angle = 90, hjust = 0) +
+  scale_y_log10(minor_breaks=trans_breaks("log10", function(x) 10^x),
+                breaks = c(1e-4, 1e-2, 1, 1e2, 1e4), 
+                labels = trans_format("log10", label_math(10^.x)),
+                limits = c(1e-4, 1e4)) + 
+  labs(y = "fold-change of CFUs (community v. monoculture)") +
+  scale_fill_manual(values = species.palette,
+                    labels = names) +
+  geom_hline(yintercept = 1, color = "gray50", size = 1) +
+  theme_bw() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.text = element_text(face = "italic")) +
+  geom_text(data    = d.tests %>% filter(condition == "community", pH == 5),
+            mapping = aes(x = species, label = sig, 
+                          y=ifelse(med.fc.part.alone>1, med.fc.part.alone*1.2, med.fc.part.alone/1.2)),
+            position = position_dodge(width = .9), vjust = .8)
+comm.alone.barplot
+
+## time to max capacity alone vs. community
+d.max.k = d.18.summ %>% 
+         group_by(species, condition, pH) %>% 
+         filter(pH == 5, condition %in% c("alone", "community"), med.CFUs == max(med.CFUs))
+d.max.k[which(d.max.k$species == "JB7" & d.max.k$condition == "alone"), "day"] <- NA
+d.max.k <- pivot_wider(d.max.k, id_cols = c(species, pH), names_from = condition, values_from = day)
+
+ggplot(d.max.k,
+       aes(x = factor(species, levels = rev(levels(d.18$condition)[-c(1,9)])))) +
+  geom_point(aes(y = alone, color = "#77cc00", shape = "triangle"), size = 4, alpha = 0.7) +
+  geom_point(aes(y = community, color = "#1199cc", shape = "circle"), size = 3, alpha = 0.7) +
+  geom_segment(aes(x = species, xend = species, y = alone, yend = community), color= "gray60") +
+  scale_color_manual(values = c("#1199cc", "#77cc00"), labels = c("community", "alone"), name = NULL) +
+  scale_shape_discrete(labels = c("community", "alone"), name = NULL) +
+  labs(y = "days to maximum CFUs") +
+  scale_x_discrete(labels = names, name = NULL) +
+  scale_y_continuous(limits=c(0,22), breaks = c(0,5,10,15,20)) +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.text.y = element_text(hjust = 1, face = "italic"),
+        panel.grid.minor = element_blank())
+```  
+
+
+There are both net inhibitory and net facilitory interactions occuring in the community.
+
+Side inquiry....
+
+Is the increase in Candida cell counts alone significant?
+
+```{r Candida alone decrease, echo = F, message = F, warning = F, fig.height=2, fig.width=2}
+# is increase in Candida cell counts alone significant
+log.day3 <- d.18 %>% filter(species == "135E", condition == "alone", pH == 5, day == 3) %>% pull(log.CFUs)
+log.day21 <- d.18 %>% filter(species == "135E", condition == "alone", pH == 5, day == 21) %>% pull(log.CFUs)
+ggplot(d.18 %>% filter(species == "135E", condition == "alone", pH == 5, day %in% c(3,21))) +
+  geom_boxplot(aes(x = as.factor(day), y = log.CFUs))
+# less means hypothesis is that day 3 is less than day 21
+ttest <- wilcox.test(log.day3, log.day21, alternate="less", conf.int = T)
+ttest
+```
+
+There is a significant (p-value `round(ttest$p.value, 3)`) increase in Candida growth alone.
+Backcalulated, Candida declines by a factor of `10^(ttest$conf.int[1])` to `10^(ttest$conf.int[2])`
+
+Is the decrease in S. xylosus cell counts in the community significant?
+
+```{r S. xylosus in the community decrease, echo = F, message = F, warning = F, fig.height=2, fig.width=2}
+# is decline in S. xylosus cell counts in community significant
+log.day3 <- d.18 %>% filter(species == "BC10", condition == "community", pH == 5, day == 3) %>% pull(log.CFUs)
+log.day21 <- d.18 %>% filter(species == "BC10", condition == "community", pH == 5, day == 21) %>% pull(log.CFUs)
+ggplot(d.18 %>% filter(species == "BC10", condition == "community", pH == 5, day %in% c(3,21))) +
+  geom_boxplot(aes(x = as.factor(day), y = log.CFUs))
+# greater means hypothesis is that day 3 is greater than day 21
+ttest <- wilcox.test(log.day3, log.day21, alternate="greater", conf.int = T)
+ttest
+```
+
+There is not a significant decrease in S. xylosus over community growth
+
+Is the decrease in S. equorum cell counts in the community  significant?
+
+```{r S. equorum in the community decrease, echo = F, message = F, warning = F, fig.height=2, fig.width=2}
+# is decline in S. equorum cell counts in community significant
+log.day3 <- d.18 %>% filter(species == "BC9", condition == "community", pH == 5, day == 3) %>% pull(log.CFUs)
+log.day21 <- d.18 %>% filter(species == "BC9", condition == "community", pH == 5, day == 21) %>% pull(log.CFUs)
+ggplot(d.18 %>% filter(species == "BC9", condition == "community", pH == 5, day %in% c(3,21))) +
+  geom_boxplot(aes(x = as.factor(day), y = log.CFUs))
+# greater means hypothesis is that day 3 is greater than day 21
+ttest <- wilcox.test(log.day3, log.day21, alternate="greater", conf.int = T)
+ttest
+```
+
+So yup, there's a significant (p-value `round(ttest$p.value, 3)`) decline in S. equorum population over community growth
+
+## Interactions contribute to the pattern of succession.
+
+```{r mock vs. real community succession, echo = F, warning = F, message = F, fig.height = 4, fig.align = "center"}
+# get relative abundance data
+d.18.rel <- d.18 %>% filter(condition %in% c("alone", "community"), pH == 5) %>% 
+  group_by(condition, day, replicate) %>% 
+  mutate(rel.abund = total.CFUs/sum(total.CFUs))
+
+## TTEST
+# non-parametric Wilcoxon test of just pH 5 data, since that might be all included in paper
+# compare relative abundance values across community vs. alone
+rel.ttest <- d.18.rel %>% group_by(species, day) %>%
+  do(mod = kruskal.test(rel.abund ~ condition, data = .)) 
+# get p-values in a dataframe
+d.rel.pval <- rel.ttest %>% do(data.frame(
+  species = .$species,
+  day = .$day,
+  p.val = (.$mod)$"p.value")
+)
+# summarize by median relative abundance numbers & class
+rel.abund <- d.18.rel %>% group_by(species, day, condition, pH) %>%
+  summarise(med.rel.abund = median(rel.abund)) %>%
+  group_by(day, condition, pH) %>%
+  arrange(factor(species, rev(c("JB7","JB5","BC10","BC9","JB370","JBC","135E"))), .by_group=T) %>%
+  mutate(cum.abund = cumsum(med.rel.abund)-(0.5*med.rel.abund)-.03)
+# add asterisks
+d.rel.pval <- d.rel.pval %>% 
+  mutate(sig = ifelse(p.val > 0.01 & p.val <= 0.05, "*",
+                      ifelse(p.val > 0.001 & p.val <= 0.01, "**",
+                             ifelse(p.val < 0.001, "***", NA))))
+
+d.rel.sig <- full_join(d.rel.pval, rel.abund)
+d.rel.sig[which(d.rel.sig$cum.abund < 0), "cum.abund"] <- 0 # keep asterisks above x-axis
+d.rel.sig[which(d.rel.sig$cum.abund > 1), "cum.abund"] <- 1 # keep asterisks below top of frame
+
+# plot
+comm.alone.succ <- ggplot(rel.abund %>% filter(pH == 5) %>% 
+         mutate(condition = fct_relevel(condition, rev), dayChar = as.factor(day))) + 
+  geom_bar(aes(x = dayChar, y = med.rel.abund, 
+               fill=factor(species, levels = c("JB7","JB5","BC10","BC9", "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill") +
+  barp.theme + theme_bw() + 
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  theme(legend.text = element_text(face = "italic")) +
+  facet_grid(. ~ condition, scales = "free_x", labeller = labeller(condition = names)) #+
+  #geom_text(data=d.rel.sig %>% filter(condition == "alone"), 
+   #         aes(x = as.character(day), y = cum.abund, label = sig), 
+    #        color = "white", size = 5)
+comm.alone.succ
+
+# day 21 alone
+ggplot(rel.abund %>% filter(pH == 5, day == 21) %>% 
+         mutate(condition = fct_relevel(condition, rev), dayChar = as.factor(day))) + 
+  geom_bar(aes(x = condition, y = med.rel.abund, 
+               fill=factor(species, levels = c("JB7","JB5","BC10","BC9", "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill") +
+  barp.theme + theme_bw() + 
+  labs(x = "day 21 condition") +
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  scale_x_discrete(labels = names) +
+  theme(legend.text = element_text(face = "italic"))
+```
+
+```{r table of significant differences in relative abundance, echo = F, message = F, warning = F, render = lemon_print}
+d.rel.sig %>% filter(condition == "alone", day != 0)
+```
+
+fold-change lollipop graph style: difference between community growth and alone growth at pH 5.
+Community growth (CFUs) is marked by points, colored by pH. Larger points mark the median CFUs in the community and are colored by average pH.
+Horizontal gray lines mark growth alone.
+
+```{r growth fold-changes lollipop for community pH 5, echo = F, warning=F, message = F, fig.height=6, fig.width = 7}
+# growth
+lolli.growth <- ggplot(d.tests %>% filter(condition == "community", pH ==5) %>%
+         mutate(species = fct_relevel(species, levels = c("BC9", "BC10", "JB5", 
+                                                          "JB7", "135E", "JB370", "JBC")))) +
+  geom_point(aes(x = condition, y = cond.median)) +
+  geom_jitter(data = d.18 %>% 
+                filter(!is.na(count), day != 0, condition == "community", pH == 5), 
+             aes(x = condition, y = total.CFUs), 
+             size = .6, alpha = .7, width = .3) +
+  geom_hline(aes(yintercept = alone.median), color = "gray70") +
+  geom_segment(aes(y = alone.median, yend = cond.median,
+                   x = condition, xend = condition), color = "gray70") +
+  scale_y_log10(limits = c(2e1, 5e9),
+                labels = trans_format("log10", label_math(10^.x))) +
+  facet_grid(species ~ day,
+             labeller = as_labeller(c(`3` = "Day 3", `10` = "Day 10", `21` = "Day 21",
+                                      `BC9` = "S. equorum", `BC10` = "S. xylosus",
+                                      `JB5` = "Brevibacterium", `JB7` = "Brachybacterium",
+                                      `135E` = "Candida", `JBC` = "Penicillium", 
+                                      `JB370` = "Scopulariopsis"))) +
+  theme_minimal() +
+  labs(y = "colony forming units in complete community (referenced to alone)", title = "Growth") +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        strip.text.y = element_blank(),
+        panel.background = element_rect(fill = "gray97", color = NA),
+        strip.background = element_rect(fill = NA, color = "gray90"))
+
+# pH
+lolli.ph <- ggplot(d.tests %>% filter(condition == "community", pH ==5) %>%
+         mutate(species = fct_relevel(species, levels = c("BC9", "BC10", "JB5", 
+                                                          "JB7", "135E", "JB370", "JBC")))) +
+  geom_point(aes(x = condition, y = ave.ph.cond)) +
+  geom_jitter(data = d.18 %>% 
+                filter(!is.na(count), day != 0, condition == "community", pH == 5), 
+             aes(x = condition, y = measured.pH), 
+             size = .6, alpha = .7, width = .3, shape = "circle") +
+  geom_hline(aes(yintercept = ave.ph.alone), color = "gray70") +
+  geom_segment(aes(y = ave.ph.cond, 
+                   yend = ave.ph.alone,
+                   x = condition, xend = condition), color = "gray70") +
+  scale_color_gradient2(low = "darkorange2", mid = "gold", high = "green3", midpoint = 7,
+                        name = "pH") +
+  facet_grid(species ~ day,
+             labeller = as_labeller(c(`3` = "Day 3", `10` = "Day 10", `21` = "Day 21",
+                                      `BC9` = "S. equorum", `BC10` = "S. xylosus",
+                                      `JB5` = "Brevibacterium", `JB7` = "Brachybacterium",
+                                      `135E` = "Candida", `JBC` = "Penicillium", 
+                                      `JB370` = "Scopulariopsis"))) +
+  theme_minimal() +
+  labs(y = "measured pH of complete community (referenced to alone)", title = "pH") +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        strip.text.y = element_text(angle = 0, face = "italic"),
+        panel.background = element_rect(fill = "gray97", color = NA),
+        strip.background = element_rect(fill = NA, color = "gray90"))
+
+plot_grid(lolli.growth, lolli.ph, nrow = 1, ncol = 2, rel_widths = c(1, 1.3), align = "h", axis = "tb")
+```
+
+Notable from these graphs is that the community seems to slow deacidification compared to every alone growth. Implies that this delay in deacidification can't be attributed to one single species.
+
+Figure 1:
+```{r figure 1, echo = F, message = F, warning = F}
+fig.1a <- p.alone.comm.bycond + theme(strip.background = element_rect(fill = "white"),
+                                      panel.grid.minor.x = element_blank())
+fig.1b <- comm.alone.succ + theme(panel.grid = element_blank(),
+                                  legend.position = "none",
+                                  strip.background = element_rect(fill = "white"))
+fig.1c <- comm.alone.barplot + theme(panel.grid = element_blank(),
+                                     legend.position = "none")
+
+align.cols <- align_plots(fig.1b, fig.1c, align = 'h', axis = 'b')
+
+fig.1ac <- plot_grid(fig.1a, align.cols[[1]], nrow = 2,
+                     align = "v", axis = "lr", labels = c('B', 'C'))
+
+fig.1 <- plot_grid(fig.1ac, align.cols[[2]], labels = c('', 'D'), 
+                   ncol = 2, rel_widths = c(.8, 1))
+
+fig.1
+```
+
+
+# Pairwise interactions:
+
+## both inhibitory and stimulatory interactions between players
+```{r pairwise growth curves, echo = F, message = F, warning = F, fig.height=6.7, width = 3.5}
+## look into Patchwork for reworking this mess
+l.pw.plots <- list()
+for(s in levels(d.18$species)) {
+  for(c in c("alone", "135E", "BC10", "BC9", "JB5", "JB7", "JBC", "JB370"))
+    l.pw.plots[[length(l.pw.plots)+1]] <- 
+      ggplot(d.18 %>% filter(species %in% c(s,c), condition %in% c(s, c), pH == 5),
+             aes(x = day, y = total.CFUs, color = species)) +
+      geom_point(size = 1.5, alpha = 0.5) + theme_bw() +
+      scale_y_log10(limits= c(1e0, 7e9),
+                    breaks = c(1e0, 1e4, 1e8),
+                    labels = trans_format("log10", label_math(10^.x))) +
+      geom_line(data = d.18.summ %>% 
+                  filter(species %in% c(s,c), condition %in% c(s, c), pH == 5),
+                aes(x = day, y = med.CFUs, 
+                    color = species), size = 1) +
+      scale_x_continuous(breaks = c(0,10,20)) +
+      scale_color_manual(values = species.palette, guide = "none") +
+      theme_bw() +
+      theme(legend.position = "top", legend.direction = "horizontal",
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            plot.margin = unit(c(0, .2, 0, .2), "cm"))
+}
+
+# organized layout of graphs, no repeating pairs
+layout.col1 <- plot_grid(
+  plotlist = list(as_ggplot(text_grob("Diutina", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  l.pw.plots[[1]]+theme(axis.text.y = element_text(size = 10)),
+                  l.pw.plots[[3]]+theme(axis.text.y = element_text(size = 10)),
+                  l.pw.plots[[4]]+theme(axis.text.y = element_text(size = 10)),
+                  l.pw.plots[[5]]+theme(axis.text.y = element_text(size = 10)),
+                  l.pw.plots[[6]]+theme(axis.text.y = element_text(size = 10)),
+                  l.pw.plots[[7]]+theme(axis.text.y = element_text(size = 10)),
+                  l.pw.plots[[8]]+theme(axis.text = element_text(size = 10))), 
+  ncol = 1, align = "h")
+layout.col2 <- plot_grid(
+  plotlist = list(NULL,
+                  as_ggplot(text_grob("S. xylosus", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  l.pw.plots[[9]], 
+                  l.pw.plots[[12]],
+                  l.pw.plots[[13]],
+                  l.pw.plots[[14]],
+                  l.pw.plots[[15]],
+                  l.pw.plots[[16]]+theme(axis.text.x = element_text(size = 10))), 
+  ncol = 1, align = "h")
+layout.col3 <- plot_grid(
+  plotlist = list(NULL, NULL,
+                  as_ggplot(text_grob("S. equorum", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  l.pw.plots[[17]], 
+                  l.pw.plots[[21]],
+                  l.pw.plots[[22]],
+                  l.pw.plots[[23]],
+                  l.pw.plots[[24]]+theme(axis.text.x = element_text(size = 10))), 
+  ncol = 1, align = "h")
+layout.col4 <- plot_grid(
+  plotlist = list(NULL, NULL, NULL,
+                  as_ggplot(text_grob("Brevibacterium", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  l.pw.plots[[25]],
+                  l.pw.plots[[30]],
+                  l.pw.plots[[31]],
+                  l.pw.plots[[32]]+theme(axis.text.x = element_text(size = 10))), 
+  ncol = 1, align = "h")
+layout.col5 <- plot_grid(
+  plotlist = list(NULL, NULL, NULL, NULL,
+                  as_ggplot(text_grob("Brachybacterium", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  l.pw.plots[[33]],
+                  l.pw.plots[[39]],
+                  l.pw.plots[[40]]+theme(axis.text.x = element_text(size = 10))), 
+  ncol = 1, align = "h")
+layout.col6 <- plot_grid(
+  plotlist = list(NULL, NULL, NULL, NULL, NULL,
+                  as_ggplot(text_grob("Penicillium", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  l.pw.plots[[41]],
+                  l.pw.plots[[48]]+theme(axis.text.x = element_text(size = 10))), 
+  ncol = 1, align = "h")
+layout.col7 <- plot_grid(
+  plotlist = list(NULL, NULL, NULL, NULL, NULL, NULL,
+                  as_ggplot(text_grob("Scopulariopsis", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  l.pw.plots[[49]]+theme(axis.text.x = element_text(size = 10))), 
+  ncol = 1, align = "h")
+
+# establish plot grid, then add common x- and y-axis labels
+xgrob <- grid::textGrob("days growing")
+ygrob <- grid::textGrob("colony forming units", rot = 90)
+gridExtra::grid.arrange(gridExtra::arrangeGrob(layout.col1, layout.col2, layout.col3, 
+                         layout.col4, layout.col5, layout.col6, layout.col7,
+                         left = ygrob, bottom = xgrob, nrow = 1,
+                         widths = c(1,rep(.9, times =6))))
+
+```
+
+
+```{r pairwise interactions: fold-change barplots, echo = F, message = F, warning = F, fig.width=4, fig.height=8}
+
+# fold-change barplot of each species pariwise-vs-alone, faceted by partner
+pw.fc.barplot <- function(s) {
+  ggplot(data = d.tests %>% filter(condition != "alone", pH == 5,
+                                   species %in% s) %>% 
+         mutate(cfus.part.alone = ifelse(med.fc.part.alone == 1e-11, -Inf, med.fc.part.alone),
+                species = fct_relevel(species, "BC9")),
+       aes(x = condition, y=med.fc.part.alone, fill = species, group = factor(day, levels = c(3,10,21)))) +
+  geom_bar(position = "dodge", stat = "identity", width = .6, color = "gray97") +
+  scale_y_log10("fold-change in CFUs (in mixed culture versus monoculture)",
+                breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x)),
+                expand_scale(mult=1.5)) +
+  scale_fill_manual(values = species.palette,
+                    labels = names) +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_x_discrete(limits = levels(d.tests$condition)[-1],
+                   labels = paste0("+ ", names)) +
+  theme_minimal() +
+  geom_hline(yintercept = 1, color = "gray50") +
+  facet_grid(species ~ .,
+             labeller = labeller(condition = names, species = names)) +
+  theme(legend.position = "none",
+        panel.spacing = unit(0, "pt"),
+        axis.text.x = element_text(angle = 45, hjust =1, face = "italic"),
+        axis.title.x= element_blank(),
+        axis.title.y = element_text(hjust = 0, size = 9),
+        strip.text = element_text(face="italic"),
+        panel.grid.major.x = element_line(color = "gray95", size = 5),
+        panel.spacing.x = unit(.2, "cm"),
+        panel.grid.major.y =  element_line(color = "gray90"),
+        panel.border = element_rect(color = "gray75", fill = NA),
+        axis.ticks.x = element_line(size = 6, color = "gray95"),
+        axis.ticks.length.x = unit(5, "pt"),
+        panel.spacing.y = unit(4, "pt"),
+        strip.background = element_rect(fill = NA, color = "gray75")) +
+  geom_text(data    = d.tests %>% filter(pH == 5,
+                                   species %in% s) %>% 
+              mutate(med.fc.part.alone = ifelse(med.fc.part.alone == 1e-11, -Inf, med.fc.part.alone)) %>%
+              mutate(sig = ifelse(is.infinite(med.fc.part.alone), "|", sig)) %>%
+              mutate(position = ifelse(is.finite(med.fc.part.alone), med.fc.part.alone * 1.05, .5)),
+            mapping = aes(x = condition, y=position, label = sig),
+            position = position_dodge(width = .7), vjust = 0.7)
+}
+
+col1 <- pw.fc.barplot(c("BC9", "BC10", "JBC"))
+col2 <- pw.fc.barplot(c("BC9", "JB5", "JB7"))
+col3 <- pw.fc.barplot(c("BC9", "135E", "JB370"))
+
+plot_grid(col1, col2, col3, ncol = 3)
+
+pw.fc.barplot(c("135E", "BC10", "BC9", "JB5", "JB7", "JBC", "JB370"))
+
+```
+
+
+
+```{r legend for fold-change bar plots, include=F}
+ggplot(data = d.tests %>% filter(species == "JB7", condition == "135E", pH == 5),
+       aes(x = condition, y=med.fc.part.alone, fill = species, group = factor(day, levels = c(3,10,21)))) +
+  geom_bar(position = "dodge", stat = "identity", width = .6, color = "white", size = 1) +
+  scale_y_log10("fold-change",
+                breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x)),
+                expansion(mult = 7)) + 
+  scale_fill_manual(values = species.palette,
+                    labels = names) +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_x_discrete(limits = levels(d.tests$condition)[2], expand = c(0.2,0.2)) +
+  theme_bw() +
+  geom_hline(yintercept = 1, color = "gray50") +
+  theme(legend.position = "none",
+        panel.spacing = unit(0, "pt"),
+        axis.text.y = element_text(size=10),
+        axis.text.x = element_blank(),
+        axis.title.x= element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.text = element_text(face="italic"),
+        panel.grid.major.x = element_line(color = "gray95", size = 40),
+        panel.grid.major.y =  element_line(color = "gray90"),
+        panel.border = element_rect(color = "gray75", fill = NA)) +
+  annotate("text", x=c(.8,1,1.2), y=c(1.3, 1.3, 1.3), label=c("DAY 3", "DAY 10", "DAY 21"), 
+           size = 3, angle = 90, hjust = 0)
+```
+
+```{r pairwise and comm interactions: fold-change circle plots, echo = F, message = F, warning = F}
+# fold-change barplot of each species pariwise-vs-alone, faceted by partner
+d.tests.abs <- d.tests %>% 
+  mutate(intx.sign = ifelse(med.fc.part.alone < 1, "negative", "positive")) %>%
+  mutate(abs.foldchange = ifelse(med.fc.part.alone > 1, med.fc.part.alone, 
+                                 ifelse(med.fc.part.alone == 0, 0, 1/med.fc.part.alone))) %>%
+  mutate(abs.perchange = abs(percent.change)) %>%
+  mutate(partner = ifelse(condition == "community", "community", "PW partner"))
+d.tests.abs$condition <- factor(d.tests.abs$condition,
+                                levels = c(levels(d.tests.abs$species), "community"))
+
+p.pairwise.sig <- ggplot(data = d.tests.abs %>% filter(condition != "community", pH == 5, !is.na(sig)), 
+       aes(x = factor(day, levels = c(3,10,21)), y = 1)) + 
+  geom_point(aes(size = abs.foldchange, color = intx.sign)) + 
+  facet_grid(species ~ partner*condition, 
+             labeller = labeller(condition = names, species = names),
+             switch = "y") +
+  scale_size_continuous(trans = "log10", range = c(0.1,7),
+                        labels = trans_format("log10", label_math(10^.x)),
+                        name = "fold-change (vs. alone)",
+                        breaks = c(1e1, 1e3, 1e5, 1e7)) +
+  scale_color_manual(values = c("negative" = "firebrick2", "positive" = "goldenrod1"),
+                     labels = c("negative" = "negative", "positive growth impact"),
+                     name = "growth impact direction") +
+  theme_bw() + labs(x = "day") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "top",
+        legend.direction = "horizontal",
+        strip.text.y.left = element_text(face = "italic", angle = 360),
+        panel.spacing = unit(0, "pt"),
+        strip.text.x = element_text(face = "italic")) +
+  guides(color = guide_legend(title.position="top", title.hjust = 0.5),
+         size = guide_legend(title.position="top", title.hjust = 0.5))
+
+# fold-change barplot of each species pairwise-vs-alone & community-vs-alone, faceted by partner
+
+p.comm.sig <- ggplot(data = d.tests.abs %>% filter(condition == "community", pH == 5, !is.na(sig)), 
+       aes(x = factor(day, levels = c(3,10,21)), y = 1)) + 
+  geom_point(aes(size = abs.foldchange, color = intx.sign)) + 
+  facet_grid(species ~ partner*condition, 
+             labeller = labeller(condition = names, species = names),
+             switch = "y") +
+  scale_size_continuous(trans = "log10", range = c(0.1,7),
+                        breaks = c(1, 1e3, 1e5, 1e7)) +
+  scale_color_manual(values = c("negative" = "firebrick2", "positive" = "goldenrod1"),) +
+  theme_bw() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "none",
+        strip.text.y.left = element_blank(),
+        panel.spacing = unit(0, "pt"),
+        strip.text.x = element_text(face = "italic"))
+
+plot_grid(p.pairwise.sig, p.comm.sig, 
+          ncol = 2, rel_widths = c(7, 1), 
+          align = "h", axis = "tb")
+```
+
+
+Observations:
+
+* Early colonizers mostly stimulated late colonizers
+* Fungi inhibit each other
+* Penicillium inhibits everyone
+* Scopulariopsis has surprisingly widespread effects on bacterial species, stimulating each, for being such a late-colonizer.
+* Late colonizing bacteria don't have much effect on coculture parnters.
+
+
+```{r network table for cytoscape, include = F}
+
+# circular order of species nodes in network 
+order <- c(`JB5` = 1, `JB7` = 2, `BC10` = 3, `BC9` = 4, `JBC` = 5, `JB370` = 6, `135E` = 7)
+
+d.tests %>% 
+  filter(!is.na(sig), condition != "community") %>%  # only significant pariwise interactions
+  select(species, condition, pH, day, med.fc.part.alone) %>%
+  # get magnitude of inhibitory & stimulatory effects on population size
+  mutate(scaled.fc = ifelse(med.fc.part.alone >= 1, med.fc.part.alone, # increased pop size keep given mag
+                            ifelse(med.fc.part.alone == 0, 0, 1/med.fc.part.alone)), # for decreased pop size -- if non-zero, invert for 1+ mag
+         # note that zero values are kept as zeros since cytoscape doesn't handle infinite measurements usefully
+         # these zero values will be used to dictate dashing of edges for infinite fold-changes (i.e. non-detected coculture CFUs)
+         `log.fc-2X` = ifelse(scaled.fc != 0, log(scaled.fc * 2), # transform magnitude log10 and times two for visualization
+                              3), # this value will determine the width of the edge in cytoscape; infinite values will be dashed with width of 3
+         intx.sign = ifelse(med.fc.part.alone >= 1, "pos", "neg"), # indicate direction of pop size change
+         target = paste0(intx.sign, species, "ph", pH), # combine details for target node
+         source = paste0(intx.sign, condition, "ph", pH), # combine details for source node
+         intx.day = paste0(intx.sign, day), # unique edge colors by day & direction of interaction
+         label = names[as.character(condition)], # provide source label
+         order = order[as.character(condition)]) %>%
+  select(target, source, label, order, intx.day, scaled.fc, `log.fc-2X`) %>%
+  write_csv(., here("wrangled_data/pairwise_for_cytoscape.csv"))
+
+```
+
+What interactions are same at pH 5 & pH 7 versus different?
+
+```{r table to compare sig intx at pH 5 v pH 7, echo = F, warning = F, message = F, render=lemon_print}
+left_join(d.tests %>% 
+            filter(!is.na(sig), condition != "community") %>%
+            pivot_wider(id_cols = c(species, condition, day),
+                        names_from = pH, names_prefix = "sig.pH",
+                        values_from = sig),
+          d.tests %>% 
+            filter(!is.na(sig), condition != "community") %>%
+            mutate(intx.dir = ifelse(med.fc.part.alone < 1, "neg", "pos")) %>%
+            pivot_wider(id_cols = c(species, condition, day),
+                        names_from = pH, names_prefix = "intx.dir.pH",
+                        values_from = intx.dir)) %>%
+  left_join(., d.tests %>% 
+              filter(!is.na(sig), condition != "community") %>%
+              pivot_wider(id_cols = c(species, condition, day),
+                          names_from = pH, names_prefix = "med.fc.pH",
+                          values_from = med.fc.part.alone)) %>%
+  select(1:5, intx.dir.pH5, med.fc.pH5, intx.dir.pH7, med.fc.pH7) %>%
+  arrange(intx.dir.pH5, med.fc.pH5, intx.dir.pH7, med.fc.pH7) %>%
+  write_csv(., here("wrangled_data/all_significant_pairwise_interactions.csv")) %>%
+  print(.)
+
+```
+
+
+Ben specifically asked whether the magnitude of partner effects was correlated with the *growth rate* -- and so let's consider change in population size over time vs. change in affected species growth rate, or change in focal species growth rate vs. change in partner species growth rate.
+
+```{r exponential growth formula, echo = F, warning=F, message=F}
+# To calculate exponential growth, use the formula y(t) = a*e^(kt), 
+# where a is the value at the start, k is the rate of growth or decay, 
+# t is time and y(t) is the population's value at time t.
+
+# to get the k, the exponential growth rate, formula can be rearranged
+# k = ln( y(t)/a ) / t
+
+growth_exp <- function(n2, n1, t) {
+  return(log( n2/n1 ) / t) 
+}
+```
+
+
+```{r partner growth versus species growth, echo = F, warning=F, message=F}
+# define all conditions to run through
+spec <- levels(d.18$species)
+cond <- levels(d.18$species)
+pH <- levels(d.18$pH)
+
+# initiate list to store data, one list element for each species
+l.growthEffects <- list()
+
+# for each species in each condition at each pH at each time, calculate change in growth rate
+for (s in spec) {
+  for (c in cond[which(cond != s)]) {
+    for (p in pH) {
+      d.growthEffects <- data.frame()
+      for (d in 1:3) {
+        tp.1 <- unique(d.18$day)[d]
+        tp.2 <- unique(d.18$day)[d+1]
+        days <- tp.2 - tp.1
+        # get CFU data in partner condition for time 1 & 2
+        dat.spec <- d.18 %>% 
+          filter(species == s, condition %in% c(c, "alone"), pH == p, day %in% c(tp.1, tp.2)) %>%
+          pivot_wider(id_cols=c(species, condition, pH, replicate),
+                      names_from = day, values_from = total.CFUs)
+        # generalize CFU timepoint column names
+        colnames(dat.spec)[which(colnames(dat.spec) == tp.1)] <- "tp.1"
+        colnames(dat.spec)[which(colnames(dat.spec) == tp.2)] <- "tp.2"
+        # calculate growth over time
+        dat.spec <- dat.spec %>% mutate(growth = growth_exp(tp.2, tp.1, days)) %>% 
+          pivot_wider(id_cols = c(species, replicate, pH),
+                      names_from = condition, values_from = c(growth))
+        # generalize condition column name
+        colnames(dat.spec)[which(colnames(dat.spec) == c)] <- "condition"
+        # calculate change in growth when with partner
+        dat.spec <- dat.spec %>% mutate(delt.r = condition - alone,
+                                        fc.r = condition/alone,
+                                        partner = c,
+                                        timeframe = paste(tp.1, tp.2, sep = "-"))
+        # add in pH data
+        dat.spec <- left_join(dat.spec, 
+                  d.18 %>% 
+                    filter(species == s, condition == c, pH == p, day == tp.2) %>%
+                    select(replicate, measured.pH)) 
+        # edit measured pH column name
+        colnames(dat.spec)[which(colnames(dat.spec) == "measured.pH")] <- "endpoint.coculture.pH"
+        # data about partner growth
+        dat.cond <- d.18 %>% 
+          filter(species == c, condition %in% s, pH == p, day %in% c(tp.1, tp.2)) %>%
+          pivot_wider(id_cols=c(species, condition, pH, replicate),
+                      names_from = day, values_from = total.CFUs)
+        # generalize timepoint column names
+        colnames(dat.cond)[which(colnames(dat.cond) == tp.1)] <- "tp.1"
+        colnames(dat.cond)[which(colnames(dat.cond) == tp.2)] <- "tp.2"
+        # calculate growth over time
+        dat.cond <- dat.cond %>% mutate(partner.growth = growth_exp(tp.2, tp.1, days))
+        # combine change in species growth rate with partner species growth
+        d.growthEffects <- full_join(dat.spec[ ,-c(4:5)], dat.cond[ ,c("replicate", "partner.growth", "tp.2")])
+        colnames(d.growthEffects)[which(colnames(d.growthEffects) == "tp.2")] <- "part.cfus.endpoint"
+        l.growthEffects[[length(l.growthEffects)+1]] <- d.growthEffects
+      }
+    }
+  }
+}
+
+# turn into dataframe
+d.growthEffects <- do.call(rbind, l.growthEffects)
+
+
+# plot partner GROWTH versus affect on species growth
+p.growth.vs.delt.growth <- ggplot(d.growthEffects) + 
+  geom_point(aes(x = partner.growth, y = delt.r,
+                 color = partner)) +
+  scale_color_manual(values = species.palette, labels = names.italic,
+                     name = expression("focal\nspecies")) +
+  labs(x = paste("per capita growth rate (per day)\nof focal species in coculture"),
+       y = expression(atop("change in per capita growth rate of partner (per day)", 
+                "(" ~rate[coculture] ~"-" ~rate[monoculture] ~")"))) +
+  theme_bw() +
+  theme(legend.text.align = 0,
+        plot.margin = margin(5,5,5,5, "pt"))
+
+# plot partner POP SIZE versus affect on species growth
+p.pop.vs.delt.growth <- ggplot(d.growthEffects) + 
+  geom_point(aes(x = part.cfus.endpoint, y = delt.r,
+                 color = partner)) +
+  scale_x_log10() +
+  scale_color_manual(values = species.palette, labels = names.italic,
+                     name = expression("focal\nspecies")) +
+  labs(x = paste("population size\nof focal species in coculture"),
+       y = expression(atop("change in per capita growth rate of partner (per day)", 
+                "(" ~rate[coculture] ~"-" ~rate[monoculture] ~")"))) +
+  theme_bw() +
+  theme(legend.text.align = 0,
+        plot.margin = margin(15,5,5,5, "pt"))
+
+# look at effect per day
+p.Day.delt.growth <- ggplot(d.growthEffects %>%
+         mutate(day = factor(timeframe, levels = c("0-3", "3-10", "10-21")),
+                effect = ifelse(delt.r > 0, "stimulatory", "inhibitory"),
+                abs.delt = abs(delt.r)) %>%
+           filter(!is.na(effect)), 
+       aes(x = partner, y = abs.delt, shape = effect,
+           group = interaction(day, partner))) +
+  stat_summary(aes(color = partner), 
+               fun = median, 
+               fun.min = function(z) { quantile(z,0.25) },
+               fun.max = function(z) { quantile(z,0.75) },
+               position = position_dodge(.75)) +
+  geom_point(aes(color = partner), position = position_jitterdodge(.1), alpha = 0.4) +
+  scale_color_manual(values = species.palette, labels = names.italic, 
+                     guide = "none") +
+  theme_bw() +
+  scale_y_log10(n.breaks = 4) +
+  scale_x_discrete(labels = names) +
+  labs(x = "growth-affecting species", 
+       y = expression("difference in partner's growth rate\nin coculture vs. monoculture(absolute delta CFUs/day)")) +
+  theme(panel.grid.major.x = element_blank(),
+        legend.text.align = 0,
+        plot.margin = margin(5,5,5,15, "pt"),
+        axis.text.x = element_text(angle = 30, hjust = 1)) +
+  annotate("text", x=c(.75,1,1.25), y=c(1,1,1), size = 3,
+           label=c("day 0-3", "day 3-10", "day 10-21"), angle = 90, hjust = 0)
+
+plot_grid(p.growth.vs.delt.growth + theme(legend.position = "none"), 
+          p.pop.vs.delt.growth + theme(axis.title.y = element_blank()), 
+          labels = c('A', 'B'), ncol = 2, 
+          align = "h", rel_widths = c(1, 1.3))
+```
+
+Does interaction effect on growth increase with time, presumably because population size of focal species increases?
+
+```{r magnitude of growth effects over time, echo = F, message = F, warning=F}
+ggplot(d.growthEffects %>% mutate(abs.delt.r = abs(delt.r),
+                                  delt.r.dir = ifelse(delt.r < 0, "negative", "positive"),
+                                  partner = factor(partner, levels = c("135E", "BC10", "BC9", "JB5",
+                                                                       "JB7", "JB370", "JBC"))) %>%
+         filter(!is.na(delt.r.dir)),
+       aes(x = partner, y = abs.delt.r, color = partner,
+           group = interaction(timeframe, partner))) +
+  stat_summary(aes(color = partner), 
+               fun = median, 
+               fun.min = function(z) { quantile(z,0.25) },
+               fun.max = function(z) { quantile(z,0.75) },
+               position = position_dodge(.75)) +
+  geom_point(position = position_jitterdodge(jitter.width = .1), alpha = 0.3, aes(shape = delt.r.dir)) +
+  scale_color_manual(values = species.palette, labels = names.italic, 
+                     guide = "none") +
+  scale_fill_manual(values = species.palette, guide = "none") +
+  scale_x_discrete(labels = names) +
+  theme_bw() +
+  labs(x = "focal species", 
+       y = expression(atop("change in per capita growth rate of partner (per day)", 
+                "abs(" ~rate[coculture] ~"-" ~rate[monoculture] ~")")),
+       shape = paste("growth change\ndirection")) +
+  theme(panel.grid.major.x = element_blank(),
+        legend.text.align = 0,
+        plot.margin = margin(5,5,5,5, "pt"),
+        axis.text.x = element_text(angle = 45, face = "italic", hjust = 1, size = 12)) +
+  annotate("text", x=c(6.7,7,7.3), y=c(2.5,2.5,2.5), size = 4,
+           label=c("day 3", "day 10", "day 21"), angle = 90, hjust = 1)
+```
+
+
+How frequently is a species' growth affected by a coculture partner, and is each species more frequently inhibited or stimulated by partners?
+What about the vive-versa, what species are frequently or infrequently affecting the growth of their coculture partner, and is that species usually inhibiting or stimulating partner species?
+
+Will only consider significant interactions in the following (p-value from Wilcoxon ranked sums test < 0.05).
+
+```{r number of interactions, echo = F, message = F, warning=F, fig.width=8, fig.height=5.5}
+# number of times species is affected
+spec.intx.summ <- d.tests.abs %>% 
+         filter(condition != "community", pH == 5, !is.na(sig)) %>% 
+         group_by(species, condition) %>% 
+         summarize(pos.TF = ifelse(any(intx.sign == "positive"), 1, 0), 
+                   neg.TF = ifelse(any(intx.sign == "negative"), 1, 0), 
+                   intx.TF = ifelse(any(!is.na(sig)), 1, 0)) %>% 
+         group_by(species) %>% 
+         summarize(spec.intx = sum(intx.TF),
+                   pos.intx = sum(pos.TF),
+                   neg.intx = sum(neg.TF))
+
+# number of times partner affects another species
+part.intx.summ <- d.tests.abs %>% 
+  filter(condition != "community", pH == 5, !is.na(sig)) %>% 
+  group_by(species, condition) %>% 
+  summarize(pos.TF = ifelse(any(intx.sign == "positive"), 1, 0), 
+            neg.TF = ifelse(any(intx.sign == "negative"), 1, 0), 
+            intx.TF = ifelse(any(!is.na(sig)), 1, 0)) %>% 
+  group_by(condition) %>% 
+  summarize(spec.intx = sum(intx.TF),
+            pos.intx = sum(pos.TF),
+            neg.intx = sum(neg.TF))
+
+# stacked barplots
+
+# affected species-centric
+spec.intx.summ.2 <- spec.intx.summ %>%
+  # occasion of a species both stimulated & inhibited, depending on time -- make own category
+  mutate(both.intx = ifelse(((pos.intx + neg.intx) > spec.intx), 1, 0)) %>%
+  # subtract this kind of instance from being counted in both stimulatory and inhibitory categories
+  group_by(species) %>% 
+  summarize(spec.intx,
+            pos.only.intx = pos.intx - both.intx,
+            neg.only.intx = neg.intx - both.intx,
+            both.intx) %>%
+  pivot_longer(cols = c(pos.only.intx, neg.only.intx, both.intx), names_to = "partner.effect")
+  
+p.species.effect.stacked <- ggplot(spec.intx.summ.2, aes(x = species, y = value)) +
+  geom_bar(position = "stack", stat = "identity", alpha = 0.7,
+           aes(fill = factor(partner.effect, 
+                             levels = c("pos.only.intx", "both.intx", "neg.only.intx")))) +
+  scale_fill_manual(values = c("gold", "orange", "firebrick1"),
+                    labels = c("stimulation",
+                               "mixed",
+                               "inhibition"),
+                    name = "effect: ") + 
+  labs(y = "# growth-affecting partner",
+       x = "species showing growth effects") +
+  scale_y_continuous(limits = c(0,6), breaks = seq(0,6,1)) +
+  scale_x_discrete(labels = names) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "italic", size = 12),
+        panel.grid = element_blank(),
+        axis.title = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        legend.position = "none")
+
+# partner affecting-centric
+part.intx.summ.2 <- part.intx.summ %>%
+  # occasion of a species both stimulated & inhibited, depending on time -- make own category
+  mutate(both.intx = ifelse(((pos.intx + neg.intx) > spec.intx), 1, 0)) %>%
+  # subtract this kind of instance from being counted in both stimulatory and inhibitory categories
+  group_by(condition) %>% 
+  summarize(spec.intx,
+            pos.only.intx = pos.intx - both.intx,
+            neg.only.intx = neg.intx - both.intx,
+            both.intx) %>%
+  pivot_longer(cols = c(pos.only.intx, neg.only.intx, both.intx), names_to = "partner.effect")
+
+p.partner.effect.stacked <- ggplot(part.intx.summ.2, aes(x = condition, y = value)) +
+  geom_bar(position = "stack", stat = "identity", alpha = 0.7,
+           aes(fill = factor(partner.effect, 
+                             levels = c("pos.only.intx", "both.intx", "neg.only.intx")))) +
+  scale_fill_manual(values = c("gold", "orange", "firebrick1"),
+                    labels = c("stimulation",
+                               "mixed",
+                               "inhibition"),
+                    name = "partner effect") + 
+  scale_y_continuous(limits = c(0,6), breaks = seq(0,6,1)) +
+  scale_x_discrete(labels = names) +
+  labs(y = "# species showing growth effects",
+       x = "growth-affecting partner") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "italic", size = 12),
+        panel.grid = element_blank(),
+        axis.title = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        legend.position = "none")
+
+p.partner.effects <- plot_grid(p.species.effect.stacked, p.partner.effect.stacked, 
+                               ncol = 2, align = "h", axis = "tb", scale = .95,
+                               labels = c('A', 'B'))
+leg.partner.effects <- cowplot::get_legend(p.species.effect.stacked +
+                                             theme(legend.position = "bottom", legend.title = element_text(size = 12)))
+plot_grid(p.partner.effects, leg.partner.effects, ncol = 1, rel_heights = c(1,.1))
+```
+
+So we can see that all species are frequently affected by partners, with average ~4 partner affecting growth. *Penicillium* is only ever ever significantly inhibited, and *Brachybacterium* is only ever stimulated by coculture partners. The rest are mostly evenly split between being stimulated or inhibited by partners.
+
+*Penicillium* stands out as a widespread and devoted inhibitor, whereas *Scopulariopsis* & *S. xylosus* both stimulate 4/5 of the coculture partners they interact with. *Candida*, suprisingly, is an even split between stimulating and inhibiting its coculture partners. There's a wide range of total number of species affected, from just 1 partner species affected by *Brevibacterium* to all 6 partners affected in cocultures with *Candida*. Noteably, all three fungi significantly affect 5-6 of their coculture partners, thought through diverse ranges of effects. The later colonizers, including *S. equorum*, *Brevibacterium*, and *Brachybacterium*, all exert the fewest number of growth effects.
+
+## Are Staphs more inhibited in community than could be predicted from coculture pairs alone?
+```{r Staph interaction dominance/addition, echo = F, message = F, warning=F}
+# sum of Staph PW intxns
+mult.intx <- function(s) {
+  pos.x <- d.tests.abs %>% 
+    filter(species == s, pH == 5, condition != "community", med.fc.part.alone > 1) %>%
+    group_by(day) %>%
+    summarize(total.intx = prod(med.fc.part.alone))
+  print(paste0("The total positive interactions, multiplied up for ", names[s], ", are:"))
+  print(paste0("day 3 = ", pos.x[which(pos.x$day==3),2], 
+        ", day 10 = ", pos.x[which(pos.x$day==10),2], 
+        ", and day 21 = ", pos.x[which(pos.x$day==21),2]))
+  
+  neg.x <- d.tests.abs %>% 
+    filter(species == s, pH == 5, condition != "community", med.fc.part.alone < 1) %>%
+    group_by(day) %>%
+    summarize(total.intx = prod(med.fc.part.alone))
+  print(paste0("The total negative interactions, multiplied up for ", names[s], ", are:"))
+  print(paste0("day 3 = ", neg.x[which(neg.x$day==3),2], 
+        ", day 10 = ", neg.x[which(neg.x$day==10),2], 
+        ", and day 21 = ", neg.x[which(neg.x$day==21),2]))
+  
+  total.x <- cbind(pos.x[ ,1], pos.x[ ,2]*neg.x[ ,2])
+  print(paste0("The total product of interactions, multiplied up for ", names[s], ", are:"))
+  print(paste0("day 3 = ", total.x[which(total.x$day==3),2], 
+        ", day 10 = ", total.x[which(total.x$day==10),2], 
+        ", and day 21 = ", total.x[which(total.x$day==21),2]))
+  
+  actual.x <- d.tests.abs %>% 
+    filter(species == s, pH == 5, condition == "community")
+  print(paste0("The in vitro result of all interactions in the community for ", names[s], ", are:"))
+  print(paste0("day 3 = ", actual.x[1,"med.fc.part.alone"], 
+        ", day 10 = ", actual.x[2,"med.fc.part.alone"], 
+        ", and day 21 = ", actual.x[3,"med.fc.part.alone"]))
+
+  print(paste(rep("-", times=20), collapse = ""))
+}
+
+mult.intx("BC10")
+mult.intx("BC9")
+
+```
+
+*S. xylosus* is more stimulated than inhibited. Nonetheless, it's inhibited in the community at scales similar to the product of all negative interactions, suggesting that negative interactions are dominant.
+
+*S. equorum* is very much stimulated, but to at some timepoints it is inhibited at equal scales (order of 100-fold). Overall in the community, it is, like *S. xylosus*, predominantly inhibited, at scales similar to the product of inhibitory pairwise interactions. So again, negative interactions are dominant.
+
+# Late-growing species are stimulated by deacidifiers & neutral starting pH compensates
+
+Since, again, the pH of these samples was measured after homogenizing in buffer and therefore is not an accurate measurement of the pH of the sample, I'll just consider the magnitude of the buffered pH change. So measure difference in pH (delta.pH) from day 0.
+
+```{r calculate change from starting pH, echo = F, message=F, warning=F}
+# change in pH
+# for d.18
+d.18 <-  d.18 %>% pivot_wider(id_cols = c(species, condition, pH, replicate), 
+                     names_from = day, names_prefix = "day.", values_from = measured.pH) %>%
+  mutate(delt.day.0 = 0,
+         delt.day.3 = day.3 - day.0,
+         delt.day.10 = day.10 - day.0,
+         delt.day.21 = day.21 - day.0) %>%
+  pivot_longer(cols = starts_with("delt"), values_to = "delta.pH", 
+               names_to = "day", names_prefix = "delt.day.") %>%
+  select(-starts_with("day.")) %>% mutate(day = as.integer(day)) %>%
+  left_join(d.18, .)
+# for d.18.summ
+d.18.summ <- d.18.summ %>% pivot_wider(id_cols = c(species, condition, pH), 
+                     names_from = day, names_prefix = "day.", values_from = med.measured.pH) %>%
+  mutate(delt.day.0 = 0,
+         delt.day.3 = day.3 - day.0,
+         delt.day.10 = day.10 - day.0,
+         delt.day.21 = day.21 - day.0) %>%
+  pivot_longer(cols = starts_with("delt"), names_to = "day", names_prefix = "delt.day.", values_to = "delta.med.pH") %>%
+  select(-starts_with("day.")) %>% mutate(day = as.integer(day)) %>%
+  full_join(d.18.summ, .)
+```
+
+
+## Deacidifying pairwise interactions correlate with stimulation of Brevi/Brachy
+
+```{r Brevi/brachy all coculture growth, echo = F, message = F, warning = F}
+growth.ph <- function(x) {
+  p.growth <- ggplot(d.18 %>% filter(species == x, pH == 5), 
+                     aes(x=day, y=total.CFUs, color=species)) +
+    geom_point(aes(group=replicate)) +
+    geom_line(data = d.18.summ %>% filter(species == x, pH == 5), 
+              aes(x=day, y=med.CFUs, color=species)) +
+    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                  labels = trans_format("log10", label_math(10^.x))) + 
+    theme_bw() +
+    scale_color_manual(values = species.palette, guide = "none") +
+    facet_grid(.~condition, labeller = labeller(condition = names)) + 
+    labs(y="colony forming units") +
+    theme(strip.text = element_text(face = "italic"),
+          axis.title.x = element_blank(),
+          axis.text.x = element_blank())
+  
+  p.ph <- ggplot(d.18 %>% filter(species == x, pH == 5), 
+                 aes(x=day, y=delta.pH)) +
+    geom_point(aes(group=replicate)) +
+    geom_line(data = d.18.summ %>% filter(species == x, pH == 5), 
+              aes(x=day, y=delta.med.pH)) +
+    theme_bw() +
+    facet_grid(.~condition, labeller = labeller(condition = names)) + 
+    labs(y = expression(Delta*"pH")) +
+    theme(strip.text.x = element_blank(),
+          plot.margin = margin(l=25, r=5, unit = "pt"))
+  plot_grid(p.growth, p.ph, nrow = 2, rel_heights = c(1.7, 1), align = "v", axis = "lr")
+}
+plot_grid(growth.ph("JB5"), growth.ph("JB7"), 
+          align = "v", axis = "lr", nrow = 2, labels = c("A", "B"))
+```
+
+Can we quantitatively observe this correlation between pH & population size for acid-sensitive species in pairwise cocultures?
+
+look at correlation between population size & pH:
+hypothesis is that we would see a positive correlation for pH 5, and no correlation at pH 7
+
+```{r pH CHANGE-growth CHANGE correlation, echo = F, message = F, warning = F, fig.height = 6}
+# pH 5 correlation
+ph5.cor <- ggplot(d.18 %>% filter(pH==5), aes(x = measured.pH, y=total.CFUs)) +
+  geom_point(aes(color=condition)) + 
+  scale_color_manual(values = c(species.palette, "community"="black")) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  facet_grid(. ~ species, labeller = labeller(species = names)) +
+  theme(axis.text.x = element_text(angle=90),
+        legend.position= "none") +
+  labs(title = "Change in pH versus population size on CCA pH 5", 
+       x = "measured pH", y = "total colony-forming units")
+
+#is correlation removed at pH 7
+ph7.cor <- ggplot(d.18 %>% filter(pH==7), aes(x = measured.pH, y=total.CFUs)) +
+  geom_point(aes(color=condition)) + 
+  scale_color_manual(values = c(species.palette, "community"="black"),
+                     name = "coculture condition",
+                     labels = c("alone", paste("+", names[-9]))) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  facet_grid(. ~ species, labeller = labeller(species = names)) +
+  theme(axis.text.x = element_text(angle=90),
+        legend.text = element_text(face = "italic")) +
+  labs(title = "Change in pH versus population size on CCA pH 7", 
+       x = "measured pH", y = "total colony-forming units")
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  ph7.cor + theme(legend.box.margin = margin(0, 0, 0, 12))
+)
+
+plot_grid(plot_grid(ph5.cor, ph7.cor + theme(legend.position = "none"), 
+                    nrow = 2), 
+          legend,
+          ncol = 2, rel_widths = c(5, 1))
+```
+
+So it definitely feels like I'm seeing a positive correlation for pH 5 *Brevi* and *Brachy*. However, the trend isn't completely eliminated for pH7 cocultures, though much of this seems to be coming from the *Penicillium* coculture, which is probably inhibitory for reasons unrelated to pH.
+
+Also worth noting that at pH 7, *Scopulariopsis* has a rather steady positive correlation trend between pH and population size, though there might also be correlation with time.
+
+
+But should I be considering more a relationship between *growth* and pH? Let's take a look at the correlations between pH the difference in growth rates between coculture and monoculture (growth rate generated by per-capita growth rate from the exponential growth equation * population size (i.e. capitol) at the later time point of the two measured.)
+
+```{r pH-growth rate correlation, echo = F, message = F, warning = F, fig.height = 6}
+# define all conditions to run through
+spec <- levels(d.18$species)
+cond <- levels(d.18$condition)
+pH <- levels(d.18$pH)
+
+# initiate list to store data, one list element for each species
+l.growthRates <- list()
+
+# for each species in each condition at each pH at each time, t-test against alone cfus
+for (s in spec) {
+  for (c in cond[which(cond != s)]) {
+    for (p in pH) {
+      for (d in 1:3) {
+        tp.1 <- unique(d.18$day)[d]
+        tp.2 <- unique(d.18$day)[d+1]
+        days <- tp.2 - tp.1
+        # get CFU data in partner condition for time 1 & 2
+        dat.spec <- d.18 %>% 
+          filter(species == s, condition == c, pH == p, day %in% c(tp.1, tp.2)) %>%
+          pivot_wider(id_cols=c(species, condition, pH, replicate),
+                      names_from = day, values_from = total.CFUs)
+        # generalize CFU timepoint column names
+        colnames(dat.spec)[which(colnames(dat.spec) == tp.1)] <- "tp.1"
+        colnames(dat.spec)[which(colnames(dat.spec) == tp.2)] <- "tp.2"
+        # calculate growth over time
+        dat.spec <- dat.spec %>% mutate(growth = growth_exp(tp.2, tp.1, days)) %>% 
+          mutate(partner = c,
+                 timeframe = paste(.env[["tp.1"]], .env[["tp.2"]], sep = "-"))
+        # add in pH data
+        dat.spec <- left_join(dat.spec, 
+                              d.18 %>% 
+                                filter(species == s, condition == c, pH == p, day == tp.2) %>%
+                                select(replicate, measured.pH)) 
+        # edit measured pH column name
+        colnames(dat.spec)[which(colnames(dat.spec) == "measured.pH")] <- "endpoint.coculture.pH"
+        l.growthRates[[length(l.growthRates)+1]] <- dat.spec
+      }
+    }
+  }
+}
+
+# turn into dataframe
+
+d.growthRates <- do.call(rbind, l.growthRates)
+# turn growth rates absolute with indication if negative or positive
+d.growthRates <- d.growthRates %>%
+  mutate(abs.growth = abs(growth),
+         growth.dir = ifelse(growth > 0, "positive", "negative"),
+         growth.dir = factor(growth.dir, levels = c("positive", "negative")),
+         partner = fct_relevel(partner, "135E", "BC10", "BC9", "JB5", "JB7", "JBC", "JB370", "community", "alone"))
+
+# pH 5 correlation
+ph5.cor <- ggplot(d.growthRates %>% filter(pH==5, !is.na(growth.dir)), 
+                  aes(x = endpoint.coculture.pH, y=abs.growth*tp.2)) +
+  geom_point(aes(color=partner, shape = growth.dir)) + 
+  scale_y_log10() +
+  scale_color_manual(values = c(species.palette[2:8], `community` = "#595959", `alone` = "#d6b8c3")) +
+  facet_grid(. ~ species, labeller = labeller(species = names)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90),
+        legend.position= "none",
+        strip.text = element_text(face = "italic")) +
+  labs(title = "pH versus growth on CCA pH 5", 
+       x = "measured pH", 
+       y = "growth rate (CFUs per day)")
+
+#is correlation removed at pH 7
+ph7.cor <- ggplot(d.growthRates %>% filter(pH==7, !is.na(growth.dir)), 
+                  aes(x = endpoint.coculture.pH, y=abs.growth*tp.2)) +
+  geom_point(aes(color=partner, shape = growth.dir)) + 
+  scale_y_log10() +
+  scale_color_manual(values = c(species.palette[2:8], `community` = "#595959", `alone` = "#d6b8c3"),
+                     name = "culture condition",
+                     labels = c(paste("+", names[-9]), "monoculture")) +
+  facet_grid(. ~ species, labeller = labeller(species = names)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90),
+        legend.text = element_text(face = "italic"),
+        strip.text = element_text(face = "italic")) +
+  labs(title = "pH versus growth on CCA pH 7", 
+       x = "measured pH", 
+       y = "growth rate (CFUs per day)",
+       shape = "growth rate")
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  ph7.cor + theme(legend.box.margin = margin(0, 0, 0, 12))
+)
+
+plot_grid(plot_grid(ph5.cor, ph7.cor + theme(legend.position = "none"), 
+                    nrow = 2), 
+          legend,
+          ncol = 2, rel_widths = c(5, 1))
+```
+
+The same graph, but points clustered by partner species to show relationships.
+
+```{r pH-growth rate correlation with ellipses, echo = F, message = F, warning = F, fig.height = 6}
+# pH 5 correlation
+ph5.cor <- ggplot(d.growthRates %>% filter(pH==5, !is.na(growth.dir)), 
+                  aes(x = endpoint.coculture.pH, y=abs.growth*tp.2)) +
+  geom_point(aes(color=partner, shape = growth.dir)) + 
+  ggforce::geom_mark_ellipse(data = d.growthRates %>% filter(pH==5, !is.na(growth.dir), !is.na(endpoint.coculture.pH), is.finite(abs.growth)),
+                             aes(color=partner)) + 
+  scale_y_log10() +
+  scale_color_manual(values = c(species.palette[2:8], `community` = "#595959", `alone` = "#d6b8c3")) +
+  facet_grid(. ~ species, labeller = labeller(species = names)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90),
+        legend.position= "none",
+        strip.text = element_text(face = "italic")) +
+  labs(title = "pH versus growth on CCA pH 5", 
+       x = "measured pH", 
+       y = "growth rate (CFUs per day)")
+
+#is correlation removed at pH 7
+ph7.cor <- ggplot(d.growthRates %>% filter(pH==7, !is.na(growth.dir)), 
+                  aes(x = endpoint.coculture.pH, y=abs.growth*tp.2)) +
+  geom_point(aes(color=partner, shape = growth.dir)) + 
+  ggforce::geom_mark_ellipse(data = d.growthRates %>% filter(pH==7, !is.na(growth.dir), !is.na(endpoint.coculture.pH), is.finite(abs.growth)),
+                             aes(color=partner)) + 
+  scale_y_log10() + 
+  scale_color_manual(values = c(species.palette[2:8], `community` = "#595959", `alone` = "#d6b8c3"),
+                     name = "culture condition",
+                     labels = c(paste("+", names[-9]), "monoculture")) +
+  facet_grid(. ~ species, labeller = labeller(species = names)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90),
+        legend.text = element_text(face = "italic"),
+        strip.text = element_text(face = "italic")) +
+  labs(title = "pH versus growth on CCA pH 7", 
+       x = "measured pH", 
+       y = "growth rate (CFUs per day)",
+       shape = "growth rate")
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  ph7.cor + theme(legend.box.margin = margin(0, 0, 0, 12))
+)
+
+plot_grid(plot_grid(ph5.cor, ph7.cor + theme(legend.position = "none"), 
+                    nrow = 2), 
+          legend,
+          ncol = 2, rel_widths = c(5, 1))
+```
+
+
+Overall, pH isn't a complete descriptor/predictor of *Brevibacterium* and *Brachybacterium* growth, though it seems to be involved. Let's get back to what we *can* learn about the acid-sensitivity of these two Actinobacteria
+
+# Brevi/Brachy are sensitive to acidic pH, but grow in community with increasing pH
+
+```{r brevi/brachy alone/community, echo = F, message = F, warning = F}
+# Aug 2018 data
+p.JB5JB7.comm.mean <- ggplot(d.18.summ %>% filter(condition %in% c("alone", "community"), 
+                                                  pH == 5, species %in% c("JB5", "JB7")),
+                             aes(linetype = condition)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1)  + 
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none") +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "community"), 
+                                    pH == 5, species %in% c("JB5", "JB7")),
+             aes(x = day, y = total.CFUs, color = species, 
+                 group = replicate, shape = condition)) + 
+  labs(title = "Growth of Brevi/Brachy on CCA pH 5 (Aug 2018 data)",
+       y = "colony-forming units") + 
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme_bw() + 
+  theme(legend.position="top", 
+        legend.box.spacing = unit(0, "cm"),
+        legend.key = element_rect(),
+        strip.text = element_text(face = "italic"),
+        legend.key.width = unit(40,"pt"),
+        axis.title.x = element_blank()) +
+  geom_text(data    = d.tests.p %>% filter(condition == "community", 
+                                           pH == 5, species %in% c("JB5", "JB7")),
+            mapping = aes(x = day, y = (total.cfus), label = sig))
+
+# pH data from Aug 2018 community v. alone data
+p.JB5JB7.comm.ph <- ggplot(data = d.18.summ %>% filter(condition %in% c("alone", "community"), 
+                                                       pH == 5, species %in% c("JB5", "JB7")), 
+       aes(x=day, y=med.measured.pH, group = condition, linetype = condition)) +
+  geom_line(size = 1) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme_bw() +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "community"), 
+                                    pH == 5, species %in% c("JB5", "JB7")),
+             aes(x = day, y = measured.pH,
+                 group = replicate, shape = condition)) + 
+  labs(y = "measured pH") +
+  theme(legend.box.spacing = unit(.2, "cm"), 
+        legend.position = "none",
+        strip.text = element_blank()) +
+  guides(linetype = guide_legend(override.aes = list(size=.5)),
+          shape = guide_legend(override.aes = list(size=2)))
+
+plot_grid(p.JB5JB7.comm.mean, p.JB5JB7.comm.ph, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+```
+
+# Model Actinobacteria are acid-sensitive
+
+Inoculation on CCA adjusted to pH 7 allows for rapid growth of both Actinobacteria
+
+``` {r Brevi/Brachy growth ph5 vs ph7, echo = F, message = F, warning = F}
+## show growth alone at pH 5 versus pH 7
+dat.m <- d.18.summ %>% filter(condition=="alone")
+dat <- d.18 %>% filter(condition=="alone")
+
+ggplot(d.18 %>% filter(condition=="alone", 
+                       species %in% c("JB5", "JB7")),
+       aes(x = day, y = total.CFUs, color=species)) +
+  geom_point(aes(group = replicate, shape = interaction(pH,condition))) +
+  geom_line(data = d.18.summ %>% filter(condition=="alone", species %in% c("JB5", "JB7")),
+       aes(x = day, y = med.CFUs, color=species, 
+           linetype = interaction(pH,condition)), size = .8) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"),
+                        labels = c(`7.alone`="grown alone at pH 7",
+                                `5.alone`="grown alone at pH 5")) +
+  scale_shape_discrete(labels = c(`7.alone`="grown alone at pH 7",
+                                `5.alone`="grown alone at pH 5")) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(legend.position = "top", 
+        legend.spacing.x = unit(0.2, "cm"),
+        legend.box.spacing = unit(0,"cm"),
+        legend.key.width = unit(40,"pt"),
+        strip.text = element_text(face = "italic"),
+        legend.title = element_blank()) +
+  labs(y = "colony forming units")
+```
+
+### increased pH is sufficient to simulate Candida's stimulation of Brevi/Brachy
+``` {r Brevi/Brachy growth ph5 with candida vs pH7 alone, echo = F, message = F, warning = F}
+## just Candida -- show how growth w/ Candida is very similar to growth alone at pH 7
+
+p.JB5JB7.135E <- ggplot(d.18 %>% 
+                          filter((condition == "alone" & pH == 7) | (condition %in% c("135E", "alone") & pH == 5),
+                                 species %in% c("JB5", "JB7")),
+                        aes(x=day, y=total.CFUs, color=species)) +
+  geom_point(aes(group=replicate, shape = interaction(pH,condition))) +
+  geom_line(data = d.18.summ %>% 
+              filter((condition == "alone" & pH == 7) | (condition %in% c("135E", "alone") & pH == 5),
+                     species %in% c("JB5", "JB7")),
+            aes(x=day, y=med.CFUs, color=species, 
+                linetype = interaction(pH,condition)), size = .8) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                        labels = c(`5.135E`="with Candida at pH 5", `7.alone`="grown alone at pH 7",
+                                   `5.alone`="grown alone at pH 5")) +
+  scale_shape_discrete(labels = c(`5.135E`="with Candida at pH 5", `7.alone`="grown alone at pH 7",
+                                  `5.alone`="grown alone at pH 5")) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(legend.position = "top", 
+        legend.spacing.x = unit(0.2, "cm"),
+        legend.box.spacing = unit(0,"cm"),
+        legend.key.width = unit(40,"pt"),
+        strip.text = element_text(face = "italic"),
+        legend.title = element_blank(),
+        axis.title.x = element_blank()) +
+  labs(y = "colony forming units")
+
+
+p.JB5JB7.135E.ph <- ggplot(data = d.18.summ %>% 
+                             filter((condition == "alone" & pH == 7) | (condition %in% c("135E", "alone") & pH == 5),
+                                    species %in% c("JB5", "JB7")), 
+                           aes(x=day, y=med.measured.pH, linetype = interaction(pH,condition))) +
+  geom_line(size = 1) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme_bw() +
+  geom_point(data = d.18 %>% 
+               filter((condition == "alone" & pH == 7) |  (condition %in% c("135E", "alone") & pH == 5),
+                      species %in% c("JB5", "JB7")),
+             aes(x = day, y = measured.pH,
+                 group = replicate, shape = interaction(pH,condition))) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted")) +
+  theme(legend.box.spacing = unit(.2, "cm"), 
+        legend.position = "none",
+        strip.text = element_blank())
+
+plot_grid(p.JB5JB7.135E, p.JB5JB7.135E.ph, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+```
+
+Growth on CCA pH 5 in coculture with *Candida* is very similar to growth alone on CCA pH 7. Suggests that deacidification might be the main stimulating mechanism by *Candida*
+
+### Brevi/Brachy + S. xylosus
+``` {r Brevi/Brachy growth with S. xylosus, echo = F, message = F, warning = F}
+p.JB5JB7.BC10 <- ggplot(d.18 %>% 
+                          filter((condition == "alone" & pH == 7) | (condition %in% c("BC10", "alone") & pH == 5),
+                                 species %in% c("JB5", "JB7")),
+                        aes(x=day, y=total.CFUs, color=species)) +
+  geom_point(aes(group=replicate, shape = interaction(pH,condition))) +
+  geom_line(data = d.18.summ %>% 
+              filter((condition == "alone" & pH == 7) | (condition %in% c("BC10", "alone") & pH == 5),
+                     species %in% c("JB5", "JB7")),
+            aes(x=day, y=med.CFUs, color=species, 
+                linetype = interaction(pH,condition)), size = .8) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                        labels = c(`5.BC10`="with S. xylosus at pH 5", 
+                                   `7.alone`="grown alone at pH 7",
+                                   `5.alone`="grown alone at pH 5")) +
+  scale_shape_discrete(labels = c(`5.BC10`="with S. xylosus at pH 5", 
+                                  `7.alone`="grown alone at pH 7",
+                                  `5.alone`="grown alone at pH 5")) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(legend.position = "top", 
+        legend.spacing.x = unit(0.2, "cm"),
+        legend.box.spacing = unit(0,"cm"),
+        legend.key.width = unit(40,"pt"),
+        strip.text = element_text(face = "italic"),
+        legend.title = element_blank(),
+        axis.title.x = element_blank()) +
+  labs(y = "colony forming units")
+
+p.JB5JB7.BC10.ph <- ggplot(data = d.18.summ %>% 
+                             filter((condition == "alone" & pH == 7) | (condition %in% c("BC10", "alone") & pH == 5),
+                                    species %in% c("JB5", "JB7")), 
+                           aes(x=day, y=med.measured.pH, linetype = interaction(pH,condition))) +
+  geom_line(size = 1) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme_bw() +
+  geom_point(data = d.18 %>% 
+               filter((condition == "alone" & pH == 7) | (condition %in% c("BC10", "alone") & pH == 5),
+                      species %in% c("JB5", "JB7")),
+             aes(x = day, y = measured.pH,
+                 group = replicate, shape = interaction(pH,condition))) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted")) +
+  theme(legend.box.spacing = unit(.2, "cm"), 
+        legend.position = "none",
+        strip.text = element_blank())
+
+plot_grid(p.JB5JB7.BC10, p.JB5JB7.BC10.ph, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+```
+
+Coculture with *S. xylosus* is not quite as powerful in stimulating Actinobacterial growth, but neither is the deacidification as strong/quick as in coculture with *Candida*
+
+### Brevi/Brachy + Scopulariopsis
+``` {r Brevi/Brachy growth with Scop, echo = F, message = F, warning = F}
+p.JB5JB7.JB370 <- ggplot(d.18 %>% 
+                           filter((condition == "alone" & pH == 7) | (condition %in% c("JB370", "alone") & pH == 5),
+                                  species %in% c("JB5", "JB7")),
+                         aes(x=day, y=total.CFUs, color=species)) +
+  geom_point(aes(group=replicate, shape = interaction(pH,condition))) +
+  geom_line(data = d.18.summ %>% 
+              filter((condition == "alone" & pH == 7) | (condition %in% c("JB370", "alone") & pH == 5),
+                     species %in% c("JB5", "JB7")),
+            aes(x=day, y=med.CFUs, color=species, 
+                linetype = interaction(pH,condition)), size = .8) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                        labels = c(`5.JB370`="with Scopulariopsis at pH 5", 
+                                   `7.alone`="grown alone at pH 7",
+                                   `5.alone`="grown alone at pH 5")) +
+  scale_shape_discrete(labels = c(`5.JB370`="with Scopulariopsis at pH 5", 
+                                  `7.alone`="grown alone at pH 7",
+                                  `5.alone`="grown alone at pH 5")) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(legend.position = "top", 
+        legend.spacing.x = unit(0.2, "cm"),
+        legend.box.spacing = unit(0,"cm"),
+        legend.key.width = unit(40,"pt"),
+        strip.text = element_text(face = "italic"),
+        legend.title = element_blank(),
+        axis.title.x = element_blank()) +
+  labs(y = "colony forming units")
+
+p.JB5JB7.JB370.ph <- ggplot(data = d.18.summ %>% 
+                              filter((condition == "alone" & pH == 7) | (condition %in% c("JB370", "alone") & pH == 5),
+                                     species %in% c("JB5", "JB7")), 
+                            aes(x=day, y=med.measured.pH, linetype = interaction(pH,condition))) +
+  geom_line(size = 1) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme_bw() +
+  geom_point(data = d.18 %>% 
+               filter((condition == "alone" & pH == 7) | (condition %in% c("JB370", "alone") & pH == 5),
+                      species %in% c("JB5", "JB7")),
+             aes(x = day, y = measured.pH,
+                 group = replicate, shape = interaction(pH,condition))) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted")) +
+  theme(legend.box.spacing = unit(.2, "cm"), 
+        legend.position = "none",
+        strip.text = element_blank())
+
+plot_grid(p.JB5JB7.JB370, p.JB5JB7.JB370.ph, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+```
+
+Similar story for cocultures with *Scopulariopsis* as for *S. xylosus*: slower deacidifcation correlates with slower stimulation of Actinobacterial growth.
+
+
+### Brevi + Penicillium
+```{r Brevi/Brachy growth with Penicillium, echo = F, message = F, warning = F}
+# place significance asterisks
+max <- max(d.18 %>% filter(species %in% c("JB5", "JB7"), pH == "5", condition %in% c("alone", "JBC")) %>% 
+      select("total.CFUs"))
+d.tests.pH.p <- data.frame(day=d.tests.pH$day, sig=d.tests.pH$sig, pH = d.tests.pH$pH,
+                        species=d.tests.pH$species, condition=d.tests.pH$condition,
+                        cfus=rep((max*2.5),nrow(d.tests.pH)))
+
+# 2018 data: growth alone
+p.18.mean.JB5JBC <- ggplot(d.18.summ %>% 
+                            filter(species %in% c("JB5", "JB7"), pH == "5", condition %in% c("alone", "JBC")), 
+                          aes(linetype = condition, shape = condition)) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  geom_point(data = d.18 %>% 
+               filter(species %in% c("JB5", "JB7"), pH == "5", condition %in% c("alone", "JBC")), 
+             aes(x=day, y=total.CFUs, color = species, group = replicate)) +
+  scale_color_manual(values = species.palette, guide = "none") + 
+  scale_linetype(labels = c(`alone`="alone", 
+                                `JBC`="+ Penicillium")) +
+  scale_shape(labels = c(`alone`="alone", 
+                         `JBC`="+ Penicillium")) +
+  theme_bw() +
+  theme(legend.position="top", 
+        legend.box.spacing = unit(0, "cm"),
+        legend.key = element_rect(),
+        strip.text = element_text(size = 9, face = "italic"),
+        axis.title.x = element_blank(),
+        legend.key.width = unit(40, "pt")) +
+  labs(y="colony forming units") +
+  geom_text(data    = d.tests.pH.p %>% 
+              filter(species %in% c("JB5", "JB7"), pH == "5", condition %in% c("alone", "JBC")),
+            mapping = aes(x = day, y = (cfus), label = sig))
+
+# pH of Aug 2018 data
+p.18.mean.pH.JB5JBC <- ggplot(d.18.summ %>% 
+                                filter(species %in% c("JB5", "JB7"), pH == "5", condition %in% c("alone", "JBC")), 
+                              aes(x=day, y=med.measured.pH, linetype = condition, shape = condition)) +
+  geom_line(size = 1) +
+  facet_grid(.~species) +
+  theme_bw() + 
+  geom_line(size = 1) +
+  geom_point(data = d.18 %>% 
+               filter(species %in% c("JB5", "JB7"), pH == "5", condition %in% c("alone", "JBC")),
+             aes(x = day, y = measured.pH, group = "replicate")) +
+  labs(y = "measured pH") +
+  theme(strip.text.x = element_blank(),
+        legend.position = "none")
+
+plot_grid(p.18.mean.JB5JBC, p.18.mean.pH.JB5JBC, nrow = 2, ncol = 1, rel_heights = c(1.5, 1), align = "v", axis = "lr")
+```
+
+
+
+# pH affects rind members' growth
+
+## Fungi are generally inhibited and bacteria stimulated by a neutral vs. acidic pH
+```{r pH 7 growth alone, echo = F, warning = F, message = F, fig.height = 4, fig.align="center"}
+# place significance asterisks
+max <- max(d.18 %>% filter(condition == "alone") %>% 
+      select("total.CFUs"))
+d.tests.pH.p <- data.frame(day=d.tests.pH$day, sig=d.tests.pH$sig, pH = d.tests.pH$pH,
+                        species=d.tests.pH$species, condition=d.tests.pH$condition,
+                        cfus=rep((max*2.5),nrow(d.tests.pH)))
+
+# 2018 data: growth alone
+p.18.mean.alone <- ggplot(d.18.summ %>% filter(condition == "alone"), 
+                          aes(linetype = pH, shape = pH)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none") +
+  geom_point(data = d.18 %>% filter(condition == "alone"), 
+             aes(x=day, y=total.CFUs, color = species, group = replicate)) +
+  labs(title = "Mean growth of rind members growing alone at pH 5 vs. pH 7",
+       y="colony forming units") + 
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 9, face = "italic"),
+        axis.title.x = element_blank()) +
+  geom_text(data    = d.tests.pH.p %>% filter(condition == "alone"),
+            mapping = aes(x = day, y = (cfus), label = sig))
+
+# pH of Aug 2018 data
+p.18.mean.pH.alone <- ggplot(d.18.summ %>% filter(condition == "alone"), 
+                             aes(x=day, y=med.measured.pH, linetype = pH, shape = pH)) +
+  geom_line(size = 1) +
+  geom_point(data = d.18 %>% filter(condition == "alone"),
+             aes(x = day, y = measured.pH, group = "replicate")) +
+  facet_grid(.~species) +
+  theme_bw() +
+  theme(strip.text.x = element_blank(),
+        legend.position = "none")
+
+plot_grid(p.18.mean.alone, p.18.mean.pH.alone, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+
+```
+
+## *S. equorum* also demonstrates improved growth at neutral pH compared to acidic.
+
+```{r S equorum ph5 vs ph7, echo = F, warning = F, message = F}
+## alone, at pH 5 vs. pH 7
+p.18.BC9.grow <- ggplot(d.18.summ %>% filter(species == "BC9",condition == "alone"), 
+                          aes(linetype = pH, shape = pH)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none") + 
+  theme_bw() +
+  geom_point(data = d.18 %>% filter(species == "BC9",condition == "alone"), 
+             aes(x=day, y=total.CFUs, color = species, group = replicate)) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(strip.text = element_text(size = 9, face = "italic"),
+        axis.title.x = element_blank(),
+        legend.key.width = unit(30,"pt"),
+        legend.title = element_blank()) +
+  labs(y="colony forming units")
+# pH
+p.18.BC9.pH <- ggplot(d.18.summ %>% filter(species == "BC9",condition == "alone"), 
+       aes(x=day, y=med.measured.pH, linetype = pH, shape = pH)) +
+  geom_line(size = 1) +
+  geom_point(data = d.18 %>% filter(species == "BC9",condition == "alone"),
+             aes(x = day, y = measured.pH, group = "replicate")) +
+  facet_grid(.~species) +
+  theme_bw() +
+  theme(strip.text.x = element_blank(),
+        legend.position = "none") +
+  labs(y = "measured pH")
+
+plot_grid(p.18.BC9.grow, p.18.BC9.pH, nrow = 2, ncol = 1, rel_heights = c(1.5, 1), align = "v", axis = "lr")
+```
+
+### *S. equorum* in coculture with *Penicillium*
+
+```{r S equorum coculture with JBC, echo = F, warning = F, message = F}
+##### added interaction with JBC at pH 5
+p.18.BC9.grow.JBC <- ggplot(d.18.summ %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "JBC" & pH == 5))), 
+                          aes(linetype = interaction(pH, condition), 
+                              shape = interaction(pH, condition))) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none") + 
+  theme_bw() +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                        labels = c("alone, pH 5", "alone, pH 7", "+Penicillium, pH 5")) +
+  scale_shape_discrete(labels = c("alone, pH 5", "alone, pH 7", "+Penicillium, pH 5")) +
+  geom_point(data = d.18 %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "JBC" & pH == 5))), 
+             aes(x=day, y=total.CFUs, color = species, group = replicate)) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(strip.text = element_text(size = 9, face = "italic"),
+        axis.title.x = element_blank(),
+        legend.key.width = unit(30,"pt"),
+        legend.title = element_blank()) +
+  labs(y="colony forming units")
+# pH 
+p.18.BC9.pH.JBC <- ggplot(d.18.summ %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "JBC" & pH == 5))), 
+       aes(x=day, y=med.measured.pH, linetype = interaction(pH, condition), 
+                              shape = interaction(pH, condition))) +
+  geom_line(size = 1) +
+  theme_bw() +
+  geom_point(data = d.18 %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "JBC" & pH == 5))),
+             aes(x = day, y = measured.pH, group = "replicate")) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                        labels = c("alone, pH 5", "alone, pH 7", "+Penicillium, pH 5")) +
+  scale_shape_discrete(labels = c("alone, pH 5", "alone, pH 7", "+Penicillium, pH 5")) +
+  facet_grid(.~species) +
+  theme(strip.text.x = element_blank(),
+        legend.position = "none") +
+  labs(y = "measured pH")
+
+plot_grid(p.18.BC9.grow.JBC, p.18.BC9.pH.JBC, nrow = 2, ncol = 1, rel_heights = c(1.5, 1), align = "v", axis = "lr")
+```
+
+### *S. equorum* in coculture with *Scopulariopsis*
+
+```{r S equorum coculture with Scop, echo = F, warning = F, message = F}
+##### added interaction with JB370 at pH 5
+p.18.BC9.grow.JB370 <- ggplot(d.18.summ %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "JB370" & pH == 5))), 
+                          aes(linetype = interaction(pH, condition), 
+                              shape = interaction(pH, condition))) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none") +  
+  theme_bw() +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                        labels = c("alone, pH 5", "alone, pH 7", "+Scopulariopsis, pH 5")) +
+  scale_shape_discrete(labels = c("alone, pH 5", "alone, pH 7", "+Scopulariopsis, pH 5")) +
+  geom_point(data = d.18 %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "JB370" & pH == 5))), 
+             aes(x=day, y=total.CFUs, color = species, group = replicate)) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(strip.text = element_text(size = 9, face = "italic"),
+        axis.title.x = element_blank(),
+        legend.key.width = unit(30,"pt"),
+        legend.title = element_blank()) +
+  labs(y="colony forming units")
+# pH 
+p.18.BC9.pH.JB370 <- ggplot(d.18.summ %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "JB370" & pH == 5))), 
+       aes(x=day, y=med.measured.pH, linetype = interaction(pH, condition), 
+                              shape = interaction(pH, condition))) +
+  geom_line(size = 1) +
+  theme_bw() +
+  geom_point(data = d.18 %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "JB370" & pH == 5))),
+             aes(x = day, y = measured.pH, group = "replicate")) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                        labels = c("alone, pH 5", "alone, pH 7", "+Scopulariopsis, pH 5")) +
+  scale_shape_discrete(labels = c("alone, pH 5", "alone, pH 7", "+Scopulariopsis, pH 5")) +
+  facet_grid(.~species) +
+  theme(strip.text.x = element_blank(),
+        legend.position = "none") +
+  labs(y = "measured pH")
+
+plot_grid(p.18.BC9.grow.JB370, p.18.BC9.pH.JB370, nrow = 2, ncol = 1, rel_heights = c(1.5, 1), align = "v", axis = "lr")
+```
+
+Should be noted that these results are in line with the Wolfe lab paper showing that *Scopulariopsis* can stimulated *S. equorum* growth, potentially through cross-feeding iron scavenging molecules.
+
+### *S. equorum* in coculture with *Candida*
+
+```{r S equorum coculture with Candida, echo = F, warning = F, message = F}
+##### added interaction with 135E at pH 5
+p.18.BC9.grow.135E <- ggplot(d.18.summ %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "135E" & pH == 5))), 
+                          aes(linetype = interaction(pH, factor(condition, levels = c("alone", "135E"))), 
+                              shape = interaction(pH, factor(condition, levels = c("alone", "135E"))))) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none") + 
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                        labels = c(`5.alone`="alone, pH 5", `7.alone`="alone, pH 7", `5.135E`="+Candida, pH 5")) +
+  scale_shape_discrete(labels = c(`5.alone`="alone, pH 5", `7.alone`="alone, pH 7", `5.135E`="+Candida, pH 5")) +
+  geom_point(data = d.18 %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "135E" & pH == 5))), 
+             aes(x=day, y=total.CFUs, color = species, group = replicate)) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 9, face = "italic"),
+        axis.title.x = element_blank(),
+        legend.key.width = unit(30,"pt"),
+        legend.title = element_blank()) +
+  labs(y="colony forming units")
+# pH 
+p.18.BC9.pH.135E <- ggplot(d.18.summ %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "135E" & pH == 5))), 
+       aes(x=day, y=med.measured.pH, linetype = interaction(pH, factor(condition, levels = c("alone", "135E"))), 
+                              shape = interaction(pH, factor(condition, levels = c("alone", "135E"))))) +
+  geom_line(size = 1) +
+  theme_bw() +
+  geom_point(data = d.18 %>% filter(species == "BC9" & (condition == "alone" | 
+                                                 (condition == "135E" & pH == 5))),
+             aes(x = day, y = measured.pH, group = "replicate")) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                        labels = c(`5.alone`="alone, pH 5", `7.alone`="alone, pH 7", `5.135E`="+Candida, pH 5")) +
+  scale_shape_discrete(labels = c(`5.alone`="alone, pH 5", `7.alone`="alone, pH 7", `5.135E`="+Candida, pH 5")) +
+  facet_grid(.~species) +
+  theme(strip.text.x = element_blank(),
+        legend.position = "none") +
+  labs(y = "measured pH")
+
+plot_grid(p.18.BC9.grow.135E, p.18.BC9.pH.135E, nrow = 2, ncol = 1, rel_heights = c(1.5, 1), align = "v", axis = "lr")
+```
+
+
+## Adjusting starting pH changes absolute growth of most species in community
+
+Overall, bacteria grow better at pH 7 than pH 5 (prefer nettural starting pH), and fungi tend to grow worse or the same at pH 7 compared to pH 5 (slight preference acidic start)
+
+```{r effect of pH on community member growth, echo = F, message = F, warning = F, fig.height = 3, fig.align = "center"}
+# plot all alone & community curves @ pH 5 vs. pH 7
+# get max values, make dataframe for plotting significance
+max <- max(d.18 %>% filter(condition %in% c("community", "alone")) %>% 
+      select("total.CFUs"))
+d.tests.pH.p <- data.frame(day=d.tests.pH$day, sig=d.tests.pH$sig, pH = d.tests.pH$pH,
+                        species=d.tests.pH$species, condition=d.tests.pH$condition, 
+                        cfus=rep((max*2),nrow(d.tests.pH)))
+
+p.18.mean <- ggplot(d.18.summ %>% filter(condition %in% c("community", "alone")),
+       aes(linetype = pH)) + 
+  facet_grid(condition~species, labeller = labeller(species = names)) + 
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none") + 
+  theme_bw() +
+  geom_point(data = d.18 %>% filter(condition %in% c("community", "alone")), 
+             aes(x=day, y=total.CFUs, color = species, shape = pH), alpha = 0.5) +
+  labs(y= "colony forming units") +    
+  theme(strip.text.x = element_text(size = 9, face = "italic"),
+        strip.text.y = element_blank(),
+        legend.position = "none") +
+  geom_text(data    = d.tests.pH.p %>% filter(condition %in% c("community", "alone")),
+            mapping = aes(x = as.numeric(as.character(day)), y = (cfus), label = sig))
+
+p.18.mean.pH <- ggplot(d.18.summ %>% filter(condition %in% c("community", "alone"), species == "135E"), 
+       aes(x=day, y=med.measured.pH, linetype = pH, shape = pH)) +
+  geom_line(size = 1) +
+  geom_point(data = d.18 %>% filter(condition %in% c("community", "alone"), species == "135E"),
+             aes(x = day, y = measured.pH, group = "replicate")) +
+  facet_grid(condition~., labeller = labeller(species = names)) + 
+  labs(y = "measured pH", shape = "CCA pH", linetype = "CCA pH") +
+  theme_bw() +
+  theme(strip.text.x = element_blank(),
+        legend.key.width = unit(.7, "cm"))
+
+plot_grid(p.18.mean, p.18.mean.pH, nrow = 1, ncol = 2, rel_widths = c(2.5,1), align = "h", axis = "tb")
+```
+
+# Successional patterns 
+
+despite improvement in Actinobacterial growth at pH 7, pattern of succession doesn't qualitatively change between pH 5 & pH 7. While Actinobacteria *do* pop up at higher abundance a bit earlier in the pH 7 condition, there still exists two phases of bacterial growth, first dominated by *Staphylococcus* species and then later arrival of Actinobacteria as a significant proportion of the community.
+
+```{r ph5 vs 7 community succession, echo = F, message = F, warning = F}
+## more TTESTs
+# previously did just a non-parametric Wilcoxon test of just pH 5 data, since that might be all included in paper
+# so now I have to do a separate Wilcoxon test: community pH 5 vs. community pH 7. Not ideal but no other option that I can tell.
+
+# get relative abundance data
+d.18.rel <- d.18 %>% filter(pH %in% c(5, 7), condition == "community") %>% 
+  group_by(condition, day, replicate, class) %>% 
+  mutate(rel.abund = total.CFUs/sum(total.CFUs))
+
+rel.ttest <- d.18.rel %>% group_by(species, day) %>%
+  do(mod = kruskal.test(rel.abund ~ pH, data = .)) 
+# get p-values in a dataframe
+d.rel.pval <- rel.ttest %>% do(data.frame(
+  species = .$species,
+  day = .$day,
+  p.val = (.$mod)$"p.value")
+)
+# summarize by median relative abundance numbers & class
+rel.abund <- d.18.rel %>% group_by(species, day, class, condition, pH) %>%
+  summarise(med.rel.abund = median(rel.abund)) %>%
+  group_by(day, class, condition, pH) %>%
+  arrange(factor(species, rev(c("JB7","JB5","BC10","BC9","JB370","JBC","135E"))), .by_group=T) %>%
+  mutate(cum.abund = cumsum(med.rel.abund)-(0.5*med.rel.abund)-.03)
+
+
+rel.succ.comm.57 <- ggplot(d.18.summ %>% filter(condition == "community")) + 
+  geom_bar(aes(x = dayChar, y = med.CFUs, 
+               fill=factor(species, levels = c("JB7","JB5","BC10","BC9",
+                                               "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill") +
+  barp.theme + 
+  theme_classic() + 
+  theme(legend.text = element_text(face = "italic")) +
+  facet_grid(class ~ pH, labeller = labeller(pH = c(`5` = "pH 5", `7` = "pH 7")))
+rel.succ.comm.57
+```
+
+## inter-kingdom successional pattern: fungi-vs-bacteria
+
+### Pattern of succession at kingdom level on CCA pH 5 vs. pH 7
+
+```{r interkingdom pH 5 vs 7 succession -- fung vs bacteria, echo = F, message = F, warning = F}
+# get relative abundance data
+d.18.rel.class <- d.18 %>% filter(condition %in% c("alone", "community")) %>% 
+  group_by(condition, pH, day, replicate, class) %>%
+  summarize(abund = sum(total.CFUs)) %>%
+  group_by(condition, day, pH, replicate) %>% mutate(rel.abund = abund/sum(abund))
+
+# anova the relative abundance values across community vs. alone and pH5 vs pH7
+rel.ttest.class <- d.18.rel.class %>% group_by(condition, day, class) %>%
+  do(ttest = t.test(rel.abund ~ pH, data = .))
+rel.ttest.class.aov <- d.18.rel.class %>% group_by(class, day) %>%
+  do(mod = aov(rel.abund ~ condition * pH, data = .))
+
+# get p-values in a dataframe
+d.rel.pval.class <- rel.ttest.class %>% do(data.frame(
+  condition = .$condition,
+  class = .$class,
+  day = .$day,
+  p.val = .$ttest$`p.value`)
+)
+
+d.rel.pval.class.aov <- rel.ttest.class.aov %>% do(data.frame(
+  class = .$class,
+  day = .$day,
+  var = names(TukeyHSD(.$mod)$`condition:pH`[,"p adj"]),
+  p.val = TukeyHSD(.$mod)$`condition:pH`[, "p adj"])
+)
+
+# add asterisks
+d.rel.pval.class <- d.rel.pval.class %>% 
+  mutate(sig = ifelse(p.val > 0.01 & p.val <= 0.05, "*",
+                      ifelse(p.val > 0.001 & p.val <= 0.01, "**",
+                             ifelse(p.val < 0.001, "***", NA))),
+         pH = 7)
+
+d.rel.pval.class.aov <- d.rel.pval.class.aov %>% 
+  mutate(sig = ifelse(p.val > 0.01 & p.val <= 0.05, "*",
+                      ifelse(p.val > 0.001 & p.val <= 0.01, "**",
+                             ifelse(p.val < 0.001, "***", NA))),
+         pH = 7) # this pH column will make it so only one facet will have asterisks
+
+# community versus alone, pH 5 vs pH 7 inter-kingdom relative succession
+ggplot(d.18.summ %>% filter(condition %in% c("alone", "community")) %>% 
+         group_by(condition, class, dayChar, pH) %>% 
+         summarize(class.cfus = sum(med.CFUs)) %>% 
+         mutate(condition = fct_relevel(condition, rev))) + 
+  geom_bar(aes(dayChar, class.cfus, 
+               fill=class), stat = "identity", position = "fill") +
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  scale_fill_manual(values = c("bacteria" = "grey70", "fungi" = "black")) +
+  labs(x = "days", y = "relative composition") + 
+  theme_classic()  +
+  theme(panel.spacing.x = unit(0.5, "lines"),
+        plot.title = element_text(size = 15), 
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        legend.title = element_text(size = 12)) +
+  facet_grid(condition ~ pH, scales = "free_x" , labeller = labeller(pH = c(`5` = "pH 5", `7` = "pH 7")))
+
+
+# just community succession for graph a couple chunks down
+rel.succ.comm.57.bactfung <- ggplot(d.18.summ %>% filter(condition == "community") %>% 
+                             group_by(condition, class, dayChar, pH) %>% 
+                             summarize(class.cfus = sum(med.CFUs)) %>% 
+                             mutate(condition = fct_relevel(condition, rev))) + 
+  geom_bar(aes(dayChar, class.cfus, 
+               fill=class), stat = "identity", position = "fill") +
+  scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
+  scale_fill_manual(values = c("bacteria" = "grey70", "fungi" = "black")) +
+  labs(x = "days", y = "relative composition") + 
+  theme_classic()  +
+  theme(panel.spacing.x = unit(0.5, "lines"),
+        plot.title = element_text(size = 15), 
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        legend.title = element_text(size = 12)) +
+  facet_grid(condition ~ pH, scales = "free_x" , labeller = labeller(pH = c(`5` = "pH 5", `7` = "pH 7")))
+
+```
+
+Fungi are far less abundant in communities started on pH 7 medium. Not entirely surprising given the increased growth of all bacteria when grown on pH 7.
+However, at both pH 5 and pH 7, the proportion of fungi in the community is higher than what would be predicted from alone growth, suggesting that the community has something of a balancing effect on kingdom-level abundance.
+
+Let's plot colony forming units as well -- are there more fungi in communities than when grown alone? 
+Here's a nice plot summarizing all the pH 5 vs. pH 7 dynamics:
+
+```{r combine plots comparing ph 5 and 7 rel succession, echo = F, message = F, warning = F}
+
+## Let's try an absolute counts chart, too:
+abs.comm.57.bactfung <- ggplot(d.18.summ %>% filter(condition %in% c("alone", "community")) %>% 
+                                 group_by(class, dayChar, pH, condition) %>% 
+                                 summarize(class.cfus = sum(med.CFUs)) %>%
+                                 mutate(index = 1)) + 
+  geom_point(aes(dayChar, class.cfus, 
+                 color=class, shape = condition)) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=3),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = c("bacteria" = "grey70", "fungi" = "black")) +
+  labs(x = "days", y = "total viable cell counts") + 
+  theme_classic()  +
+  theme(panel.spacing.x = unit(0.5, "lines"),
+        plot.title = element_text(size = 15), 
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11),
+        legend.title = element_text(size = 12),
+        panel.grid.major.y = element_line(),
+        strip.text.y = element_text(color = "white"),
+        strip.background.y = element_rect(color = "white")) +
+  facet_grid(index ~ pH, scales = "free_x" , labeller = labeller(pH = c(`5` = "pH 5", `7` = "pH 7"))) +
+  geom_text(data=d.rel.pval.class %>% 
+              filter(class == "bacteria", condition %in% c("alone", "community")), 
+            aes(x = as.character(day), y = 0.5, label = sig), 
+            color = "white", size = 5)
+
+plot_grid(rel.succ.comm.57, 
+          rel.succ.comm.57.bactfung + 
+            guides(fill = guide_legend(title = "kingdom")) +
+            theme(strip.text.y = element_text(color = "white"),
+                  strip.background.y = element_rect(color = "white")), 
+          abs.comm.57.bactfung + guides(color = FALSE),
+          ncol = 1, rel_heights = c(1.5,1,1), align = "v", axis = "lr")
+
+```
+
+So here we see that fungi aren't increased in population in communities, but rather just that bacteria are reduced in communities, leading to the effective increases in fungal relative abundance.
+
+So let's check out why bacteria might be so inhibited in communities!
+
+# Inhibitory forces in community
+
+Earlier we showed that there are a lot of pairwise interactions that are inhibitory, mostly coming from *Penicillium* as a partner.
+
+While running experiments at pH 5 showed both stimulatory and inhibitory forces in the community, we were curious what we would see when we removed deacidification dynamics from the community. 
+
+Unfortunately, we had little luck with buffering media -- increased amounts of MES buffer ended up somehow liquifying the cheese curd agar, and still it wasn't an effective enough buffer to counter microbial deacidification.
+
+So instead we ran experiments at pH 7, to understand what's happening in the community when deacidification isn't a factor.
+
+```{r pairwise interactions: fold-change barplots (ph7), echo = F, warning = F, message = F, fig.width=4, fig.height=8}
+# fold-change barplot of each species pariwise-vs-alone, faceted by partner
+ggplot(data = d.tests %>% filter(condition != "alone", pH == 7),
+       aes(x = condition, y=med.fc.part.alone, fill = species, group = factor(day, levels = c(3,10,21)))) +
+  geom_bar(position = "dodge", stat = "identity", width = .6, color = "gray97") +
+  scale_y_log10("fold-change in growth (in mixed culture versus alone)",
+                breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x)),
+                expand_scale(mult=1.5)) +
+  scale_fill_manual(values = species.palette,
+                    labels = names) +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_x_discrete(limits = levels(d.tests$condition)[-1],
+                   labels = paste0("+ ", names)) +
+  theme_minimal() +
+  labs(title = "fold-change in growth between cocultures and alone on CCA pH 7") +
+  geom_hline(yintercept = 1, color = "gray50") +
+  facet_grid(species ~ .,
+             labeller = labeller(condition = names, species = names),
+             scales = "free_y") +
+  theme(legend.position = "none",
+        panel.spacing = unit(0, "pt"),
+        axis.text.x = element_text(angle = 45, hjust =1, face = "italic"),
+        axis.title.x= element_blank(),
+        strip.text = element_text(face="italic"),
+        panel.grid.major.x = element_line(color = "gray95", size = 6),
+        panel.spacing.x = unit(.2, "cm"),
+        panel.grid.major.y =  element_line(color = "gray90"),
+        panel.border = element_rect(color = "gray75", fill = NA),
+        axis.ticks.x = element_line(size = 6, color = "gray95"),
+        axis.ticks.length.x = unit(5, "pt"),
+        panel.spacing.y = unit(4, "pt"),
+        strip.background = element_rect(fill = NA, color = "gray75")) +
+  geom_text(data    = d.tests %>% filter(pH == 7) %>% 
+              mutate(med.fc.part.alone = ifelse(med.fc.part.alone == 1e-11, -Inf, med.fc.part.alone)) %>%
+              mutate(sig = ifelse(is.infinite(med.fc.part.alone), "|", sig)) %>%
+              mutate(position = ifelse(is.finite(med.fc.part.alone), med.fc.part.alone * 1.05, .5)),
+            mapping = aes(x = condition, y=position, label = sig),
+            position = position_dodge(width = .7), vjust = 0.7)
+
+
+```
+
+```{r pairwise and comm interactions: fold-change circle plots (ph7), echo = F, message = F, warning = F}
+# fold-change barplot of each species pairwise-vs-alone & community-vs-alone, faceted by partner
+
+p.pairwise.sig <- ggplot(data = d.tests.abs %>% filter(condition != "community", pH == 7, !is.na(sig)), 
+       aes(x = factor(day, levels = c(3,10,21)), y = 1)) + 
+  geom_point(aes(size = abs.foldchange, color = intx.sign)) + 
+  facet_grid(species ~ partner*condition, 
+             labeller = labeller(condition = names, species = names),
+             switch = "y") +
+  scale_size_continuous(trans = "log10", range = c(0.1,7),
+                        labels = trans_format("log10", label_math(10^.x)),
+                        name = "fold-change (vs. alone)",
+                        breaks = c(1e1, 1e3, 1e5, 1e7)) +
+  scale_color_manual(values = c("negative" = "firebrick2", "positive" = "goldenrod1"),
+                     labels = c("negative" = "negative", "positive growth impact"),
+                     name = "growth impact direction") +
+  theme_bw() + labs(x = "day") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "top",
+        legend.direction = "horizontal",
+        strip.text.y.left = element_text(face = "italic", angle = 360),
+        panel.spacing = unit(0, "pt"),
+        strip.text.x = element_text(face = "italic")) +
+  guides(color = guide_legend(title.position="top", title.hjust = 0.5),
+         size = guide_legend(title.position="top", title.hjust = 0.5))
+
+
+p.comm.sig <- ggplot(data = d.tests.abs %>% filter(condition == "community", pH == 7, !is.na(sig)), 
+       aes(x = factor(day, levels = c(3,10,21)), y = 1)) + 
+  geom_point(aes(size = abs.foldchange, color = intx.sign)) + 
+  facet_grid(species ~ partner*condition, 
+             labeller = labeller(condition = names, species = names),
+             switch = "y") +
+  scale_size_continuous(trans = "log10", range = c(0.1,7),
+                        breaks = c(1, 1e3, 1e5, 1e7)) +
+  scale_color_manual(values = c("negative" = "firebrick2", "positive" = "goldenrod1"),) +
+  theme_bw() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "none",
+        strip.text.y.left = element_blank(),
+        panel.spacing = unit(0, "pt"),
+        strip.text.x = element_text(face = "italic"))
+
+plot_grid(p.pairwise.sig, p.comm.sig, 
+          ncol = 2, rel_widths = c(7, 1), 
+          align = "h", axis = "tb")
+  
+```
+
+So from both of these, we're really just seeing a lot of strong inhibitory interactions now.
+
+## adjusting the pH overaccounts for growth in the community, despite deacidification past pH 7.
+```{r Brevi/Brachy pH effects, echo = F, message = F, warning = F, fig.height = 3, fig.align = "center"}
+
+# plot all interesting Brevi
+dat.m <- rbind(d.18.summ %>% filter(species %in% c("JB5", "JB7"), condition == "alone"),
+               d.18.summ %>% filter(species %in% c("JB5", "JB7"), 
+                                    condition %in% c("community", "135E"),
+                                    pH == 5))
+dat <- rbind(d.18 %>% filter(species %in% c("JB5", "JB7"), condition == "alone"),
+               d.18 %>% filter(species %in% c("JB5", "JB7"), 
+                                    condition %in% c("community", "135E"),
+                                    pH == 5))
+ggplot(data =dat.m) +
+  geom_line(aes(x=day, y=med.CFUs, color = species, linetype = interaction(condition, pH)), size = 0.8) +
+  geom_point(data = dat,
+             aes(x = day, y = total.CFUs, color = species, 
+                 group = replicate, shape = interaction(condition, pH))) + 
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  scale_color_manual(values = species.palette, guide = "none")  +
+  scale_linetype_manual(values=c("dotted", "solid", "longdash", "dashed"), 
+                        labels=c(`135E.5`="with Candida, pH 5.8", `alone.5`="grown alone, pH 5.8", 
+                                 `alone.7`="grown alone, pH 7", `community.5`="in community, pH 5.8")) +
+  scale_shape_discrete(labels=c(`135E.5`="with Candida, pH 5.8", `alone.5`="grown alone, pH 5.8", 
+                                `alone.7`="grown alone, pH 7", `community.5`="in community, pH 5.8")) +
+  theme_bw() + labs(y = "colony forming units") +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", label_math(10^.x))) +    
+  theme(legend.spacing.x = unit(0.2, "cm"),
+        legend.box.spacing = unit(0, "cm"), 
+        legend.title=element_blank(),
+        strip.text = element_text(face = "italic"),
+        legend.key.width = unit(40,"pt"))
+```
+
+## There are suppressive forces across the board in the community
+```{r pH7 alone v. community, echo = F, warning = F, message = F, fig.height = 3.5, fig.align = "center"}
+# for plotting significance values
+
+max <- max(d.18 %>% filter(condition %in% c("alone", "community"), pH == 7) %>% 
+      select("total.CFUs"))
+d.tests.p <- data.frame(day=d.tests$day, sig=d.tests$sig, pH=d.tests$pH,
+                        species=d.tests$species, condition=d.tests$condition,
+                        cfus=rep((max*2),nrow(d.tests)))
+# Aug 2018 data
+p.alone.comm.mean.7 <- ggplot(d.18.summ %>% filter(condition %in% c("alone", "community"), pH == 7), 
+       aes(linetype = condition)) +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "community"), pH == 7),
+             aes(x = day, y = total.CFUs, color = species, 
+                 group = "replicate", shape = condition)) + 
+  scale_shape_discrete(labels=c(`alone`="alone, pH 7", `community`="community, pH 7")) +
+  scale_linetype_discrete(labels=c(`alone`="alone, pH 7", `community`="community, pH 7")) +
+  labs(y="measured colony forming units") +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none")  + 
+  theme_bw() + 
+  theme(legend.position="top", 
+        legend.box.spacing = unit(0, "cm"),
+        legend.key = element_rect(fill = "gray85"),
+        legend.key.width = unit(40,"pt"),
+        strip.text = element_text(size = 9, face = "italic"),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank()) +
+  geom_text(data    = d.tests.p %>% filter(condition == "community", pH == 7),
+            mapping = aes(x = as.numeric(as.character(day)), y = (cfus), label = sig))
+
+# pH data from Aug 2018 community v. alone data
+p.alone.comm.mean.7.pH <- ggplot(d.18.summ %>% filter(condition %in% c("alone", "community"), pH == 7), 
+                                 aes(x=day, y=med.measured.pH, linetype = condition, shape = condition)) +
+  geom_line(size = 1) +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "community"), pH == 7),
+             aes(x = day, y = measured.pH, group = "replicate")) +
+  theme_bw() +
+  facet_grid(.~species) + 
+  theme(strip.text.x = element_blank(),
+        legend.position = "none")
+
+plot_grid(p.alone.comm.mean.7, p.alone.comm.mean.7.pH, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+```
+
+``` {r community fold-change barplot (pH7), echo = F, message = F, warning = F}
+# barplot of fold-change
+ggplot(data = d.tests %>% filter(condition == "community", pH == 7),
+       aes(x = species, y=med.fc.part.alone, fill = species, group = factor(day, levels = c(3,10,21)))) +
+  geom_bar(position = "dodge", stat = "identity", color = "white") +
+  annotate("text", x=c(.7,1,1.3), y=c(12,12,12), 
+           label=c("day 3", "day 10", "day 21"), angle = 90, hjust = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", label_math(10^.x)),
+                expand = c(0,.4)) + 
+  labs(y = "fold-change in growth at pH 7 (in community versus alone)") +
+  scale_fill_manual(values = species.palette,
+                    labels = names) +
+  geom_hline(yintercept = 1, color = "gray50", size = 1) +
+  theme_bw() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_text(size = 10),
+        legend.text = element_text(face = "italic")) +
+  geom_text(data    = d.tests %>% filter(condition == "community", pH == 7),
+            mapping = aes(x = species, label = sig, 
+                          y=ifelse(med.fc.part.alone>1, med.fc.part.alone*1.2, med.fc.part.alone/1.2)),
+            position = position_dodge(width = .9), vjust = .8)
+```
+
+## JBC is a major suppressor
+```{r JBC pairwise, echo = F, warning = F, message = F}
+# for plotting significance values
+max <- max(d.18 %>% filter(condition %in% c("alone", "JBC", "community"), pH == 5) %>% 
+      select("total.CFUs"))
+d.tests.p <- data.frame(day=d.tests$day, sig=d.tests$sig, pH=d.tests$pH,
+                        species=d.tests$species, 
+                        condition=factor(d.tests$condition, levels=c("alone", "JBC", "community", 
+                                                                     "135E", "BC10", "BC9", "JB5", "JB7", "JB370")),
+                        cfus=rep((max*2),nrow(d.tests)))
+# Aug 2018 data - alone and JBC
+ggplot(d.18.summ %>% filter(condition %in% c("alone", "JBC"), pH == 5), 
+       aes(linetype = condition)) +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "JBC"), pH == 5),
+             aes(x = day, y = total.CFUs, color = species, 
+                 group = "replicate", shape = condition)) +  
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none") + 
+  theme_bw() + 
+  theme(legend.position="top", 
+        legend.box.spacing = unit(0, "cm"),
+        legend.key = element_rect(),
+        strip.text = element_text(face = "italic"),
+        legend.spacing.x = unit(0.2, "cm"),
+        legend.title=element_blank(),
+        legend.key.width = unit(40,"pt")) +
+  labs(y = "colony forming units") +
+  scale_linetype_manual(values = c("solid", "dashed"),
+                        labels = c(`JBC`="with Penicillium at pH 5", 
+                                   `alone`="grown alone at pH 5")) +
+  scale_shape_discrete(labels = c(`JBC`="with Penicillium at pH 5", 
+                                  `alone`="grown alone at pH 5"))
+```
+
+Pairwise inhibition is comparable to what is seen in the community.
+
+```{r community and JBC pairwise, echo = F, warning = F, message = F}
+# Aug 2018 data - alone, JBC, and community
+ggplot(d.18.summ %>% filter(condition %in% c("alone", "JBC", "community"), pH == 5), 
+       aes(linetype = condition)) +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "JBC", "community"), pH == 5),
+             aes(x = day, y = total.CFUs, color = species, 
+                 group = "replicate", shape = condition)) + 
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none")+ 
+  theme_bw() + 
+  theme(legend.position="top", 
+        legend.box.spacing = unit(0, "cm"),
+        legend.key = element_rect(),
+        strip.text = element_text(face = "italic"),
+        legend.spacing.x = unit(0.2, "cm"),
+        legend.title=element_blank(),
+        legend.key.width = unit(40,"pt")) +
+  labs(y = "colony forming units") +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"),
+                            labels = c(`JBC`="with Penicillium at pH 5", `alone`="grown alone at pH 5",
+                                       `community`="in community at pH 5")) +
+  scale_shape_discrete(labels = c(`JBC`="with Penicillium at pH 5", `alone`="grown alone at pH 5",
+                                       `community`="in community at pH 5"))
+```
+
+If we look at the effect of *Penicillium* in pairwise coculture on CCA pH 5, we also see lots of significant inhibition
+
+```{r fold change barplot coculture with Penicillium (pH5), echo = F, warning = F, message = F}
+# barplot of fold-change
+d.tests$day <- factor(d.tests$day, levels = c(21,10,3))
+ggplot(data = d.tests %>% filter(condition %in% c("alone", "JBC"), pH == 5),
+       aes(x = species, y=med.fc.part.alone, fill = species, group = day)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_hline(yintercept = 1, color = "gray70") +
+  coord_flip(ylim=c(1e-5, 1e5)) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  labs(y = "fold-change in growth (paired with Penicillium versus alone)") +
+  scale_fill_manual(values = species.palette,
+                    labels = names) +
+  scale_x_discrete(limits = rev(levels(d.tests$species))) +
+  annotate("text", x=c(1.3, 1, .7), y=c(1.2, 1.2, 1.2), 
+           label=c("day 3", "day 10", "day 21"), hjust = 0) +
+  theme_bw() +
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        legend.text = element_text(face = "italic")) +
+  geom_text(data = d.tests %>% filter(condition == "JBC", pH == 5) %>%
+              mutate(position = med.fc.part.alone * 1.05),
+            mapping = aes(x = species, y=position, label = sig),
+            position = position_dodge(width = 1))
+```
+
+Pattern of inhibition by *Penicillium* holds on CCA pH 7
+
+```{r community and JBC pairwise (pH7), echo = F, warning = F, message = F}
+# Aug 2018 data - pH 7 alone, JBC, and community
+ggplot(d.18.summ %>% filter(condition %in% c("alone", "JBC", "community"), pH == 7), 
+       aes(linetype = condition)) +
+  geom_point(data = d.18 %>% filter(condition %in% c("alone", "JBC", "community"), pH == 7),
+             aes(x = day, y = total.CFUs, color = species, 
+                 group = "replicate", shape = condition)) + 
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  geom_line(aes(x=day, y=med.CFUs, color = species), size = 1) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", label_math(10^.x))) +
+  scale_color_manual(values = species.palette, guide = "none")+ 
+  theme_bw() + 
+  theme(legend.position="top", 
+        legend.box.spacing = unit(0, "cm"),
+        legend.key = element_rect(),
+        strip.text = element_text(face = "italic"),
+        legend.spacing.x = unit(0.2, "cm"),
+        legend.title=element_blank(),
+        legend.key.width = unit(40,"pt")) +
+  labs(y = "colony forming units") +
+  scale_linetype_manual(values = c("solid", "dotted", "dashed"),
+                            labels = c(`JBC`="with Penicillium at pH 7", `alone`="grown alone at pH 7",
+                                       `community`="in community at pH 7")) +
+  scale_shape_discrete(labels = c(`JBC`="with Penicillium at pH 7", `alone`="grown alone at pH 7",
+                                       `community`="in community at pH 7"))
+```
+
+# Penicillium suppression: different levels in different conditions
+
+```{r levels of Pencillium supression, echo = F, warning = F, message = F}
+ggplot(data = d.tests %>% filter(condition %in% c("JBC", "community"), species != "JBC"),
+       aes(x = day, y=med.fc.part.alone, fill = interaction(condition, pH), 
+           group = interaction(condition, pH))) +
+  geom_hline(yintercept = 1, color = "gray70") +
+  geom_bar(position = "dodge", stat = "identity") +
+  coord_flip(ylim=c(1e-4, 1e2)) +
+  scale_y_log10(minor_breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4)) + 
+  labs(y = "fold-change in growth (condition versus alone)") +
+  scale_fill_manual(values = c('JBC.5' = "#dcdcdc",
+                               'JBC.7' = "#929292",
+                               'community.7' = "black",
+                               'community.5' = "#bbbbbb"),
+                    labels = c('JBC.5' = "+Penicillium, pH 5",
+                               'JBC.7' = "+Penicillium, pH 7",
+                               'community.7' = "+community, pH 7",
+                               'community.5' = "+community, pH 5")) +
+  facet_wrap(vars(species), labeller = labeller(species = names)) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme_bw() +
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        legend.text = element_text(face = "italic"),
+        strip.text = element_text(face = "italic"))
+
+
+```
+
+
+
+
+
+
+
+
+

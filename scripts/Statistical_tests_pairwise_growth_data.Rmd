@@ -1,0 +1,189 @@
+---
+title: "Statistical tests pairwise growth"
+author: "Brooke Anderson"
+date: "7/14/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+here::i_am("scripts/Statistical_tests_pairwise_growth_data.Rmd")
+```
+
+```{r load in data}
+d.18 <- readRDS(here("wrangled_data/all_pairwise.rds"))
+d.18.summ <- readRDS(here("wrangled_data/pairwise_summary_stats.rds"))
+```
+
+
+# Wilcoxon Rank-Sums tests to compare the shift in two samples.
+
+## population size shift in coculture versus monoculture
+
+```{r statistical testing partner v. alone within pH, warning = F}
+# define all conditions to run through
+spec <- levels(d.18$species)
+cond <- levels(d.18$condition)[which(levels(d.18$condition) != "alone")]
+pH <- levels(d.18$pH)
+
+# initiate list to store data, one list element for each species
+l.tests <- list()
+
+# for each species in each condition at each pH at each time, t-test against alone cfus
+for (s in spec) {
+  dat.tests <- d.18[0,-c(4,6:11)]
+  for (c in cond[which(cond != s)]) {
+    for (p in pH) {
+      for (d in c(3,10,21)) {
+        # get cfu data for growth with partners
+        dat.part <- d.18 %>% 
+          filter(species == s, condition == c, pH == p, day == d)
+        # get cfu data for growth alone
+        dat.alone <- d.18 %>% 
+          filter(species == s, condition == "alone", pH == p, day == d)
+        dat.tests[nrow(dat.tests)+1, "percent.change"] <- 
+          (mean(dat.part$total.CFUs) - mean(dat.alone$total.CFUs)) / mean(dat.alone$total.CFUs)# 
+        # set up dataframe with metadata
+        dat.tests[nrow(dat.tests), "condition"] <- c
+        dat.tests[nrow(dat.tests), "species"] <- s
+        dat.tests[nrow(dat.tests), "pH"] <- p
+        dat.tests[nrow(dat.tests), "day"] <- d
+        dat.tests[nrow(dat.tests), "ave.ph.cond"] <- mean(d.18 %>% 
+                                                       filter(species == s, condition == c, day == d, 
+                                                              !is.na(measured.pH)) %>% 
+                                                       pull(measured.pH))
+        dat.tests[nrow(dat.tests), "ave.ph.alone"] <- mean(d.18 %>% 
+                                                       filter(species == s, condition == "alone", day == d, 
+                                                              !is.na(measured.pH)) %>% 
+                                                       pull(measured.pH))
+        dat.tests[nrow(dat.tests), "cond.median"] <- median(dat.part$total.CFUs)
+        dat.tests[nrow(dat.tests), "alone.median"] <- median(dat.alone$total.CFUs)
+        # mean fold-change
+        dat.tests[nrow(dat.tests), "cfus.part.alone"] <- 
+          mean(dat.part$total.CFUs) / mean(dat.alone$total.CFUs)
+        # median fold-change
+        fcs <- vector()  
+        for(i in intersect(dat.part$replicate, dat.alone$replicate)) {
+          part.cfus <- dat.part %>% filter(replicate == i) %>% pull(total.CFUs)
+          alone.cfus <- dat.alone %>% filter(replicate == i) %>% pull(total.CFUs)
+          fcs[length(fcs)+1] <- part.cfus / alone.cfus
+        }
+        dat.tests[nrow(dat.tests), "med.fc.part.alone"] <- median(fcs)
+        # do mann-whitney-wilcoxon tests on raw data
+        ttest <- wilcox.test(dat.part$total.CFUs, dat.alone$total.CFUs, 
+                             alternative = "two.sided", var.equal = F, conf.int = T)
+        # back-calculate confidence intervals
+        dat.tests[nrow(dat.tests), "times.diff.CI.low"] <- ttest$"conf.int"[1]
+        dat.tests[nrow(dat.tests), "times.diff.CI.high"] <- ttest$"conf.int"[2]
+        # record p-value testing whether two samples look like they're from the same population
+        dat.tests[nrow(dat.tests), "pval"] <- ttest$p.value
+        if(ttest$p.value < 0.05 & ttest$p.value >= 0.01) dat.tests[nrow(dat.tests), "sig"] = "*"
+        if(ttest$p.value < 0.01 & ttest$p.value >= 0.001) dat.tests[nrow(dat.tests), "sig"] = "**"
+        if(ttest$p.value < 0.001) dat.tests[nrow(dat.tests), "sig"] = "***"
+      }
+    }
+  }
+  l.tests[[length(l.tests)+1]] <- dat.tests
+}
+
+names(l.tests) <- spec
+# turn into dataframe
+d.tests <- lapply(l.tests, as.data.frame) %>% bind_rows()
+```
+
+
+```{r Display statistical tests, echo = F}
+# want to display pH 5 vs. pH 7 for each partner condition for each species.
+breakup <- function(x) {
+  part <- cond[which(spec != x[1,1])]
+  for (i in part){
+    newset <- x %>% filter(condition == i)
+    reformat <- cbind(
+      pivot_wider(newset[, c(1:4, 15)], names_from = pH, values_from = sig, names_prefix = "sig.ph"),
+      pivot_wider(newset[, c(1:4, 12)], names_from = pH, values_from = times.diff.CI.low, names_prefix = "times.diff.CI.low.pH") %>% select(starts_with("times")),
+      pivot_wider(newset[, c(1:4, 13)], names_from = pH, values_from = times.diff.CI.high, names_prefix = "times.diff.CI.high.pH") %>% select(starts_with("times"))
+    )[, c(1:3, 6,8,4, 7,9,5)]
+    print(reformat)
+  }
+}
+sapply(l.tests, breakup)
+```
+
+## measured pH shift in coculture versus monoculture
+
+Note that pH of sample was measured after homogenizing sample in a buffer solution, so is not an accurate pH reading of the sample. However, a difference in sample pH's can be detected.
+
+```{r t.tests pH 7 vs. pH 5, warning = F}
+# define all conditions to run through
+spec <- levels(d.18$species)
+cond.all <- levels(d.18$condition)
+pH <- levels(d.18$pH)
+
+# initiate list to store data, one list element for each species
+l.tests.pH <- list()
+
+# for each species in each condition at each pH at each time, t-test against alone
+for (s in levels(d.18$species)) {
+  dat.tests <- d.18[0,-c(3:4,6:10)]
+  for (c in cond.all[which(cond.all != s)]) {
+    for (d in c(3,10,21)) {
+      # get cfu data for growth with partners; log-transform
+      dat <- d.18 %>% 
+        filter(species == s, condition == c, day == d)
+      # set up dataframe with metadata
+      dat.tests[nrow(dat.tests)+1, "species"] <- s
+      dat.tests[nrow(dat.tests), "condition"] <- c
+      dat.tests[nrow(dat.tests), "day"] <- d
+      dat.tests[nrow(dat.tests), "pH"] <- "7"
+      dat.tests[nrow(dat.tests), "ph5.median"] <- median(dat %>% filter(pH==5) %>% pull(total.CFUs))
+      dat.tests[nrow(dat.tests), "ph7.median"] <- median(dat %>% filter(pH==7) %>% pull(total.CFUs))
+      # mean fold-change
+      dat.tests[nrow(dat.tests), "cfus.ph7.v.ph5"] <- 
+        mean(dat %>% filter(pH==7) %>% pull(total.CFUs)) / 
+        mean(dat %>% filter(pH==5) %>% pull(total.CFUs))
+      # median fold-change
+      fcs <- vector()  
+      for(i in intersect(dat %>% filter(pH == 7) %>% pull(replicate), 
+                         dat %>% filter(pH == 5) %>% pull(replicate))){
+        ph7.cfus <- dat %>% filter(pH == 7, replicate == i) %>% pull(total.CFUs)
+        ph5.cfus <- dat %>% filter(pH == 5, replicate == i) %>% pull(total.CFUs)
+        fcs[length(fcs)+1] <- ph7.cfus / ph5.cfus
+      }
+      dat.tests[nrow(dat.tests), "med.fc.ph7.v.ph5"] <- median(fcs)
+      
+      # check similarity of variance using Levene's test
+      if(mean(dat$total.CFUs)!=0) {
+        levene.test <- car::leveneTest(total.CFUs ~ pH, data = dat)
+        if (levene.test$"Pr(>F)"[1] <= 0.05) {
+          print(paste(s, "at pH 5 versus pH 7 with", c, "on day", d, 
+                      "do not have equal variance, with p value", levene.test$"Pr(>F)"[1]))
+        }
+        # do mann-whitney-wilcoxon tests on log-transformed data
+        ttest <- wilcox.test(total.CFUs ~ pH, data = dat, 
+                             alternative = "two.sided", var.equal = F, conf.int = T)
+        # back-calculate confidence intervals
+        dat.tests[nrow(dat.tests), "times.diff.CI.low"] <- ttest$"conf.int"[1]
+        dat.tests[nrow(dat.tests), "times.diff.CI.high"] <- ttest$"conf.int"[2]
+        
+        # record p-value testing whether two samples look like they're from the same population
+        dat.tests[nrow(dat.tests), "pval"] <- ttest$p.value
+        if(ttest$p.value < 0.05 & ttest$p.value >= 0.01) dat.tests[nrow(dat.tests), "sig"] = "*"
+        if(ttest$p.value < 0.01 & ttest$p.value >= 0.001) dat.tests[nrow(dat.tests), "sig"] = "**"
+        if(ttest$p.value < 0.001) dat.tests[nrow(dat.tests), "sig"] = "***"
+      }
+    }
+  }
+  l.tests.pH[[length(l.tests.pH)+1]] <- dat.tests
+}
+# turn into dataframe
+d.tests.pH <- lapply(l.tests.pH, as.data.frame) %>% bind_rows()
+```
+
+
+```{r save data}
+save(d.tests, d.tests.pH, file = here("wrangled_data/pairwise_test_summaries.RData"))
+```
+
+
