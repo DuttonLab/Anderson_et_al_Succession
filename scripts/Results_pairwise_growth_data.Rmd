@@ -68,6 +68,9 @@ p.18.pH.alone <- ggplot(d.18.summ %>% filter(condition == "alone", pH == 5),
   theme(strip.text.x = element_blank())
 
 plot_grid(p.18.alone, p.18.pH.alone, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+
+ggsave(here("figures/growth_curves_alone_pH5.png"), device="png", width = 8, height = 5, units = "in")
+
 ```
 
 ## Community impacts individual member's growth
@@ -135,6 +138,7 @@ p.alone.comm.ph <- ggplot(data = d.18.summ %>%
          shape = guide_legend(override.aes = list(size=2)))
 
 plot_grid(p.alone.comm, p.alone.comm.ph, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+ggsave(here("figures/growth_curves_alone_community_pH5.png"), device="png", width = 8, height = 5, units = "in")
 
 # barplot of fold-change (median fold change, +community vs. alone)
 comm.alone.barplot <- ggplot(d.tests %>% filter(condition == "community", pH == 5),
@@ -160,6 +164,7 @@ comm.alone.barplot <- ggplot(d.tests %>% filter(condition == "community", pH == 
                           y=ifelse(med.fc.part.alone>1, med.fc.part.alone*1.2, med.fc.part.alone/1.2)),
             position = position_dodge(width = .9), vjust = .8)
 comm.alone.barplot
+ggsave(here("figures/community_intx_barplot_pH5.png"), device="png", width = 7, height = 4.5, units = "in")
 
 ## time to max capacity alone vs. community
 d.max.k = d.18.summ %>% 
@@ -284,6 +289,7 @@ comm.alone.succ <- ggplot(rel.abund %>% filter(pH == 5) %>%
    #         aes(x = as.character(day), y = cum.abund, label = sig), 
     #        color = "white", size = 5)
 comm.alone.succ
+ggsave(here("figures/rel_abund_succession_community_monoculture.png"), device="png", width = 7, height = 4, units = "in")
 
 # day 21 alone
 ggplot(rel.abund %>% filter(pH == 5, day == 21) %>% 
@@ -296,6 +302,8 @@ ggplot(rel.abund %>% filter(pH == 5, day == 21) %>%
   scale_y_continuous(labels = scales::percent, expand = c(0.01,0.01)) +
   scale_x_discrete(labels = names) +
   theme(legend.text = element_text(face = "italic"))
+ggsave(here("figures/rel_abund_day21_community_monoculture.png"), device="png", width = 4, height = 4, units = "in")
+
 ```
 
 ```{r table of significant differences in relative abundance, echo = F, message = F, warning = F, render = lemon_print}
@@ -386,8 +394,9 @@ fig.1ac <- plot_grid(fig.1a, align.cols[[1]], nrow = 2,
 
 fig.1 <- plot_grid(fig.1ac, align.cols[[2]], labels = c('', 'D'), 
                    ncol = 2, rel_widths = c(.8, 1))
-
 fig.1
+ggsave(here("figures/figure_1.png"), device="png", width = 7, height = 5, units = "in")
+ggsave(here("figures/figure_1.svg"), device="svg", width = 7, height = 5, units = "in")
 ```
 
 
@@ -479,10 +488,12 @@ layout.col7 <- plot_grid(
 # establish plot grid, then add common x- and y-axis labels
 xgrob <- grid::textGrob("days growing")
 ygrob <- grid::textGrob("colony forming units", rot = 90)
-gridExtra::grid.arrange(gridExtra::arrangeGrob(layout.col1, layout.col2, layout.col3, 
+p.pw.curves <- gridExtra::grid.arrange(gridExtra::arrangeGrob(layout.col1, layout.col2, layout.col3, 
                          layout.col4, layout.col5, layout.col6, layout.col7,
                          left = ygrob, bottom = xgrob, nrow = 1,
-                         widths = c(1,rep(.9, times =6))))
+                         widths = c(1,rep(.85, times =6))))
+ggsave(here("figures/pairwise_growth_curves.png"), p.pw.curves, device="png", width = 9, height = 6.5, units = "in")
+ggsave(here("figures/pairwise_growth_curves.svg"), p.pw.curves, device="svg", width = 9, height = 6.5, units = "in")
 
 ```
 
@@ -539,7 +550,13 @@ col3 <- pw.fc.barplot(c("BC9", "135E", "JB370"))
 
 plot_grid(col1, col2, col3, ncol = 3)
 
+ggsave(here("figures/figure_2_barplots_w.png"), device="png", width = 9, height = 5, units = "in")
+ggsave(here("figures/figure_2_barplots_w.svg"), device="svg", width = 9, height = 5, units = "in")
+
 pw.fc.barplot(c("135E", "BC10", "BC9", "JB5", "JB7", "JBC", "JB370"))
+
+ggsave(here("figures/figure_2_barplots_l.png"), device="png", width = 3, height = 9, units = "in")
+ggsave(here("figures/figure_2_barplots_l.svg"), device="svg", width = 3, height = 9, units = "in")
 
 ```
 
@@ -634,6 +651,9 @@ p.comm.sig <- ggplot(data = d.tests.abs %>% filter(condition == "community", pH 
 plot_grid(p.pairwise.sig, p.comm.sig, 
           ncol = 2, rel_widths = c(7, 1), 
           align = "h", axis = "tb")
+
+ggsave(here("figures/pw_comm_intx_circle_plot.png"), device="png", width = 9, height = 4.5, units = "in")
+
 ```
 
 
@@ -841,6 +861,10 @@ plot_grid(p.growth.vs.delt.growth + theme(legend.position = "none"),
           p.pop.vs.delt.growth + theme(axis.title.y = element_blank()), 
           labels = c('A', 'B'), ncol = 2, 
           align = "h", rel_widths = c(1, 1.3))
+
+ggsave(here("figures/suppl_fig_3.png"), device="png", width = 8, height = 4.5, units = "in")
+ggsave(here("figures/suppl_fig_3.svg"), device="svg", width = 8, height = 4.5, units = "in")
+
 ```
 
 Does interaction effect on growth increase with time, presumably because population size of focal species increases?
@@ -872,8 +896,13 @@ ggplot(d.growthEffects %>% mutate(abs.delt.r = abs(delt.r),
         legend.text.align = 0,
         plot.margin = margin(5,5,5,5, "pt"),
         axis.text.x = element_text(angle = 45, face = "italic", hjust = 1, size = 12)) +
-  annotate("text", x=c(6.7,7,7.3), y=c(2.5,2.5,2.5), size = 4,
+  annotate("text", x=c(6.75,7,7.25), y=c(2.5,2.5,2.5), size = 4,
            label=c("day 3", "day 10", "day 21"), angle = 90, hjust = 1)
+
+
+ggsave(here("figures/suppl_fig_4.png"), device="png", width = 7.5, height = 6, units = "in")
+ggsave(here("figures/suppl_fig_4.svg"), device="svg", width = 7.5, height = 6, units = "in")
+
 ```
 
 
@@ -981,6 +1010,11 @@ p.partner.effects <- plot_grid(p.species.effect.stacked, p.partner.effect.stacke
 leg.partner.effects <- cowplot::get_legend(p.species.effect.stacked +
                                              theme(legend.position = "bottom", legend.title = element_text(size = 12)))
 plot_grid(p.partner.effects, leg.partner.effects, ncol = 1, rel_heights = c(1,.1))
+
+
+ggsave(here("figures/suppl_fig_1.png"), device="png", width = 8, height = 5.5, units = "in")
+ggsave(here("figures/suppl_fig_1.svg"), device="svg", width = 8, height = 5.5, units = "in")
+
 ```
 
 So we can see that all species are frequently affected by partners, with average ~4 partner affecting growth. *Penicillium* is only ever ever significantly inhibited, and *Brachybacterium* is only ever stimulated by coculture partners. The rest are mostly evenly split between being stimulated or inhibited by partners.
@@ -1097,6 +1131,11 @@ growth.ph <- function(x) {
 }
 plot_grid(growth.ph("JB5"), growth.ph("JB7"), 
           align = "v", axis = "lr", nrow = 2, labels = c("A", "B"))
+
+
+ggsave(here("figures/suppl_fig_6.png"), device="png", width = 9, height = 6, units = "in")
+ggsave(here("figures/suppl_fig_6.svg"), device="svg", width = 9, height = 6, units = "in")
+
 ```
 
 Can we quantitatively observe this correlation between pH & population size for acid-sensitive species in pairwise cocultures?
@@ -1192,8 +1231,8 @@ for (s in spec) {
 }
 
 # turn into dataframe
-
 d.growthRates <- do.call(rbind, l.growthRates)
+
 # turn growth rates absolute with indication if negative or positive
 d.growthRates <- d.growthRates %>%
   mutate(abs.growth = abs(growth),
@@ -1243,6 +1282,10 @@ plot_grid(plot_grid(ph5.cor, ph7.cor + theme(legend.position = "none"),
                     nrow = 2), 
           legend,
           ncol = 2, rel_widths = c(5, 1))
+
+
+ggsave(here("figures/pH-growthrate_corr.png"), device="png", width = 9, height = 6, units = "in")
+
 ```
 
 The same graph, but points clustered by partner species to show relationships.
@@ -1314,7 +1357,7 @@ p.JB5JB7.comm.mean <- ggplot(d.18.summ %>% filter(condition %in% c("alone", "com
                                     pH == 5, species %in% c("JB5", "JB7")),
              aes(x = day, y = total.CFUs, color = species, 
                  group = replicate, shape = condition)) + 
-  labs(title = "Growth of Brevi/Brachy on CCA pH 5 (Aug 2018 data)",
+  labs(#title = "Growth of Brevi/Brachy on CCA pH 5 (Aug 2018 data)",
        y = "colony-forming units") + 
   facet_grid(.~species, labeller = labeller(species = names)) +
   theme_bw() + 
@@ -1347,6 +1390,11 @@ p.JB5JB7.comm.ph <- ggplot(data = d.18.summ %>% filter(condition %in% c("alone",
           shape = guide_legend(override.aes = list(size=2)))
 
 plot_grid(p.JB5JB7.comm.mean, p.JB5JB7.comm.ph, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+
+
+ggsave(here("figures/Brevi_Brachy_growth_pH5_alone_community.png"), device="png", width = 5.5, height = 4.5, units = "in")
+
+
 ```
 
 # Model Actinobacteria are acid-sensitive
@@ -1382,6 +1430,10 @@ ggplot(d.18 %>% filter(condition=="alone",
         strip.text = element_text(face = "italic"),
         legend.title = element_blank()) +
   labs(y = "colony forming units")
+
+
+ggsave(here("figures/Brevi_Brachy_growth_pH5_pH7_alone.png"), device="png", width = 5, height = 3.5, units = "in")
+
 ```
 
 ### increased pH is sufficient to simulate Candida's stimulation of Brevi/Brachy
@@ -1436,6 +1488,11 @@ p.JB5JB7.135E.ph <- ggplot(data = d.18.summ %>%
         strip.text = element_blank())
 
 plot_grid(p.JB5JB7.135E, p.JB5JB7.135E.ph, nrow = 2, ncol = 1, rel_heights = c(2, 1), align = "v", axis = "lr")
+
+
+ggsave(here("figures/Brevi_Brachy_growth_pH5_pH7_alone_Candida.png"), device="png", width = 6, height = 5, units = "in")
+
+
 ```
 
 Growth on CCA pH 5 in coculture with *Candida* is very similar to growth alone on CCA pH 7. Suggests that deacidification might be the main stimulating mechanism by *Candida*
@@ -1869,6 +1926,8 @@ p.18.mean.pH <- ggplot(d.18.summ %>% filter(condition %in% c("community", "alone
         legend.key.width = unit(.7, "cm"))
 
 plot_grid(p.18.mean, p.18.mean.pH, nrow = 1, ncol = 2, rel_widths = c(2.5,1), align = "h", axis = "tb")
+
+
 ```
 
 # Successional patterns 
@@ -2261,6 +2320,11 @@ ggplot(data = d.tests %>% filter(condition == "community", pH == 7),
             mapping = aes(x = species, label = sig, 
                           y=ifelse(med.fc.part.alone>1, med.fc.part.alone*1.2, med.fc.part.alone/1.2)),
             position = position_dodge(width = .9), vjust = .8)
+
+
+ggsave(here("figures/community_intx_barplot_pH7.png"), device="png", width = 7, height = 4.5, units = "in")
+
+
 ```
 
 ## JBC is a major suppressor
@@ -2298,6 +2362,11 @@ ggplot(d.18.summ %>% filter(condition %in% c("alone", "JBC"), pH == 5),
                                    `alone`="grown alone at pH 5")) +
   scale_shape_discrete(labels = c(`JBC`="with Penicillium at pH 5", 
                                   `alone`="grown alone at pH 5"))
+
+
+ggsave(here("figures/growth_curves_alone_Penicillium_pH5.png"), device="png", width = 8, height = 3.5, units = "in")
+
+
 ```
 
 Pairwise inhibition is comparable to what is seen in the community.
@@ -2328,35 +2397,45 @@ ggplot(d.18.summ %>% filter(condition %in% c("alone", "JBC", "community"), pH ==
                                        `community`="in community at pH 5")) +
   scale_shape_discrete(labels = c(`JBC`="with Penicillium at pH 5", `alone`="grown alone at pH 5",
                                        `community`="in community at pH 5"))
+
+
+ggsave(here("figures/growth_curves_alone_Penicillium_community_pH5.png"), device="png", width = 8, height = 3.5, units = "in")
+
+
+
 ```
 
 If we look at the effect of *Penicillium* in pairwise coculture on CCA pH 5, we also see lots of significant inhibition
 
 ```{r fold change barplot coculture with Penicillium (pH5), echo = F, warning = F, message = F}
 # barplot of fold-change
-d.tests$day <- factor(d.tests$day, levels = c(21,10,3))
 ggplot(data = d.tests %>% filter(condition %in% c("alone", "JBC"), pH == 5),
-       aes(x = species, y=med.fc.part.alone, fill = species, group = day)) +
-  geom_bar(position = "dodge", stat = "identity") +
-  geom_hline(yintercept = 1, color = "gray70") +
-  coord_flip(ylim=c(1e-5, 1e5)) +
+       aes(x = species, y=med.fc.part.alone, fill = species, group = factor(day, levels = c(3,10,21)))) +
+  geom_bar(position = "dodge", stat = "identity", color = "white") +
+  geom_hline(yintercept = 1, color = "gray50", size = 1) +
   scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
-                labels = trans_format("log10", label_math(10^.x))) + 
-  labs(y = "fold-change in growth (paired with Penicillium versus alone)") +
+                labels = trans_format("log10", label_math(10^.x)),
+                expand = c(0,.4)) + 
+  labs(y = "fold-change in growth (coculture with Penicillium versus alone)") +
   scale_fill_manual(values = species.palette,
                     labels = names) +
-  scale_x_discrete(limits = rev(levels(d.tests$species))) +
-  annotate("text", x=c(1.3, 1, .7), y=c(1.2, 1.2, 1.2), 
-           label=c("day 3", "day 10", "day 21"), hjust = 0) +
+  annotate("text", x=c(.7,1,1.3), y=c(12,12,12), 
+           label=c("day 3", "day 10", "day 21"), angle = 90, hjust = 1) +
   theme_bw() +
-  theme(axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_text(size = 10),
         legend.text = element_text(face = "italic")) +
   geom_text(data = d.tests %>% filter(condition == "JBC", pH == 5) %>%
               mutate(position = med.fc.part.alone * 1.05),
-            mapping = aes(x = species, y=position, label = sig),
-            position = position_dodge(width = 1))
+            mapping = aes(x = species, label = sig, 
+                          y=ifelse(med.fc.part.alone>1, med.fc.part.alone*1.2, med.fc.part.alone/1.2)),
+            position = position_dodge(width = .9), vjust = .8)
+
+
+ggsave(here("figures/Penicillium_intx_barplot_pH5.png"), device="png", width = 7, height = 4.5, units = "in")
+
 ```
 
 Pattern of inhibition by *Penicillium* holds on CCA pH 7
