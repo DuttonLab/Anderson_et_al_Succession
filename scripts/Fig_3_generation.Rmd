@@ -1,0 +1,251 @@
+---
+title: "Figure 3 generation"
+author: "Brooke Anderson"
+date: "7/15/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyverse)
+library(cowplot)
+library(scales)
+library(here)
+here::i_am("scripts/Fig_3_generation.Rmd")
+```
+
+
+```{r load in data and plot settings, echo = F}
+load(here("wrangled_data/all_data.RData"))
+load(here("figures/plotting_objects.RData"))
+d.tests.loo7 <- readRDS(here("wrangled_data/LOO_pH7_comparisons.rds"))
+```
+
+## figure 1 found in results_pairwise_growth_data.Rmd
+
+## figure 2 is cytoscape + PW/community fold-change in results_pairwise_growth_data.Rmd
+
+## figure 3
+
+```{r figure 3a, echo = F, message = F, warning = F}
+## show growth alone at pH 5 versus pH 7
+dat.m <- d.18.summ %>% filter(condition=="alone")
+dat <- d.18 %>% filter(condition=="alone")
+
+fig.3a <- ggplot(d.18 %>% filter(condition=="alone", 
+                       species %in% c("JB5", "JB7")),
+       aes(x = day, y = total.CFUs, color=species)) +
+  geom_point(aes(group = replicate, shape = interaction(pH,condition))) +
+  geom_line(data = d.18.summ %>% filter(condition=="alone", species %in% c("JB5", "JB7")),
+       aes(x = day, y = med.CFUs, color=species, 
+           linetype = interaction(pH,condition)), size = .8) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"),
+                        labels = c(`7.alone`="grown alone at pH 7",
+                                `5.alone`="grown alone at pH 5")) +
+  scale_shape_discrete(labels = c(`7.alone`="grown alone at pH 7",
+                                `5.alone`="grown alone at pH 5")) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(legend.position = "top", 
+        legend.spacing.x = unit(0.2, "cm"),
+        legend.box.spacing = unit(0,"cm"),
+        legend.key.width = unit(40,"pt"),
+        strip.text = element_text(face = "italic"),
+        legend.title = element_blank()) +
+  labs(y = "colony forming units")
+
+fig.3a.legend <- get_legend(
+  # create some space to the left of the legend
+  fig.3a + theme(legend.box.margin = margin(0, 0, 0, 12),
+                   legend.text.align = 0)
+)
+
+fig.3a1 <- ggplot(d.18 %>% filter(condition=="alone", 
+                       species == "JB5"),
+       aes(x = day, y = total.CFUs, color=species)) +
+  geom_point(aes(group = replicate, shape = interaction(pH,condition))) +
+  geom_line(data = d.18.summ %>% filter(condition=="alone", species == "JB5"),
+       aes(x = day, y = med.CFUs, color=species, 
+           linetype = interaction(pH,condition)), size = .8) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"),
+                        labels = c(`7.alone`="grown alone at pH 7",
+                                `5.alone`="grown alone at pH 5")) +
+  scale_shape_discrete(labels = c(`7.alone`="grown alone at pH 7",
+                                `5.alone`="grown alone at pH 5")) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(legend.spacing.x = unit(0.2, "cm"),
+        legend.box.spacing = unit(0,"cm"),
+        legend.key.width = unit(40,"pt"),
+        strip.text = element_text(face = "italic"),
+        legend.position = "none") +
+  labs(y = "colony forming units")
+fig.3a2 <- ggplot(d.18 %>% filter(condition=="alone", 
+                       species == "JB7"),
+       aes(x = day, y = total.CFUs, color=species)) +
+  geom_point(aes(group = replicate, shape = interaction(pH,condition))) +
+  geom_line(data = d.18.summ %>% filter(condition=="alone", species == "JB7"),
+       aes(x = day, y = med.CFUs, color=species, 
+           linetype = interaction(pH,condition)), size = .8) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"),
+                        labels = c(`7.alone`="grown alone at pH 7",
+                                `5.alone`="grown alone at pH 5")) +
+  scale_shape_discrete(labels = c(`7.alone`="grown alone at pH 7",
+                                `5.alone`="grown alone at pH 5")) +
+  facet_grid(.~species, labeller = labeller(species = names)) +
+  theme(legend.spacing.x = unit(0.2, "cm"),
+        legend.box.spacing = unit(0,"cm"),
+        legend.key.width = unit(40,"pt"),
+        strip.text = element_text(face = "italic"),
+        legend.position = "none",
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank()) +
+  labs(y = "colony forming units")
+
+fig.3a12 <- plot_grid(fig.3a1, fig.3a2, ncol = 2, align = "h", axis = "tb", 
+                      rel_widths = c(1.2, 1))
+fig.3a <- plot_grid(fig.3a.legend, fig.3a12, nrow = 2, rel_heights = c(0.1, 1))
+
+ggsave(here("figures/figure_3a.png"), fig.3a, device="png", width = 5.5, height = 3.5, units = "in")
+
+```
+
+```{r figure 3b, echo = F, message = F, warning = F}
+p.JB5.growth.med <- ggplot(d.loo5 %>% filter(!is.na(count), species == "JB5") %>%
+         group_by(species, day, condition) %>% summarize(med.CFUs = median(total.CFUs)),
+       aes(x = day, y = med.CFUs, color = species)) +
+  geom_line(aes(linetype = condition)) +
+  geom_point(data = d.loo5 %>% filter(!is.na(count), species == "JB5"), 
+             aes(x = day, y = total.CFUs, shape = condition), alpha = .5) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x)),
+                limits = c(1, 1e10)) + 
+  scale_color_manual(values = species.palette, guide = "none") +
+  labs(linetype = NULL, shape = NULL, y = "colony forming units") +
+  theme_bw() +
+  facet_grid(. ~ species, labeller = labeller(species = names)) +
+  theme(legend.position="none",
+        strip.text = element_text(face = "italic"),
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+p.JB7.growth.med <- ggplot(d.loo5 %>% filter(!is.na(count), species == "JB7") %>%
+         group_by(species, day, condition) %>% summarize(med.CFUs = median(total.CFUs)),
+       aes(x = day, y = med.CFUs, color = species)) +
+  geom_line(aes(linetype = condition)) +
+  geom_point(data = d.loo5 %>% filter(!is.na(count), species == "JB7"), 
+             aes(x = day, y = total.CFUs, shape = condition), alpha = .5) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x)),
+                limits = c(1, 1e10)) + 
+  scale_color_manual(values = species.palette, guide = "none") +
+  labs(linetype = NULL, shape = NULL, y = "colony forming units") +
+  theme_bw() +
+  facet_grid(. ~ species, labeller = labeller(species = names)) +
+  theme(legend.position = "none",
+        strip.text = element_text(face = "italic"),
+        axis.title.x = element_blank())
+
+
+p.ph.med <- ggplot(d.loo5 %>% filter(!is.na(count), species == "JB5") %>%
+         group_by(species, day, condition) %>% summarize(med.pH = median(pH, na.rm = T)),
+       aes(x = day, y = med.pH)) +
+  geom_line(aes(linetype = condition), color = "black") +
+  geom_point(data = d.loo5 %>% filter(!is.na(count), species == "JB5"),
+             aes(x = day, y = pH, shape = condition), alpha = .5) +
+  scale_y_log10(name = "pH") +
+  scale_linetype(labels = conditions) +
+  scale_shape(labels = conditions) +
+  theme_bw() + 
+  facet_grid(. ~ species) +
+  theme(strip.text.x = element_blank(),
+        legend.box.spacing = unit(0, "cm"),
+        legend.key = element_rect(),
+        legend.key.width = unit(30,"pt"))
+
+
+fig.3b1 <- p.JB5.growth.med
+fig.3b2 <- p.JB7.growth.med +
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank())
+fig.3b3 <- p.ph.med + theme(legend.position = "none")
+legend <- get_legend(
+  # create some space to the left of the legend
+  p.ph.med + theme(legend.box.margin = margin(0, 0, 0, 12),
+                   legend.text.align = 0,
+                   legend.text = element_text(size = 6),
+                   legend.key.height = unit(14, "pt"))
+)
+
+
+align.col1 <- align_plots(fig.3b1, fig.3b3, align = 'v', axis = 'lr')
+align.col2 <- align_plots(fig.3b2, legend, align = 'v')
+
+fig.3b12 <- plot_grid(align.col1[[1]], align.col2[[1]], 
+                     align = "h", axis = "tb", 
+                     ncol = 2, rel_widths = c(1.2, 1))
+fig.3b3leg <- plot_grid(align.col1[[2]], align.col2[[2]], 
+                        ncol = 2, rel_widths = c(1.2, 1))
+
+fig.3b <- plot_grid(fig.3b12, fig.3b3leg,
+                   nrow = 2, align = "hv", 
+                   rel_heights = c(1.5, 1))
+
+ggsave(here("figures/figure_3b.png"), fig.3b, device="png", width = 5.5, height = 5, units = "in")
+
+
+```
+
+
+```{r figure 3c, echo = F, message = F, warning = F}
+fig.3c <- ggplot(d.tests.loo7 %>% filter(species != "JBC", condition == "comm-JBC") %>%
+                   mutate(species = forcats::fct_relevel(species, "135E", "BC10")), 
+       aes(x = species, y=med.fc.part.alone, fill = species, group = factor(day, levels = c(3,10,21)))) +
+  geom_bar(position = "dodge", stat = "identity", color = "white") +
+  annotate("text", x=c(.7,1,1.3), y=c(2.2,2.2,2.2), size = 3,
+           label=c("day 3", "day 10", "day 21"), angle = 90, hjust = 0) +
+  scale_y_log10(minor_breaks=trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", label_math(10^.x)),
+                limits = c(1e-1, 1e1)) +
+  geom_hline(yintercept = 1, color = "gray50") +
+  scale_fill_manual(values = species.palette,
+                    labels = names) +
+  scale_color_manual(values = species.palette, labels = names) +
+  labs(y = "fold change in CFUS",
+       title = expression(paste("(community w/o ", italic("Penicillium"), ", pH 7 vs. monoculture, pH 7)"))) +
+  theme_bw() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        panel.grid = element_blank(),
+        legend.text = element_text(face = "italic"),
+        plot.title = element_text(size = 8))
+
+ggsave(here("figures/figure_3c.png"), fig.3c, device="png", width = 5, height = 4, units = "in")
+
+```
+
+```{r figure 3 assembly, echo = F, message = F, warning = F, fig.width=5, fig.height=8}
+
+fig.3 <- plot_grid(fig.3a.legend, fig.3a12, fig.3b12, fig.3b3leg, fig.3c, nrow = 5, align = "hv", rel_heights = c(0.17, 1.6, 1.5, 1, 1.6),
+                   labels = c('A', '', 'B', '', 'C'))
+
+fig.3
+
+ggsave(here("figures/fig3.png"), fig.3, device="png", width = 5, height = 8, units = "in")
+ggsave(here("figures/fig3.svg"), fig.3, device="svg", width = 5, height = 8, units = "in")
+
+
+```
+

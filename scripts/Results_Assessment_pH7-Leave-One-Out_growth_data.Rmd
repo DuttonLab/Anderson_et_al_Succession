@@ -283,6 +283,8 @@ names(l.tests) <- cond
 # turn into dataframe
 d.tests <- lapply(l.tests, as.data.frame) %>% bind_rows()
 
+saveRDS(d.tests, here("wrangled_data/LOO_pH7_comparisons.rds"))
+
 ```
 
 Comparing growth curves for each species in each condition:

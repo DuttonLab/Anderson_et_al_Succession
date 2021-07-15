@@ -18,6 +18,14 @@ names <- c(`135E`="Diutina",
            `community`="community" , 
            `alone`="monoculture")
 
+conditions <- c(`comm`="community" , 
+                `alone`="alone",
+                `comm-JBC`= expression(paste("community w/o ", italic("Penicillium"))),
+                `comm-135E`= expression(paste("community w/o ", italic("Diutina"))), 
+                `comm-BC10`= expression(paste("community w/o ", italic("S. xylosus"))), 
+                `comm-eD`= expression(paste("community w/o ", italic("Diutina"), 
+                                            " and ", italic("S. xylosus"))))
+
 names.italic <- c(`135E`=expression(italic("Diutina")), 
                   `BC10`=expression(italic("S. xylosus")), 
                   `BC9`=expression(italic("S. equorum")), 
@@ -43,4 +51,4 @@ barp.theme <- list(
         plot.subtitle=element_text(size=13))
 )
 
-save(species.palette, names, names.italic, barp.theme, file = here("figures/plotting_objects.RData"))
+save(species.palette, names, conditions, names.italic, barp.theme, file = here("figures/plotting_objects.RData"))
