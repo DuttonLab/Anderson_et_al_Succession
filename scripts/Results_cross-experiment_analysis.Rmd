@@ -1,0 +1,75 @@
+---
+title: 'Results: cross-experiment analysis'
+author: "Brooke Anderson"
+date: "7/16/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyverse)
+library(cowplot)
+library(scales)
+library(here)
+here::i_am("scripts/Results_cross-experiment_analysis.Rmd")
+```
+
+```{r load in data and plot settings, echo = F}
+load(here("wrangled_data/all_data.RData"))
+load(here("figures/plotting_objects.RData"))
+```
+
+Compare growth of *Brevibacterium* alone at pH 5, in coculture with *Penicillium*, and in a dropout community excluding *Diutina* and *S. xylosus*
+
+```{r Brevi inhibition by Penicillium, echo = F}
+
+dat <- rbind(d.18 %>% filter(condition %in% c("alone", "JBC"), 
+                       species == "JB5", pH == 5) %>%
+               select(species, condition, replicate, day, total.CFUs),
+             d.loo5 %>% filter(condition == "comm-eD", 
+                       species == "JB5") %>%
+               select(species, condition, replicate, day, total.CFUs))
+
+# lines mark median points for each condition
+ggplot(dat, aes(x = day, y = total.CFUs, color=species)) +
+  geom_point(aes(group = replicate, shape = condition)) +
+  geom_line(data = dat %>% 
+              group_by(species, condition, day) %>% 
+              summarize(med.CFUs = median(total.CFUs)),
+            aes(x = day, y = med.CFUs, linetype = condition)) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  labs(y = "colony forming units")
+
+# lines for each replicate within each condition
+ggplot(dat, aes(x = day, y = total.CFUs, 
+                color=species, group = interaction(replicate, condition))) +
+  geom_point(aes(shape = condition)) +
+  geom_line(aes(linetype = condition)) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_shape_discrete(labels = c("alone" = "monoculture", 
+                                   "JBC"= expression(paste("+ ", italic(" Penicillium"))),
+                                "comm-eD"= expression(paste("w/o ", italic(" Diutina & S. xylosus"))))) +
+  scale_linetype_manual(values = c("alone" = "solid",
+                                   "JBC" = "dotted",
+                                   "comm-eD" = "dashed"),
+                        labels = c("alone" = "monoculture", 
+                                   "JBC"= expression(paste("+ ", italic(" Penicillium"))),
+                                   "comm-eD"= expression(paste("w/o ", italic(" Diutina & S. xylosus"))))) +
+  labs(y = "colony forming units",
+       shape = expression(paste(italic("Brevibacterium"), " culture condition")),
+       linetype = expression(paste(italic("Brevibacterium"), " culture condition"))) +
+  theme(legend.text = element_text(hjust = 0),
+        legend.key.width = unit(30, "pt"))
+
+ggsave(here("figures/suppl_fig_7.png"), device="png", width = 7, height = 4, units = "in")
+ggsave(here("figures/suppl_fig_7.svg"), device="svg", width = 7, height = 4, units = "in")
+
+```
+

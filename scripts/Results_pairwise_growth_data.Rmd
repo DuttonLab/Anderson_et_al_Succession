@@ -1241,50 +1241,25 @@ d.growthRates <- d.growthRates %>%
          partner = fct_relevel(partner, "135E", "BC10", "BC9", "JB5", "JB7", "JBC", "JB370", "community", "alone"))
 
 # pH 5 correlation
-ph5.cor <- ggplot(d.growthRates %>% filter(pH==5, !is.na(growth.dir)), 
+ggplot(d.growthRates %>% filter(!is.na(growth.dir)), 
                   aes(x = endpoint.coculture.pH, y=abs.growth*tp.2)) +
   geom_point(aes(color=partner, shape = growth.dir)) + 
-  scale_y_log10() +
-  scale_color_manual(values = c(species.palette[2:8], `community` = "#595959", `alone` = "#d6b8c3")) +
-  facet_grid(. ~ species, labeller = labeller(species = names)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=90),
-        legend.position= "none",
-        strip.text = element_text(face = "italic")) +
-  labs(title = "pH versus growth on CCA pH 5", 
-       x = "measured pH", 
-       y = "growth rate (CFUs per day)")
-
-#is correlation removed at pH 7
-ph7.cor <- ggplot(d.growthRates %>% filter(pH==7, !is.na(growth.dir)), 
-                  aes(x = endpoint.coculture.pH, y=abs.growth*tp.2)) +
-  geom_point(aes(color=partner, shape = growth.dir)) + 
-  scale_y_log10() +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) +
   scale_color_manual(values = c(species.palette[2:8], `community` = "#595959", `alone` = "#d6b8c3"),
                      name = "culture condition",
                      labels = c(paste("+", names[-9]), "monoculture")) +
-  facet_grid(. ~ species, labeller = labeller(species = names)) +
+  facet_grid(pH ~ species, labeller = labeller(species = names, 
+                                               pH = c(`7` = "pH 7",
+                                                      `5` = "pH 5"))) +
   theme_bw() +
-  theme(axis.text.x = element_text(angle=90),
-        legend.text = element_text(face = "italic"),
-        strip.text = element_text(face = "italic")) +
-  labs(title = "pH versus growth on CCA pH 7", 
-       x = "measured pH", 
+  theme(legend.text = element_text(face = "italic"),
+        strip.text.x = element_text(face = "italic")) +
+  labs(x = "measured pH (at end of growth time frame)", 
        y = "growth rate (CFUs per day)",
        shape = "growth rate")
 
-legend <- get_legend(
-  # create some space to the left of the legend
-  ph7.cor + theme(legend.box.margin = margin(0, 0, 0, 12))
-)
-
-plot_grid(plot_grid(ph5.cor, ph7.cor + theme(legend.position = "none"), 
-                    nrow = 2), 
-          legend,
-          ncol = 2, rel_widths = c(5, 1))
-
-
-ggsave(here("figures/pH-growthrate_corr.png"), device="png", width = 9, height = 6, units = "in")
+ggsave(here("figures/pH-growthrate_corr.png"), device="png", width = 9.75, height = 4.5, units = "in")
 
 ```
 
