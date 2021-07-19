@@ -686,7 +686,7 @@ d.tests %>%
          intx.sign = ifelse(med.fc.part.alone >= 1, "pos", "neg"), # indicate direction of pop size change
          target = paste0(intx.sign, species, "ph", pH), # combine details for target node
          source = paste0(intx.sign, condition, "ph", pH), # combine details for source node
-         intx.day = paste0(intx.sign, day),
+         intx.day = paste0(intx.sign, day), # unique edge colors by day and direction of interaction
          label = names[as.character(condition)], # provide source label
          order = order[as.character(condition)]) %>%
   select(target, source, label, order, intx.day, scaled.fc, `log.fc-2X`) %>%
@@ -962,7 +962,7 @@ p.species.effect.stacked <- ggplot(spec.intx.summ.2, aes(x = species, y = value)
                                "mixed",
                                "inhibition"),
                     name = "effect: ") + 
-  labs(y = "# growth-affecting partner",
+  labs(y = "# growth-affecting partners",
        x = "species showing growth effects") +
   scale_y_continuous(limits = c(0,6), breaks = seq(0,6,1)) +
   scale_x_discrete(labels = names) +
@@ -997,7 +997,7 @@ p.partner.effect.stacked <- ggplot(part.intx.summ.2, aes(x = condition, y = valu
                     name = "partner effect") + 
   scale_y_continuous(limits = c(0,6), breaks = seq(0,6,1)) +
   scale_x_discrete(labels = names) +
-  labs(y = "# species showing growth effects",
+  labs(y = "# species affected",
        x = "growth-affecting partner") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "italic", size = 12),
