@@ -163,4 +163,29 @@ estimates %>%
 
 Some of these estimates aren't making sense -- e.g. at pH 5 for i = JB5, j = JB7, alpha_ij > 2e5? But neither of these species affect the other in pairwise coculture??
 
+Let's generate a table that we can import into cytoscape to compare to actual effects:
+```{r generate table for cytoscape, echo = F, message = F, warning = F}
+
+# circular order of species nodes in network 
+order <- c(`JB5` = 1, `JB7` = 2, `BC10` = 3, `BC9` = 4, `JBC` = 5, `JB370` = 6, `135E` = 7)
+
+estimates %>% 
+  filter(!is.na(est), name != "K") %>%  # only significant pariwise interactions
+  rename(species = spec, condition = name) %>%
+  select(species, condition, pH, est, se) %>%
+  # get magnitude of inhibitory & stimulatory effects on population size
+  mutate(abs.est = abs(est), # convert to positive numbers for edge weighting
+         # note that zero values are kept as zeros since cytoscape doesn't handle infinite measurements usefully
+         # these zero values will be used to dictate dashing of edges for infinite fold-changes (i.e. non-detected coculture CFUs)
+         `log.est-2X` = ifelse(abs.est != 0, log(abs.est * 2), # transform magnitude log10 and times two for visualization
+                              3), # this value will determine the width of the edge in cytoscape; infinite values will be dashed with width of 3
+         intx.sign = ifelse(est >= 1, "pos", "neg"), # indicate direction of pop size change
+         target = paste0(intx.sign, species, "ph", pH), # combine details for target node
+         source = paste0(intx.sign, condition, "ph", pH), # combine details for source node
+         label = names[as.character(condition)], # provide source label
+         order = order[as.character(condition)]) %>%
+  select(target, source, label, order, abs.est, `log.est-2X`, intx.sign) %>%
+  write_csv(., here("wrangled_data/model_estimates_for_cytoscape.csv"))
+
+```
 
