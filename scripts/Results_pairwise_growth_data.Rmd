@@ -673,7 +673,7 @@ Observations:
 # circular order of species nodes in network 
 order <- c(`JB5` = 1, `JB7` = 2, `BC10` = 3, `BC9` = 4, `JBC` = 5, `JB370` = 6, `135E` = 7)
 
-d.cyto <- d.tests %>% 
+d.tests %>% 
   filter(!is.na(sig), condition != "community") %>%  # only significant pariwise interactions
   select(species, condition, pH, day, med.fc.part.alone) %>%
   # get magnitude of inhibitory & stimulatory effects on population size
@@ -691,7 +691,6 @@ d.cyto <- d.tests %>%
          order = order[as.character(condition)]) %>%
   select(target, source, label, order, intx.day, scaled.fc, `log.fc-2X`) %>%
   write_csv(., here("wrangled_data/pairwise_for_cytoscape.csv"))
-
 
 
 ```
