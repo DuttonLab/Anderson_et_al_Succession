@@ -141,10 +141,12 @@ plot_grid(p.alone.comm, p.alone.comm.ph, nrow = 2, ncol = 1, rel_heights = c(2, 
 ggsave(here("figures/growth_curves_alone_community_pH5.png"), device="png", width = 8, height = 5, units = "in")
 
 # barplot of fold-change (median fold change, +community vs. alone)
-comm.alone.barplot <- ggplot(d.tests %>% filter(condition == "community", pH == 5),
+comm.alone.barplot <- ggplot(d.tests %>% 
+                               filter(condition == "community", pH == 5) %>%
+                               mutate(species = fct_relevel(species, "135E", after = 4)),
        aes(x = species, y=med.fc.part.alone, fill = species, group = factor(day, levels = c(3,10,21)))) +
   geom_bar(position = "dodge", stat = "identity", color = "white") +
-  annotate("text", x=c(.7,1,1.3), y=c(1.5,1.5,1.5), size = 3,
+  annotate("text", x=c(.7,1,1.3), y=c(1.4,1.4,1.4), size = 3,
            label=c("day 3", "day 10", "day 21"), angle = 90, hjust = 0) +
   scale_y_log10(minor_breaks=trans_breaks("log10", function(x) 10^x),
                 breaks = c(1e-4, 1e-2, 1, 1e2, 1e4), 
@@ -779,7 +781,7 @@ for (s in spec) {
                     select(replicate, measured.pH)) 
         # edit measured pH column name
         colnames(dat.spec)[which(colnames(dat.spec) == "measured.pH")] <- "endpoint.coculture.pH"
-        # data about partner growth
+        # data about partner growth rate
         dat.cond <- d.18 %>% 
           filter(species == c, condition %in% s, pH == p, day %in% c(tp.1, tp.2)) %>%
           pivot_wider(id_cols=c(species, condition, pH, replicate),
@@ -802,7 +804,7 @@ for (s in spec) {
 d.growthEffects <- do.call(rbind, l.growthEffects)
 
 
-# plot partner GROWTH versus affect on species growth
+# plot partner GROWTH RATE versus affect on species growth
 p.growth.vs.delt.growth <- ggplot(d.growthEffects) + 
   geom_point(aes(x = partner.growth, y = delt.r,
                  color = partner)) +
