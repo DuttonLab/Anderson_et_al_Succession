@@ -67,7 +67,42 @@ Let's show these things:
 
 PW growth poorly predicts absolute community composition
 
-```{r plot actual vs. predicted cfus, echo = F, message = F, warning = F}
+```{r by replicate actual vs. predicted cfus, echo = F, message = F, warning = F}
+
+ggplot(data %>%
+         mutate(spec = factor(spec, levels = names(names)[-c(8:9)])), 
+       aes(x = spec, y = fit, group = replicate)) +
+  geom_bar(aes(fill = spec), stat = "identity", color = "white",
+           position = "dodge", width = 0.8, lwd = 1.3) +
+  scale_fill_manual(values = species.palette, guide = "none") +
+  scale_x_discrete(labels = names) +
+  geom_point(data = predictions %>%
+               mutate(fit.mod = ifelse(fit < 0, 0, fit),
+                      pH = factor(pH, levels = c(5, 7)),
+                      spec = factor(spec, levels = names(names)[-c(8:9)])) %>%
+               filter(replicate %in% c(1,2,4,5)), 
+             aes(x = spec, y = fit.mod, color = pH, group = replicate),
+             position = position_dodge(width = 0.8)) +
+  scale_color_manual(values = c("gray20", "red")) +
+  scale_y_log10(limits = c(1, 1e10), breaks = c(1e2, 1e4, 1e6, 1e8, 1e0, 1e10),
+                minor_breaks=trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", label_math(10^.x)),
+                expand = c(0,0)) +
+  theme_bw() +
+  labs(y = "colony-forming units",
+       x = "community member",
+       color = paste("media pH of\npairwise cocultures\nfor prediction"),
+       subtitle = "bars show actual CFUs, points show replicate model predictions") +
+  theme(axis.text.x = element_text(angle = 45, face = "italic", hjust = 1),
+        plot.subtitle = element_text(size = 6))
+
+ggsave(here("figures/suppl_fig_9.png"), device="png", width = 7, height = 4, units = "in")
+
+  
+```
+
+
+```{r boxplot actual vs. predicted cfus, echo = F, message = F, warning = F}
 
 ggplot(data %>%
          mutate(spec = factor(spec, levels = names(names)[-c(8:9)])), 
@@ -94,7 +129,6 @@ ggplot(data %>%
   theme(axis.text.x = element_text(angle = 45, face = "italic", hjust = 1),
         plot.subtitle = element_text(size = 6))
 
-ggsave(here("figures/modeling_pred_vs_actual.png"), device="png", width = 4.5, height = 3.5, units = "in")
   
 ```
 
@@ -141,7 +175,6 @@ p.deviations +
   stat_summary(geom = "point", fun = median, size = 2.5) +
   labs(subtitle = "replicate values in small points, median deviation in large points") +
 
-ggsave(here("figures/modeling_prediction_deviations.png"), device="png", width = 4.5, height = 3.5, units = "in")
 
 ```
 
