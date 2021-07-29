@@ -793,7 +793,7 @@ for (s in spec) {
         # calculate growth over time
         dat.cond <- dat.cond %>% mutate(partner.growth = growth_exp(tp.2, tp.1, days))
         # combine change in species growth rate with partner species growth
-        d.growthEffects <- full_join(dat.spec[ ,-c(4:5)], dat.cond[ ,c("replicate", "partner.growth", "tp.2")])
+        d.growthEffects <- full_join(dat.spec, dat.cond[ ,c("replicate", "partner.growth", "tp.2")])
         colnames(d.growthEffects)[which(colnames(d.growthEffects) == "tp.2")] <- "part.cfus.endpoint"
         l.growthEffects[[length(l.growthEffects)+1]] <- d.growthEffects
       }
@@ -905,6 +905,41 @@ ggplot(d.growthEffects %>% mutate(abs.delt.r = abs(delt.r),
 
 ggsave(here("figures/suppl_fig_4.png"), device="png", width = 7.5, height = 6, units = "in")
 ggsave(here("figures/suppl_fig_4.svg"), device="svg", width = 7.5, height = 6, units = "in")
+
+```
+
+```{r cytoscape file of growth rates, echo = F, message = F, warning = F}
+
+# summarize growth rates using median measurements, also do statistical tests
+d.growthEffects %>% 
+  filter(!is.na(condition), is.finite(condition), is.finite(alone)) %>%
+  group_by(species, partner, pH, timeframe, .drop = T) %>%
+  summarize(median.delt.r = median(delt.r),
+            p.val = wilcox.test(condition, alone, alternative = "two.sided", 
+                                var.equal = F)$p.value,
+            sig = ifelse((p.val < 0.05 & p.val >= 0.01), "*", 
+                         ifelse((p.val < 0.01 & p.val >= 0.001), "**", 
+                                ifelse(p.val < 0.001, "***", NA)))
+            )
+
+d.tests %>% 
+  filter(!is.na(sig)) %>%  # only significant pariwise interactions
+  select(species, condition, pH, day, med.fc.part.alone) %>%
+  # get magnitude of inhibitory & stimulatory effects on population size
+  mutate(scaled.fc = ifelse(med.fc.part.alone >= 1, med.fc.part.alone, # increased pop size keep given mag
+                            ifelse(med.fc.part.alone == 0, 0, 1/med.fc.part.alone)), # for decreased pop size -- if non-zero, invert for 1+ mag
+         # note that zero values are kept as zeros since cytoscape doesn't handle infinite measurements usefully
+         # these zero values will be used to dictate dashing of edges for infinite fold-changes (i.e. non-detected coculture CFUs)
+         `log.fc-2X` = ifelse(scaled.fc != 0, log(scaled.fc * 2), # transform magnitude log10 and times two for visualization
+                              3), # this value will determine the width of the edge in cytoscape; infinite values will be dashed with width of 3
+         intx.sign = ifelse(med.fc.part.alone >= 1, "pos", "neg"), # indicate direction of pop size change
+         target = paste0(intx.sign, species, "ph", pH), # combine details for target node
+         source = paste0(intx.sign, condition, "ph", pH), # combine details for source node
+         intx.day = paste0(intx.sign, day), # unique edge colors by day and direction of interaction
+         label = names[as.character(condition)], # provide source label
+         order = order[as.character(condition)]) %>%
+  select(target, source, label, order, intx.day, scaled.fc, `log.fc-2X`) %>%
+  write_csv(., here("wrangled_data/pairwise_for_cytoscape.csv"))
 
 ```
 
