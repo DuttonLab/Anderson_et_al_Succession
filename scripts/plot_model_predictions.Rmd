@@ -169,22 +169,37 @@ Let's generate a table that we can import into cytoscape to compare to actual ef
 # circular order of species nodes in network 
 order <- c(`JB5` = 1, `JB7` = 2, `BC10` = 3, `BC9` = 4, `JBC` = 5, `JB370` = 6, `135E` = 7)
 
-estimates %>% 
-  filter(!is.na(est), name != "K") %>%  # only significant pariwise interactions
+estimates %>% select(!se) %>%
+  pivot_wider(names_from = name, values_from = est) %>%
+  pivot_longer(cols = c("BC10", "BC9", "JB5", "JB7", `135E`, "JBC", "JB370"),
+               names_to = "name", values_to = "est") %>%
   rename(species = spec, condition = name) %>%
-  select(species, condition, pH, est, se) %>%
+  left_join(select(., species, K, pH) %>% 
+              rename(condition = species, K.part = K) %>% 
+              unique(),
+            by = c("condition", "pH")) %>%
+  filter(!is.na(est)) %>%  # only significant interactions
   # get magnitude of inhibitory & stimulatory effects on population size
-  mutate(abs.est = abs(est), # convert to positive numbers for edge weighting
+  mutate(fc.est.per.source = est / K * 10e8,
+         abs.fc.est.per.source = abs(fc.est.per.source), # convert to positive numbers for edge weighting
          # note that zero values are kept as zeros since cytoscape doesn't handle infinite measurements usefully
          # these zero values will be used to dictate dashing of edges for infinite fold-changes (i.e. non-detected coculture CFUs)
-         `log.est-2X` = ifelse(abs.est != 0, log(abs.est * 2), # transform magnitude log10 and times two for visualization
-                              3), # this value will determine the width of the edge in cytoscape; infinite values will be dashed with width of 3
-         intx.sign = ifelse(est >= 1, "pos", "neg"), # indicate direction of pop size change
+         `log.est.per.source` = ifelse(abs.fc.est.per.source != 0, 
+                               log(abs.fc.est.per.source), # transform magnitude log10 and times two for visualization
+                               3), # this value will determine the width of the edge in cytoscape; infinite values will be dashed with width of 3
+         fc.est = est / K * K.part, # fold-change at day 21, accounting for source density 
+         abs.fc.est = abs(fc.est),
+         `log.est` = ifelse(abs.fc.est != 0, 
+                               log(abs.fc.est), 
+                               3),
+         intx.sign = ifelse(est >= 0, "neg", "pos"), # indicate direction of pop size change
          target = paste0(intx.sign, species, "ph", pH), # combine details for target node
          source = paste0(intx.sign, condition, "ph", pH), # combine details for source node
          label = names[as.character(condition)], # provide source label
          order = order[as.character(condition)]) %>%
-  select(target, source, label, order, abs.est, `log.est-2X`, intx.sign) %>%
+  select(target, source, label, order, intx.sign,
+         est, abs.fc.est.per.source, `log.est.per.source`, 
+         est, abs.fc.est, `log.est`) %>%
   write_csv(., here("wrangled_data/model_estimates_for_cytoscape.csv"))
 
 ```
