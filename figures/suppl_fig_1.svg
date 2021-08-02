@@ -80,8 +80,8 @@
 <text transform='translate(195.80,266.01) rotate(-45)' text-anchor='end' style='font-size: 12.00px; font-style: italic; fill: #4D4D4D; font-family: Arial;' textLength='90.03px' lengthAdjust='spacingAndGlyphs'>Brachybacterium</text>
 <text transform='translate(228.73,266.01) rotate(-45)' text-anchor='end' style='font-size: 12.00px; font-style: italic; fill: #4D4D4D; font-family: Arial;' textLength='57.34px' lengthAdjust='spacingAndGlyphs'>Penicillium</text>
 <text transform='translate(261.65,266.01) rotate(-45)' text-anchor='end' style='font-size: 12.00px; font-style: italic; fill: #4D4D4D; font-family: Arial;' textLength='78.03px' lengthAdjust='spacingAndGlyphs'>Scopulariopsis</text>
-<text x='156.79' y='342.88' text-anchor='middle' style='font-size: 12.00px; font-family: Arial;' textLength='166.08px' lengthAdjust='spacingAndGlyphs'>species showing growth effects</text>
-<text transform='translate(21.28,134.74) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: Arial;' textLength='142.74px' lengthAdjust='spacingAndGlyphs'># growth-affecting partners</text>
+<text x='156.79' y='342.88' text-anchor='middle' style='font-size: 12.00px; font-family: Arial;' textLength='200.10px' lengthAdjust='spacingAndGlyphs'>target species showing growth effects</text>
+<text transform='translate(21.28,134.74) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: Arial;' textLength='182.09px' lengthAdjust='spacingAndGlyphs'># growth-affecting source partners</text>
 <text x='5.05' y='15.11' style='font-size: 14.00px; font-weight: bold; font-family: Arial;' textLength='10.11px' lengthAdjust='spacingAndGlyphs'>A</text>
 </g>
 <defs>
@@ -136,8 +136,8 @@
 <text transform='translate(483.80,266.01) rotate(-45)' text-anchor='end' style='font-size: 12.00px; font-style: italic; fill: #4D4D4D; font-family: Arial;' textLength='90.03px' lengthAdjust='spacingAndGlyphs'>Brachybacterium</text>
 <text transform='translate(516.73,266.01) rotate(-45)' text-anchor='end' style='font-size: 12.00px; font-style: italic; fill: #4D4D4D; font-family: Arial;' textLength='57.34px' lengthAdjust='spacingAndGlyphs'>Penicillium</text>
 <text transform='translate(549.65,266.01) rotate(-45)' text-anchor='end' style='font-size: 12.00px; font-style: italic; fill: #4D4D4D; font-family: Arial;' textLength='78.03px' lengthAdjust='spacingAndGlyphs'>Scopulariopsis</text>
-<text x='444.79' y='342.88' text-anchor='middle' style='font-size: 12.00px; font-family: Arial;' textLength='126.73px' lengthAdjust='spacingAndGlyphs'>growth-affecting partner</text>
-<text transform='translate(309.28,134.74) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: Arial;' textLength='96.72px' lengthAdjust='spacingAndGlyphs'># species affected</text>
+<text x='444.79' y='342.88' text-anchor='middle' style='font-size: 12.00px; font-family: Arial;' textLength='166.08px' lengthAdjust='spacingAndGlyphs'>growth-affecting source partner</text>
+<text transform='translate(309.28,134.74) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: Arial;' textLength='130.74px' lengthAdjust='spacingAndGlyphs'># target species affected</text>
 <text x='293.05' y='15.11' style='font-size: 14.00px; font-weight: bold; font-family: Arial;' textLength='10.11px' lengthAdjust='spacingAndGlyphs'>B</text>
 <text x='158.20' y='382.30' style='font-size: 12.00px; font-family: Arial;' textLength='36.01px' lengthAdjust='spacingAndGlyphs'>effect: </text>
 <rect x='200.55' y='370.07' width='15.86' height='15.86' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #FFD700; fill-opacity: 0.70;' />

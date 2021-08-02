@@ -851,8 +851,8 @@ p.Day.delt.growth <- ggplot(d.growthEffects %>%
   theme_bw() +
   scale_y_log10(n.breaks = 4) +
   scale_x_discrete(labels = names) +
-  labs(x = "growth-affecting species", 
-       y = expression("difference in partner's growth rate\nin coculture vs. monoculture(absolute delta CFUs/day)")) +
+  labs(x = "growth-affecting source species", 
+       y = expression("difference in target partner's growth rate\nin coculture vs. monoculture(absolute delta CFUs/day)")) +
   theme(panel.grid.major.x = element_blank(),
         legend.text.align = 0,
         plot.margin = margin(5,5,5,15, "pt"),
@@ -997,8 +997,8 @@ p.species.effect.stacked <- ggplot(spec.intx.summ.2, aes(x = species, y = value)
                                "mixed",
                                "inhibition"),
                     name = "effect: ") + 
-  labs(y = "# growth-affecting partners",
-       x = "species showing growth effects") +
+  labs(y = "# growth-affecting source partners",
+       x = "target species showing growth effects") +
   scale_y_continuous(limits = c(0,6), breaks = seq(0,6,1)) +
   scale_x_discrete(labels = names) +
   theme_minimal() +
@@ -1032,8 +1032,8 @@ p.partner.effect.stacked <- ggplot(part.intx.summ.2, aes(x = condition, y = valu
                     name = "partner effect") + 
   scale_y_continuous(limits = c(0,6), breaks = seq(0,6,1)) +
   scale_x_discrete(labels = names) +
-  labs(y = "# species affected",
-       x = "growth-affecting partner") +
+  labs(y = "# target species affected",
+       x = "growth-affecting source partner") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "italic", size = 12),
         panel.grid = element_blank(),
