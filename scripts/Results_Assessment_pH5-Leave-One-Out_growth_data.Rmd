@@ -424,15 +424,22 @@ ggplot(d.tests %>% filter(species %in% c("JB5", "JB7")),
         strip.background = element_rect(fill = NA, color = "gray90"))
 
 ## narrow in on just the effects of removing Penicillium
-ggplot(d.tests %>% filter(condition == "comm-JBC"), aes(x = species, y = LOO.median)) +
-  geom_point(color = "black") +
+ggplot(d.tests %>% filter(condition == "comm-JBC") %>%
+         pivot_longer(cols = c(LOO.median, comm.median), 
+                      names_to = "measurement", values_to = "median.value"), 
+       aes(x = species, y = median.value)) +
+  geom_point(aes(color = measurement)) +
   geom_jitter(data = d.loo5 %>% filter(!is.na(count), day != 0, condition == "comm-JBC"), 
              aes(x = species, y = total.CFUs), color = "black",
              size = .6, alpha = .7, width = .3) +
-  geom_point(aes(y = comm.median), color = "gray70") +
-  geom_segment(aes(y = comm.median, yend = LOO.median,
+  scale_color_manual(values = c(`comm.median` = "gray70", `LOO.median` = "black"),
+                     labels = c("full community", 
+                                expression(paste("community without ", italic("Penicillium")))),
+                     name = NULL) +
+  geom_segment(data = d.tests %>% filter(condition == "comm-JBC"),
+               aes(y = comm.median, yend = LOO.median,
                    x = species, xend = species), color = "gray70") +
-  scale_y_log10(limits = c(3e2, 7e8)) +
+  scale_y_log10(limits = c(3e2, 1e9)) +
   scale_x_discrete(labels=c("BC9" = "S. equorum", "BC10" = "S. xylosus",
                             "JB5" = "Brevibacterium", "JB7" = "Brachybacterium",
                             "135E" = "Candida", "JBC" = "Penicillium", 
@@ -440,13 +447,12 @@ ggplot(d.tests %>% filter(condition == "comm-JBC"), aes(x = species, y = LOO.med
                    name = "species growing") +
   facet_grid(. ~ day, 
              labeller = as_labeller(c(`3` = "Day 3", `10` = "Day 10", `21` = "Day 21"))) +
-  theme_minimal() +
+  theme_bw() +
   labs(y = "colony forming units") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "italic"),
-        panel.background = element_rect(fill = "gray97", color = NA),
-        strip.background = element_rect(fill = NA, color = "gray90"))
+        legend.position = "top")
 
-ggsave(here("figures/suppl_fig_6.png"), device="png", width = 8.5, height = 5.2, units = "in")
+ggsave(here("figures/suppl_fig_6.png"), device="png", width = 8.5, height = 5, units = "in")
 
 ```
 
