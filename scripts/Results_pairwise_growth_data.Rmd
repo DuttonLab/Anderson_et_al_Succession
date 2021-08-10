@@ -1196,8 +1196,8 @@ plot_grid(growth.ph("JB5"), growth.ph("JB7"),
           align = "v", axis = "lr", nrow = 2, labels = c("A", "B"))
 
 
-ggsave(here("figures/suppl_fig_5.png"), device="png", width = 9, height = 6, units = "in")
-ggsave(here("figures/suppl_fig_5.svg"), device="svg", width = 9, height = 6, units = "in")
+ggsave(here("figures/suppl_fig_4.png"), device="png", width = 9, height = 6, units = "in")
+ggsave(here("figures/suppl_fig_4.svg"), device="svg", width = 9, height = 6, units = "in")
 
 ```
 
