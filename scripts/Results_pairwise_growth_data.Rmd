@@ -877,7 +877,7 @@ ggplot(d.growthEffects %>% mutate(abs.delt.r = abs(delt.r),
                                   delt.r.dir = ifelse(delt.r < 0, "negative", "positive"),
                                   partner = factor(partner, levels = c("135E", "BC10", "BC9", "JB5",
                                                                        "JB7", "JB370", "JBC"))) %>%
-         filter(!is.na(delt.r.dir)),
+         filter(!is.na(delt.r.dir), !species %in% c("JBC", "JB370")),
        aes(x = partner, y = abs.delt.r, color = partner,
            group = interaction(timeframe, partner))) +
   stat_summary(aes(color = partner), 
