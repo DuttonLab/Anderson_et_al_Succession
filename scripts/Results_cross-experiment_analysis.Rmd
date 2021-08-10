@@ -68,8 +68,48 @@ ggplot(dat, aes(x = day, y = total.CFUs,
   theme(legend.text = element_text(hjust = 0),
         legend.key.width = unit(30, "pt"))
 
-ggsave(here("figures/suppl_fig_5.png"), device="png", width = 7, height = 4, units = "in")
-ggsave(here("figures/suppl_fig_5.svg"), device="svg", width = 7, height = 4, units = "in")
 
 ```
+
+Let's check all species to see whether inhibition patterns are exacerbated in double dropout, or comparable to the Penicillium coculture condition
+
+
+```{r}
+# lines for each replicate within each condition
+dat <- rbind(d.18 %>% filter(condition %in% c("alone", "JBC"), pH == 5, 
+                             !species %in% c("JBC", "BC10", "135E")) %>%
+               select(species, condition, replicate, day, total.CFUs),
+             d.loo5 %>% filter(condition == "comm-eD", 
+                             !species %in% c("JBC", "BC10", "135E")) %>%
+               select(species, condition, replicate, day, total.CFUs))
+
+ggplot(dat, aes(x = day, y = total.CFUs, 
+                color=species, group = interaction(replicate, condition))) +
+  geom_point(aes(shape = condition)) +
+  geom_line(aes(linetype = condition)) +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                labels = trans_format("log10", label_math(10^.x))) + 
+  theme_bw() +
+  scale_color_manual(values = species.palette, guide = "none") +
+  scale_shape_discrete(labels = c("alone" = "monoculture", 
+                                   "JBC"= expression(paste("+ ", italic(" Penicillium"))),
+                                "comm-eD"= expression(paste("w/o ", italic(" Diutina & S. xylosus"))))) +
+  scale_linetype_manual(values = c("alone" = "solid",
+                                   "JBC" = "dotted",
+                                   "comm-eD" = "dashed"),
+                        labels = c("alone" = "monoculture", 
+                                   "JBC"= expression(paste("+ ", italic(" Penicillium"))),
+                                   "comm-eD"= expression(paste("w/o ", italic(" Diutina & S. xylosus"))))) +
+  labs(y = "colony forming units",
+       shape = "culture condition",
+       linetype = "culture condition") +
+  facet_wrap(.~species, nrow = 2, labeller = labeller(species = names)) +
+  theme(legend.text = element_text(hjust = 0),
+        legend.key.width = unit(30, "pt"),
+        strip.text = element_text(face = "italic"))
+
+ggsave(here("figures/suppl_fig_5.png"), device="png", width = 7, height = 6, units = "in")
+ggsave(here("figures/suppl_fig_5.svg"), device="svg", width = 7, height = 6, units = "in")
+```
+
 
