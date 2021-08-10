@@ -96,7 +96,7 @@ ggplot(data %>%
   theme(axis.text.x = element_text(angle = 45, face = "italic", hjust = 1),
         plot.subtitle = element_text(size = 6))
 
-ggsave(here("figures/suppl_fig_10.png"), device="png", width = 7, height = 4, units = "in")
+ggsave(here("figures/suppl_fig_9.png"), device="png", width = 7, height = 4, units = "in")
 
   
 ```
@@ -173,7 +173,7 @@ p.deviations <- ggplot(comparisons %>%
 
 p.deviations + 
   stat_summary(geom = "point", fun = median, size = 2.5) +
-  labs(subtitle = "replicate values in small points, median deviation in large points") +
+  labs(subtitle = "replicate values in small points, median deviation in large points")
 
 
 ```

@@ -806,20 +806,23 @@ d.growthEffects <- do.call(rbind, l.growthEffects)
 
 
 # plot partner GROWTH RATE versus affect on species growth
-p.growth.vs.delt.growth <- ggplot(d.growthEffects) + 
+p.growth.vs.delt.growth <- ggplot(d.growthEffects %>% 
+                                    filter(!species %in% c("JBC", "JB370"),
+                                           !partner %in% c("JBC", "JB370"))) + 
   geom_point(aes(x = partner.growth, y = delt.r,
                  color = partner)) +
   scale_color_manual(values = species.palette, labels = names.italic,
                      name = expression("focal\nspecies")) +
-  labs(x = paste("per capita growth rate (per day)\nof focal species in coculture"),
-       y = expression(atop("change in per capita growth rate of partner (per day)", 
+  labs(x = paste("per-individual growth rate (per day)\nof focal species in coculture"),
+       y = expression(atop("change in per-individual growth rate of partner (per day)", 
                 "(" ~rate[coculture] ~"-" ~rate[monoculture] ~")"))) +
   theme_bw() +
   theme(legend.text.align = 0,
         plot.margin = margin(5,5,5,5, "pt"))
 
 # plot partner POP SIZE versus affect on species growth
-p.pop.vs.delt.growth <- ggplot(d.growthEffects) + 
+p.pop.vs.delt.growth <- ggplot(d.growthEffects %>% 
+                                    filter(!species %in% c("JBC", "JB370"))) + 
   geom_point(aes(x = part.cfus.endpoint, y = delt.r,
                  color = partner)) +
   scale_x_log10() +
@@ -865,8 +868,7 @@ plot_grid(p.growth.vs.delt.growth + theme(legend.position = "none"),
           labels = c('A', 'B'), ncol = 2, 
           align = "h", rel_widths = c(1, 1.3))
 
-ggsave(here("figures/suppl_fig_3.png"), device="png", width = 8, height = 4.5, units = "in")
-ggsave(here("figures/suppl_fig_3.svg"), device="svg", width = 8, height = 4.5, units = "in")
+ggsave(here("figures/extra_fig_1.png"), device="png", width = 8, height = 4.5, units = "in")
 
 ```
 
@@ -903,8 +905,8 @@ ggplot(d.growthEffects %>% mutate(abs.delt.r = abs(delt.r),
            label=c("days 0-3", "days 3-10", "days 10-21"), angle = 90, hjust = 1)
 
 
-ggsave(here("figures/suppl_fig_4.png"), device="png", width = 7.5, height = 6, units = "in")
-ggsave(here("figures/suppl_fig_4.svg"), device="svg", width = 7.5, height = 6, units = "in")
+ggsave(here("figures/suppl_fig_3.png"), device="png", width = 7.5, height = 6, units = "in")
+ggsave(here("figures/suppl_fig_3.svg"), device="svg", width = 7.5, height = 6, units = "in")
 
 ```
 
@@ -941,6 +943,29 @@ d.tests %>%
   select(target, source, label, order, intx.day, scaled.fc, `log.fc-2X`) %>%
   write_csv(., here("wrangled_data/pairwise_for_cytoscape.csv"))
 
+```
+
+```{r table comparing significant pw intx at ph 5 vs ph 7, echo = F, message = F, warning = F}
+d.sig.pw.5.7 <- d.tests %>% 
+  filter(!is.na(sig), condition != "community") %>%  # only significant pariwise interactions
+  select(species, condition, day, sig, pH, med.fc.part.alone) %>%
+  # get magnitude of inhibitory & stimulatory effects on population size
+  mutate(intx.sign = ifelse(med.fc.part.alone >= 1, "pos", "neg"), # indicate direction of pop size change
+         target = names[species], # combine details for target node
+         source = names[as.character(condition)]) %>%
+  select(target, source, day, pH, sig, intx.sign, med.fc.part.alone) %>%
+  pivot_wider(id_cols = c(target, source, day), names_from = pH, 
+              values_from = c(sig, intx.sign, med.fc.part.alone)) %>%
+  select(target, source, day, 
+         sig_5, sig_7, 
+         intx.sign_5, med.fc.part.alone_5, 
+         intx.sign_7, med.fc.part.alone_7) %>%
+  arrange(med.fc.part.alone_5)
+
+colnames(d.sig.pw.5.7)[4:9] <- c("level of signif. (pH5)", "level of signif. (pH7)",
+                                 "intx direct. (pH5)", "median fold-change (pH5)",
+                                 "intx direct. (pH7)", "median fold-change (pH7)")
+write_csv(d.sig.pw.5.7, here("wrangled_data/signif_pairwise_ph5_ph7.csv"), na = "")
 ```
 
 
@@ -1171,8 +1196,8 @@ plot_grid(growth.ph("JB5"), growth.ph("JB7"),
           align = "v", axis = "lr", nrow = 2, labels = c("A", "B"))
 
 
-ggsave(here("figures/suppl_fig_6.png"), device="png", width = 9, height = 6, units = "in")
-ggsave(here("figures/suppl_fig_6.svg"), device="svg", width = 9, height = 6, units = "in")
+ggsave(here("figures/suppl_fig_5.png"), device="png", width = 9, height = 6, units = "in")
+ggsave(here("figures/suppl_fig_5.svg"), device="svg", width = 9, height = 6, units = "in")
 
 ```
 

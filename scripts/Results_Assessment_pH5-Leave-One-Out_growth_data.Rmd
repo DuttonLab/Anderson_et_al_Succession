@@ -343,7 +343,7 @@ ggplot(d.loo5 %>% filter(!is.na(count)) %>%
         legend.position = "bottom",
         legend.direction = "vertical")
 
-ggsave(here("figures/suppl_fig_8.png"), device="png", width = 8.5, height = 5.2, units = "in")
+ggsave(here("figures/suppl_fig_7.png"), device="png", width = 8.5, height = 5.2, units = "in")
 
 ```
 
@@ -445,6 +445,9 @@ ggplot(d.tests %>% filter(condition == "comm-JBC"), aes(x = species, y = LOO.med
   theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "italic"),
         panel.background = element_rect(fill = "gray97", color = NA),
         strip.background = element_rect(fill = NA, color = "gray90"))
+
+ggsave(here("figures/suppl_fig_6.png"), device="png", width = 8.5, height = 5.2, units = "in")
+
 ```
 
 Statistical tests on differences in growth
