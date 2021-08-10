@@ -1,0 +1,64 @@
+target,source,day,level of signif. (pH5),level of signif. (pH7),intx direct. (pH5),median fold-change (pH5),intx direct. (pH7),median fold-change (pH7)
+Brevibacterium,Penicillium,21,*,*,neg,0,neg,0.01932241014799154
+Diutina,Penicillium,21,*,**,neg,8.92857142857143e-6,neg,0
+Scopulariopsis,Penicillium,21,*,*,neg,3.903409090909091e-4,neg,0.001408105147864184
+Brevibacterium,Penicillium,10,*,**,neg,0.004342013115171579,neg,9.747292418772563e-6
+Brevibacterium,S. equorum,21,*,,neg,0.006264705882352941,,
+Penicillium,Diutina,3,**,,neg,0.029323308270676692,,
+Diutina,Penicillium,10,**,**,neg,0.036440677966101696,neg,0
+Scopulariopsis,Penicillium,3,*,*,neg,0.1,neg,0.21487603305785125
+Scopulariopsis,Diutina,10,**,**,neg,0.12181818181818181,neg,0.43037974683544306
+S. equorum,S. xylosus,10,*,**,neg,0.16473358116480794,neg,0.11153846153846154
+S. equorum,Penicillium,10,*,,neg,0.23258901554916078,,
+S. xylosus,Diutina,3,*,,neg,0.2761904761904762,,
+S. xylosus,Penicillium,21,*,*,neg,0.32,neg,0.7125
+S. xylosus,Penicillium,10,**,,neg,0.32608695652173914,,
+Diutina,Scopulariopsis,21,*,,neg,0.3935018050541516,,
+Penicillium,Diutina,10,**,,neg,0.4444444444444444,,
+Penicillium,S. equorum,3,*,,neg,0.551948051948052,,
+Penicillium,Brachybacterium,3,**,,neg,0.5639097744360902,,
+Scopulariopsis,Diutina,21,*,,neg,0.609375,,
+Diutina,Brevibacterium,21,**,,neg,0.7098214285714286,,
+Scopulariopsis,S. xylosus,10,*,,pos,1.5454545454545454,,
+Scopulariopsis,Brachybacterium,10,*,,pos,1.639344262295082,,
+Diutina,S. equorum,21,*,,pos,1.7083333333333333,,
+Diutina,S. xylosus,21,*,,pos,1.851686507936508,,
+Diutina,S. xylosus,10,*,,pos,1.9090909090909092,,
+S. xylosus,Scopulariopsis,21,*,,pos,2.1777777777777776,,
+S. xylosus,Scopulariopsis,10,**,,pos,3.2318840579710146,,
+S. equorum,Diutina,10,*,**,pos,4.200928750509454,neg,0.7637795275590551
+S. equorum,Scopulariopsis,3,**,,pos,7.361111111111111,,
+S. equorum,Scopulariopsis,10,*,,pos,12.763940520446097,,
+Brevibacterium,S. xylosus,3,**,,pos,13.548387096774194,,
+S. equorum,Diutina,3,**,,pos,15.584415584415584,,
+S. equorum,Diutina,21,**,,pos,19.34131736526946,,
+S. equorum,Penicillium,3,**,*,pos,31.801242236024844,pos,4.0488462691039855
+Brevibacterium,Scopulariopsis,21,*,**,pos,220,neg,0.22142857142857142
+Brevibacterium,S. xylosus,10,**,,pos,1012.8205128205128,,
+Brevibacterium,Diutina,3,*,,pos,1285.359801488834,,
+Brachybacterium,Diutina,3,*,,pos,1800,,
+Brevibacterium,Scopulariopsis,10,**,**,pos,2181.818181818182,neg,0.33212996389891697
+Brachybacterium,Scopulariopsis,10,*,*,pos,3633.333333333333,neg,0.7130434782608696
+Brevibacterium,Diutina,21,**,,pos,5471.698113207547,,
+Brevibacterium,S. xylosus,21,*,,pos,8532.186459489456,,
+Brachybacterium,S. xylosus,10,*,,pos,62916.66666666667,,
+Brevibacterium,Diutina,10,*,,pos,231118.8811188811,,
+Brachybacterium,Scopulariopsis,21,**,,pos,800000,,
+Brachybacterium,S. xylosus,21,**,*,pos,10363636.363636363,pos,1.618811881188119
+Brachybacterium,Diutina,10,*,*,pos,11333333.333333334,pos,1.78345395749923
+Brachybacterium,Diutina,21,**,*,pos,16500000,pos,2.6083916083916083
+Diutina,Brevibacterium,10,,*,,,pos,1.9777777777777779
+Diutina,Brachybacterium,10,,*,,,pos,1.8867924528301887
+Diutina,Scopulariopsis,10,,*,,,neg,0.39622641509433965
+S. equorum,S. xylosus,21,,**,,,neg,0.15357142857142858
+S. equorum,Brevibacterium,3,,*,,,pos,2.381148478609014
+Brevibacterium,Brachybacterium,21,,**,,,neg,0.492156862745098
+Brachybacterium,S. equorum,21,,*,,,pos,1.4825174825174825
+Brachybacterium,Penicillium,10,,**,,,neg,0.051470588235294115
+Penicillium,Brevibacterium,10,,*,,,pos,1.2333333333333334
+Penicillium,Brachybacterium,21,,*,,,neg,0.6619718309859155
+Penicillium,Scopulariopsis,10,,*,,,pos,1.6723549488054608
+Scopulariopsis,S. xylosus,3,,*,,,neg,0.34710743801652894
+Scopulariopsis,S. xylosus,21,,*,,,neg,0.38596491228070173
+Scopulariopsis,S. equorum,10,,*,,,neg,0.11764705882352941
+Scopulariopsis,Penicillium,10,,*,,,neg,6.348884381338742e-4
