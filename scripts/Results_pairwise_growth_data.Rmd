@@ -16,6 +16,7 @@ geometry: margin=2cm
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(tidyverse)
+library(vegan)
 library(scales)
 library(cowplot)
 library(ggpubr)
@@ -292,6 +293,16 @@ comm.alone.succ <- ggplot(rel.abund %>% filter(pH == 5) %>%
     #        color = "white", size = 5)
 comm.alone.succ
 ggsave(here("figures/rel_abund_succession_community_monoculture.png"), device="png", width = 7, height = 4, units = "in")
+
+### PERMANOVA OF COMMUNITY STRUCTURES ###
+rel.abund.matrix <- d.18.rel %>% 
+  filter(day != 0) %>%
+  select(species, rel.abund) %>% 
+  pivot_wider(names_from = species, values_from = rel.abund) %>%
+  na.omit()
+rel.abund.dist <- vegdist(rel.abund.matrix[4:10], method = "bray")
+adonis2(rel.abund.matrix[4:10] ~ condition + day, data = rel.abund.matrix[1:2])
+
 
 # day 21 alone
 ggplot(rel.abund %>% filter(pH == 5, day == 21) %>% 
