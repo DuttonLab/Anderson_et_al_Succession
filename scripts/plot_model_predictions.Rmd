@@ -237,3 +237,46 @@ estimates %>% select(!se) %>%
 
 ```
 
+
+```{r plot predictions as community relative abundance, echo = F, message = F, warning = F}
+# get relative abundance data
+pred.rel <- predictions %>%  
+  mutate(value = paste0("pH ", pH),
+         fit.mod = ifelse(fit < 0, 0, fit)) %>%
+  group_by(value, replicate) %>% 
+  mutate(rel.abund = fit.mod/sum(fit.mod)) %>%
+  select(spec, value, replicate, rel.abund)
+rel.abund <- rbind(pred.rel,
+                   data %>%
+                     group_by(replicate) %>% 
+                     mutate(rel.abund = fit/sum(fit),
+                            value = "actual") %>%
+  select(spec, value, replicate, rel.abund)
+)
+
+rel.abund$value <- factor(rel.abund$value,
+                          levels = c("actual", "pH 5", "pH 7"),
+                          labels = c('italic("in vitro")~"community data"',
+                                     '"prediction from pH 5 data"',
+                                     '"prediction from pH 7 data"'))
+
+# plot
+ggplot(rel.abund %>% filter(replicate != 3)) + 
+  geom_bar(aes(x = factor(replicate), y = rel.abund, 
+               fill=factor(spec, 
+                           levels = c("JB7","JB5","BC10","BC9", "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill", scale = "freex") +
+  barp.theme + theme_bw() + 
+  scale_y_continuous(labels = scales::percent, expand = c(0.005,0.005),
+                     minor_breaks = c(0, .25, .5, .75, 1)) +
+  labs(x = "replicate") +
+  theme(legend.text = element_text(face = "italic"),
+        panel.grid.major.x = element_blank()) +
+  facet_grid(. ~ value, scales = "free_x", 
+             labeller = label_parsed)
+
+ggsave(here("figures/rel_abundance_predicted_communities.png"), device="png", width = 7, height = 2.7, units = "in")
+
+```
+
+
