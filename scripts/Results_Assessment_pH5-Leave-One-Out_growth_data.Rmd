@@ -364,6 +364,19 @@ d.loo5 <- d.loo5 %>% pivot_wider(id_cols = c(species, day, replicate),
 
 d.tests <- d.tests %>% 
   mutate(pH.vs.comm = ave.pH.cond - ave.pH.comm)
+
+## multiple comparison testing of community pH's over time
+for(d in c(3,10,21)) {
+  print(paste0("comparing community pH's at day ", d))
+  ph.mod <- aov(pH ~ condition, 
+               data = d.loo5 %>% 
+                 filter(day == d) %>% 
+                 select(condition, day, replicate, pH) %>% 
+                 unique())
+  print(anova(ph.mod))
+  print(TukeyHSD(ph.mod))
+}
+
 ```
 
 
