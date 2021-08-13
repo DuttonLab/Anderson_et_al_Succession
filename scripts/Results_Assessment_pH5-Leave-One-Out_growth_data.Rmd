@@ -21,9 +21,9 @@ The objective of this experiment was to assess the net contributions of key Bayl
 Species left out
 * none ("community" or "comm")
 * Penicillium JBC ("comm-JBC")
-* Candida/Diutina 135E ("comm-135E")
+* Diutina 135E ("comm-135E")
 * Staphyloccocus xylosus BC10 ("comm-BC10")
-* Candida/Diutina 135E & S. xylosus BC10 ("community minus early deacidifiers" or "comm-eD")
+* Diutina 135E & S. xylosus BC10 ("community minus early deacidifiers" or "comm-eD")
 
 ```{r import data}
 d.loo5 <- readRDS(here("wrangled_data/leave-one-out_pH5.rds"))
@@ -464,25 +464,24 @@ df.anovas <- tibble("species" = character(), "day" = numeric(),
                     "p-value" = numeric(), "sig.by.condition" = character())
 for(s in levels(d.loo5$species)) {
   for(d in c(3, 10, 21)) {
-    mod.growth3 <- aov(total.CFUs ~ condition, data = d.loo5 %>% filter(day == d, species == s))
-    p.val <- anova(mod.growth3) %>% tidy %>% .[1, "p.value", drop = T]
+    # use non-parametric kruskal tests
+    mod.growth3 <- kruskal.test(total.CFUs ~ condition, data = d.loo5 %>% filter(day == d, species == s))
     df.anovas[nrow(df.anovas)+1, "species"] <- s
     df.anovas[nrow(df.anovas), "day"] <- d
-    df.anovas[nrow(df.anovas), "p-value"] <- p.val
-    df.anovas[nrow(df.anovas), "sig.by.condition"] <- ifelse(p.val <= 0.05, "*", "")
+    df.anovas[nrow(df.anovas), "p-value"] <- mod.growth3$p.value
+    df.anovas[nrow(df.anovas), "sig.by.condition"] <- ifelse(mod.growth3$p.value <= 0.05, "*", "")
   }
 }
 df.anovas
 
 # Summarizing contrasts each species, each timepoint
-for(s in levels(d.loo5$species)) {
-  for(d in c(3, 10, 21)) {
-    print(paste0("Contrasts for ", s, " on day ", d))
-    print(summary.aov(aov(total.CFUs ~ condition, data = d.loo5 %>% filter(day == d, species == s)), 
-                      split = list(condition = list("minus Penicillium versus full" = 1,
-                                                    "minus Candida versus full" = 2,
-                                                    "minus S. xylosus versus full" = 3,
-                                                    "minus eD versus full" = 4))))
+for(s in filter(df.anovas, !is.na(sig.by.condition)) %>% pull(species) %>% unique()) {
+  for(d in filter(df.anovas, sig.by.condition != "", species == s) %>% pull(day) %>% unique()) {
+    print(paste0("Post-hoc analysis for ", s, " on day ", d))
+    print.data.frame(FSA::dunnTest(total.CFUs ~ condition, 
+                        data = d.loo5 %>% filter(day == d, species == s), 
+                        method = "bh", kw=TRUE)$res %>% 
+                       filter(grepl("comm ", Comparison)))
   }
 }
 
