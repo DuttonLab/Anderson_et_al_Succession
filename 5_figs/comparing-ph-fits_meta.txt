@@ -1,0 +1,5 @@
+Plot of predictions of community dynamics from LV dynamics. Triangles are pH 5 predictions from single-species and pairwise competition experiments, circles from ph7. Bars are from the actual experiments.
+
+from succession-analysis-v0.2.Rmd
+RDS file with same name contains ggplot object used to generate this figure.
+2021-08-26 16:08:05
