@@ -1219,7 +1219,7 @@ hypothesis is that we would see a positive correlation for pH 5, and no correlat
 
 ```{r pH CHANGE-growth CHANGE correlation, echo = F, message = F, warning = F, fig.height = 6}
 # pH 5 correlation
-ph5.cor <- ggplot(d.18 %>% filter(pH==5), aes(x = measured.pH, y=total.CFUs)) +
+ph5.cor <- ggplot(d.18 %>% filter(pH==5, day != 0), aes(x = measured.pH, y=total.CFUs)) +
   geom_point(aes(color=condition)) + 
   scale_color_manual(values = c(species.palette, "community"="black")) +
   scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
@@ -1231,7 +1231,7 @@ ph5.cor <- ggplot(d.18 %>% filter(pH==5), aes(x = measured.pH, y=total.CFUs)) +
        x = "measured pH", y = "total colony-forming units")
 
 #is correlation removed at pH 7
-ph7.cor <- ggplot(d.18 %>% filter(pH==7), aes(x = measured.pH, y=total.CFUs)) +
+ph7.cor <- ggplot(d.18 %>% filter(pH==7, day != 0), aes(x = measured.pH, y=total.CFUs)) +
   geom_point(aes(color=condition)) + 
   scale_color_manual(values = c(species.palette, "community"="black"),
                      name = "coculture condition",
@@ -1264,7 +1264,7 @@ But should I be considering more a relationship between *growth* and pH? Let's t
 
 ```{r pH-growth rate correlation, echo = F, message = F, warning = F, fig.height = 6}
 # define all conditions to run through
-spec <- levels(d.18$species)
+spec <- levels(d.18$species)[which(!levels(d.18$species) %in% c("JBC", "JB370"))]
 cond <- levels(d.18$condition)
 pH <- levels(d.18$pH)
 
@@ -1322,18 +1322,25 @@ ggplot(d.growthRates %>% filter(!is.na(growth.dir)),
                 labels = trans_format("log10", label_math(10^.x))) +
   scale_color_manual(values = c(species.palette[2:8], `community` = "#595959", `alone` = "#d6b8c3"),
                      name = "culture condition",
-                     labels = c(paste("+", names[-9]), "monoculture")) +
+                     labels = c(expression(paste("+ ", italic("Diutina"))),
+                                expression(paste("+ ", italic("S. xylosus"))),
+                                expression(paste("+ ", italic("S. equorum"))),
+                                expression(paste("+ ", italic("Brevibacterium"))),
+                                expression(paste("+ ", italic("Brachybacterium"))),
+                                expression(paste("+ ", italic("Penicillium"))),
+                                expression(paste("+ ", italic("Scopulariopsis"))),
+                                "+ community", "monoculture")) +
   facet_grid(pH ~ species, labeller = labeller(species = names, 
                                                pH = c(`7` = "pH 7",
                                                       `5` = "pH 5"))) +
   theme_bw() +
-  theme(legend.text = element_text(face = "italic"),
+  theme(legend.text = element_text(),
         strip.text.x = element_text(face = "italic")) +
   labs(x = "measured pH (at end of growth time frame)", 
        y = "growth rate (CFUs per day)",
        shape = "growth rate")
 
-ggsave(here("figures/pH-growthrate_corr.png"), device="png", width = 9.75, height = 4.5, units = "in")
+ggsave(here("figures/pH-growthrate_corr.png"), device="png", width = 8, height = 4.5, units = "in")
 
 ```
 
