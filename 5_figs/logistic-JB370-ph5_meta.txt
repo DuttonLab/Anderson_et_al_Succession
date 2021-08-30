@@ -1,0 +1,5 @@
+initial fitting (in loop)
+
+from succession-analysis-v0.1.Rmd
+RDS file with same name contains ggplot object used to generate this figure.
+2021-06-24 17:53:20

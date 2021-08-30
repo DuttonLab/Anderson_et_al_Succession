@@ -1,0 +1,1778 @@
+---
+title: "Cheese Succession (Brooke paper)"
+author: "Collin Edwards"
+date: "`r Sys.Date()`"
+output:   
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+# Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## libraries
+
+```{r}
+library(here)
+library(tidyverse)
+library(deSolve)
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+library(viridis)
+library(pander)
+library(car)
+```
+
+
+## Functions
+
+Sometimes it's helpful to define a function for code we want to re-use a lot. The key function like that for me is something I call `gfig_saver`, which makes saving ggplot figures systematic.
+
+```{r gfig_saver}
+# function for saving ggplot figures and metadata. As fig_starter (which is for base graphics), except that saving ggfigures is inherently cleaner, as you are not feeding commands to an open graphics device
+
+gfig_saver=function(gfig, #object to be saved
+                    filename, #name of figure file to save as WITHOUT SUFFIX
+                    description, #vector of strings, each will be put in its own line of meta file
+                    ##  Note: generating file is defined in the function, date and time is automatically added.
+                    ##default figure info:
+                    width=12,
+                    height=8,
+                    res=300,
+                    units="in",
+                    figfold="5_figs" #folder to save figures in
+){
+  ## save meta file
+  cat(c(description,
+        "",##easy way to add an extra line to separate description for basic data.
+        
+        paste("from", knitr::current_input()),
+        "RDS file with same name contains ggplot object used to generate this figure.",
+        as.character(Sys.time())),
+      sep="\n",
+      file=here(figfold, paste0(filename,"_meta.txt", sep=""))
+  )
+  #save figure as jpg (change code here for other figure types)
+  ggsave(filename=here(figfold, paste0(filename,".jpg")),
+         plot=gfig,
+         device="jpeg",
+         dpi=res,
+         width=width, height=height, units=units
+  )
+  ggsave(filename=here(figfold, paste0(filename,".pdf")),
+         plot=gfig,
+         device="pdf",
+         dpi=res,
+         width=width, height=height, units=units
+  )
+  #save ggplot object as RDS file, for easy manipulation later
+  saveRDS(object = gfig, file=here(figfold, paste0(filename,".RDS")))
+}
+```
+
+
+```{r}
+theme.mine=theme(plot.title = element_text(face="bold", size=24),
+                 text=element_text(size=rel(4.5)),
+                 legend.text=element_text(size=rel(2))
+)
+```
+
+
+## Purpose
+
+The goal is to determine whether data from single-speceis and pairwise expeirments (e.g. at most pairwise interactions) in Brooke's cheese data can explain the community dynamics from treatments innoculated with a full 7-species community. The manuscript for this project is [here](https://docs.google.com/document/u/1/d/1KIhnJMmHf3wOXv_0DQ9UgcjIVkz1v0FGFiyUVdktreE/edit?ts=608b2425).
+
+## Plan
+
+*Currently from email - reformat as necessary*
+
+The goal:
+
+Determine if the 7-species community can be predicted/described by pairwise interactions (we're pretty sure it can't, but it would be nice to say that for certain). 
+
+The problem(s):
+
+"Community" is hard to define. With only 4 time points, classical population dynamics approaches are liable to run into issues. Estimating confidence intervals from the standard trajectory-matching approach for fitting population dynamics models is... hard? I don't know how to do it, and would need to do a lot of digging.
+
+The solution (I think):
+
+If we imagine that the system is actually following Lotka-Volterra competition (the simplest competition model), then at least for the 2-species experiments, the populations will eventually reach an equilibrium (which can have one of the populations at size zero). The equilibrium for Lotka Volterra is clearly defined in terms of just carrying capacity and interaction terms (generally denoted with "alphas") that capture either competition or stimulation. Using that knowledge, and assuming that the populations are at equilibrium on day 21, we can estimate the alphas and the carrying capacity from the paired experiments, and see if those predict the final population sizes of the 7-species community.
+
+A little math background:
+The Lotka-Volterra competition model is defined by a system of Ordinary Differential Equations (ODEs). This is fancy math-speak for some equations that define how the size of the populations changes at any given point in time, based on the current size of the populations. For LV, it's this set of equations:
+
+image.png
+Where 
+x_i is the population size of species i, 
+the r parameters correspond to intrinsic growth rates (growth when not competing)
+the K parameters correspond to the carrying capacity in the absence of other species
+alpha_ij is the competition coefficient for species j on species i. I like to think of this as a conversion rate - an alpha_ij of 2 means that each individual of species j has the same competition effect on species i as would 2 individuals of species i. So big values mean the other species has a strong suppression effect, small values mean a minimal suppression effect. I'm not used to LV with positive effects, but negative alphas mean that one species is helping the other.
+There is a lot of really cool math that has gone into things we can discover/prove with ODEs, but we actually don't need most of it right now. If our populations are at equilibrium in our day 21 data, that means the population sizes aren't changing. So there's no rate of change, so dx/dt is 0. If we set the left hand side of each equation to zero, and do a little re-arranging of terms with algebra, we get:
+
+x_1 = K_1 - alpha_21 * x_2
+
+(and the other version, where each number is swapped)
+
+And that's kind of dry looking, but it's just a different version of
+
+y = mx + b.
+
+where y and x are the sizes of our two populations (e.g. the things we have data for)
+
+Taking this approach, we can find carrying capacity and interaction terms with linear regression using the single-species and pairwise interaction data (!!). We still face the caveats of our various assumptions (below), but this is suddenly incredibly tractable. And the question of "What would the 7-species community look like if it were mostly the result of pairwise interactions" could, I think, be addressed pretty easily at that point. The 7-species version of lotka volterra has more equations, but the equilibrium has the same structure, I believe, except it's 
+
+K_1 - (sum of all six appropriate alpha * x terms). 
+
+(I'll double check that at some point here). So we can use our fitted versions of all our K and alpha values from the pairwise and single-species experiments, plug them into the equation for equilibrium of the 7-species model, and predict what we would expect the 7-species equilibrium would be (assuming only pairwise interactions mattered). To look at if reality is significantly different from what we predict, we can use parametric bootstrapping: basically we generate "random" K and alpha values based on our estimated distributions from fitting those parameters from the single-species and pairwise experiments, and for each set of random K and alpha values, we make a prediction for the final community. We can do that a bunch of times, and that creates a distribution of expectations assuming pairwise interactions - if the real data is outside of 95% of that, then it's significantly different. Since in this case we have 7 abundances that are not independent, we may need to use something like PERMANOVA to compare the bootstrap-simulated final communities with the actual 7-species community data, but that shouldn't actually be very hard.
+
+Some caveats:
+First, we're assuming that lotka volterra dynamics do a good job of capturing the key dynamics in the system. Second, we're assuming that populations are at equilibrium on day 21 -- from the data, it looks like they are in some cases, and not in others. Additionally, communities of more than 2 species with lotka volterra competition aren't guaranteed to have an equilibrium at all - they can exhibit non-equilibrium dynamics like periodic cycles through time, or mathematical chaos. 
+
+Looking at the results (e.g. Fig 1A), it certainly looks like we're wrong in making these assumptions, but that we're probably close enough. (Any modeling work will be making some incorrect assumptions - the goal is to make sure they don't matter). My take on all of this is that (a) it doesn't look like there's anything too crazy going on here (no sine-wave type behavior we can see, for example), (b) there's a lot that's unknown in modeling microbial communities, and it seems like the most elaborate things being used right now are Lotka Volterra, so I think we're in fine company, and (c) we have to work with the data we have, and while it's astounding in a lot of ways, we don't have enough time points to effectively do more elaborate modeling of population dynamics. 
+
+So I would go forward with this as described above, so long as we're clear about what we're doing in the text (happy to help make the writing clear on that). I think once I've at least prototyped this, I might also run it by a few more senior theoretical ecologists I work with, in case I'm missing some subtle issue.
+
+One thing to bear in mind is that LV is also often unsuited to capturing mutualisms -- there are some parameter values where both species explode to infinite size even though there's a finite carrying capacity. I don't think that's an issue with our data, but it's something to be aware of. I haven't dug into it a ton, but there has been recent work on how to model community dynamics and coexistence when working with mutualisms. I might need to take a look at that at some point (although again, I think we have a good plan outlined above).
+
+Some anti-caveats
+
+One of the nice things about only working with the stable equilibrium (aside from the math being tractable) is that we're not actually making any assumptions about growth rate or dynamics up to that point. We're just assuming that each species has an equilibrium size that is a linear function of the other species at equilibrium. So if we wanted to, we could actually NOT call this lotka volterra, since our approach encompasses ANY model with that equilibrium conditions, not just lotka volterra. (But I think we still couch it in terms of LV, because folks are familiar with that). 
+
+A few pieces I may need to explore:
+We're using some of the data to estimate different parameters in independent analyses, and it's not quite clear to me how we account for that when representing error (e.g. our estimate of alpha_21 and alpha_12 come from fitting the same data of pairwise species competition, but we're fitting that data in two different equations). I may need to think some more and/or consult Elizabeth. Additionally, there's a generalized Lotka Volterra model that I'm not super familiar with, but appears to be more common for working with many-species communities. I believe that it is fundamentally the same thing as I've outlined above, but the formulation is different (e.g. different parameter names, somewhat different version of the equation), and it might be good to rework my math to match that nomenclature. I might dig into it. 
+
+The plan:
+I try this out with the data - fit the carrying capacities and the alphas with linear regression, see how well it predicts the data that I'm using to fit it, see how it predicts the 7-species community. I expect this will take a day or less of time, and I should be able to fit that in in the next two weeks. This won't focus on significance testing, but just "can we estimate parameters" and "what do our estimated parameters suggest". 
+I write up a brief description of the methodology with code and example figures, and run it by Elizabeth Crone (statistical ecologist who can make suggestions on the non-independence of the different regressions), and then Steve Ellner, Sebastian Schrieber, and/or Giles Hooker, who have expertise in working with dynamical models (and in Giles' case, literally wrote the book for fitting dynamical models to data) and can act as an additional sounding board for the "let's assume we're at equilibrium" bit. 
+???
+Profit.
+
+
+<!-- # Approach 1: Fit ODEs -->
+
+
+## Read in data
+
+```{r}
+raw = read.csv(here("1_raw_data",
+                    "2018_08_21_Bayley_allPW.csv"))
+temp = raw %>%
+  filter(spec == "BC9") %>%
+  filter(cond == "BC10")
+temp.rev = raw %>%
+  filter(spec == "BC10") %>%
+  filter(cond == "BC9")
+
+plot(temp$day, temp$cfus)
+points(temp.rev$day, temp.rev$cfus, pch=2)
+```
+
+<!-- ## Plan out the approach: -->
+
+<!-- For any given pair of species, we have 3 data sets: spec 1 alone, spec 2 alone, and spec 2 vs spec 2. -->
+
+<!-- We could just fit the parameters to LV that optimize those three data sets jointly, but there's a problem with this. Given that we want to predict the joint community, we want to be have a single value for each parameter. But if we use the "alone" data sets in *each* of our pairwise analyses, species 1 will have different estimates for k - that calculated vs species 2, vs species 3, vs species 4, etc. And since the estimates for alpha are going to depend on k, we don't want estimates of k to vary between species pair comparisons. -->
+
+<!-- One option is to simultaneously fit EVERYTHING, using the total joint data set. This should, in theory, work (I think?), but it seems likely to run into numerical issues, because any given parameter doesn't affect most of the data set. It's also a bit fiddly to think through how to do the whole thing. (If/when I do this) -->
+
+<!-- So let's first just try the simplest approach: fit logistic growth curves for each species using the alone data. We can then treat these as fixed parameters, and fit the alphas from the paired experiments. -->
+
+<!-- ## Functions -->
+
+<!-- ```{r ode_log} -->
+<!-- ode_log=function(t,y,parms) { -->
+<!--   # Yes, this can be solved analytically, but I want to make sure the method is working. -->
+<!--   #state variables: -->
+<!--   x=max(y[1],0); -->
+<!--   # Parameters: -->
+<!--   r=parms[1]; -->
+<!--   k=parms[2] -->
+<!--   # Model: -->
+<!--   dx= r*x*(1 - x/k) -->
+<!--   dY=c(dx); -->
+<!--   return(list(dY)); -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ```{r ode_LV} -->
+<!-- ode_LV=function(t,y,parms) { -->
+<!--   # This function is based on the Lotka-Volterra competition model -->
+<!--   #state variables: -->
+<!--   x1=max(y[1],0); x2=max(y[2],0); -->
+<!--   # Parameters: -->
+<!--   r1=parms[1]; -->
+<!--   r2=parms[2]; -->
+<!--   a12 = parms[3] -->
+<!--   a21 = parms[4] -->
+<!--   k1=parms[5] -->
+<!--   k2=parms[6] -->
+<!--   # Model: -->
+<!--   dx1 = r1*x1*(1 - (x1 + a12*x2)/k1) -->
+<!--   dx2 = r2*x2*(1 - (x2 + a21*x1)/k2) -->
+<!--   dY=c(dx1,dx2); -->
+<!--   return(list(dY)); -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ```{r obj_cv} -->
+<!-- obj_cv = function(parms, #parameters to estimate -->
+<!--                   dat, #actual data. Must contain "day", "rep", and "cfus" -->
+<!--                   ode_fun, #ode function to use. Presumably ode_log -->
+<!--                   scale.vec = 1 # sometimes we can run into issues where the error is mostly driven by the biggest growth curve; in that case, set scale.vec to be mean abundance per replicate, in order of increasing replicate number  -->
+<!-- ){ -->
+<!--   #create vector to store the error of each separate replicate -->
+<!--   err.vec = numeric(length(unique(dat$rep))) -->
+<!--   #Loop over each replicate -->
+<!--   for(i.rep in 1:length(unique(dat$rep))){ -->
+<!--     #identify current replicate -->
+<!--     cur.rep = unique(dat$rep)[i.rep] -->
+<!--     #filter to use only current replicate -->
+<!--     cur.dat = dat %>%  -->
+<!--       filter(rep == cur.rep) -->
+<!--     #identify initial density -->
+<!--     x.init = cur.dat$cfus[cur.dat$day==0] -->
+<!--     #run ODE with current parms, returning densities at the day counts -->
+<!--     out.lsoda = ode(x.init, times=cur.dat$day, ode_fun, parms) -->
+<!--     #calculate sum of squared errors for this replicate: -->
+<!--     #(we could remove day 0 data, but it has no effect since it's a perfect match) -->
+<!--     #(save this to our vector for storing errors) -->
+<!--     err.vec[i.rep] = sum((out.lsoda[,2]-cur.dat$cfus)^2) -->
+<!--   } -->
+<!--   return(sum(err.vec/scale.vec)) -->
+<!-- } -->
+
+<!-- #test function: -->
+<!-- # obj_cv(parms = c(10, 1000000), -->
+<!-- # dat = dat.use, -->
+<!-- # ode_fun = ode_log) -->
+
+<!-- ## seems to work, but wow are those errors large -->
+<!-- ``` -->
+
+<!-- ```{r gglog_} -->
+<!-- #plotting results function -->
+<!-- gglog_ = function(dat, #data to plot -->
+<!--                   fit, #optim output -->
+<!--                   ode_fun=ode_log, #ode function to use - presumably logistic -->
+<!--                   res = 100, # points to plot for each curve -->
+<!--                   ph = 5 #update to have appropriate title -->
+<!-- ){ -->
+<!--   ##First, calculate fitted curves -->
+<!--   #real quick: make sure dat$rep is a factor -->
+<!--   dat$rep = as.factor(dat$rep) -->
+<!--   #identify how many replicates there are -->
+<!--   nrep=length(unique(dat$rep)) -->
+<!--   #what is the max number of days (almost assuredly 21) -->
+<!--   mday = max(dat$day) -->
+<!--   res.curve = NULL -->
+<!--   for(i.rep in 1:nrep){ -->
+<!--     cur.rep = unique(dat$rep)[i.rep] -->
+<!--     #filter to use only current replicate -->
+<!--     cur.dat = dat %>%  -->
+<!--       filter(rep == cur.rep) -->
+<!--     #identify initial density -->
+<!--     x.init = cur.dat$cfus[cur.dat$day==0] -->
+<!--     #run ODE with current parms, returning densities at the day counts -->
+<!--     out.lsoda = ode(x.init, times=seq(0, mday, length=res), -->
+<!--                     ode_fun,  -->
+<!--                     fit$par) -->
+<!--     cur.curve = data.frame(rep = cur.rep, -->
+<!--                            out.lsoda) -->
+<!--     names(cur.curve)= c("rep","day","cfus") -->
+<!--     res.curve=rbind(res.curve, cur.curve) -->
+<!--   } -->
+<!--   res.curve$rep=as.factor(res.curve$rep) -->
+
+<!--   ##Plot the thing -->
+<!--   gg.main = ggplot(dat) + -->
+<!--     geom_path(data = res.curve, -->
+<!--               aes(x = day, y = cfus, color=rep), -->
+<!--               size=1.5)+ -->
+<!--     geom_point(aes(x = day, y = cfus, color=rep), -->
+<!--                size=2)+ -->
+<!--     ggtitle(paste0(dat$spec[1],", pH = ",ph))+ -->
+<!--     theme.mine+ -->
+<!--     theme() -->
+
+<!--   ## make table of parameter values -->
+<!--   par.df=data.frame(parameter=c("r","k"), -->
+<!--                     fitted.value=format(round(fit$par,4), -->
+<!--                                         big.mark=",", -->
+<!--                                         decimal.mark=".", -->
+<!--                                         scientific = FALSE), -->
+<!--                     units=c("per day", -->
+<!--                             "CFUs")) -->
+<!--   rownames(par.df)=NULL -->
+
+<!--   tt.lv =  ttheme_minimal( -->
+<!--     col.just="right", -->
+<!--     core=list(bg_params = list(fill = blues9[c(1,1,2,2,3,3)], col=NA), -->
+<!--               fg_params=list(fontface=3, cex=2, parse=TRUE)), -->
+<!--     colhead=list(fg_params=list(col="navyblue", fontface=4L, cex=2)), -->
+<!--     rowhead=list(fg_params=list(col="navyblue", fontface=3L, cex=2))) -->
+
+<!--   gg.par = tableGrob(par.df, theme=tt.lv, rows=NULL) -->
+<!--   plot_grid(gg.main, gg.par, nrow=1, rel_widths = c(1, .5)) -->
+
+<!-- } -->
+
+<!-- # gout = gglog_(dat.use, fit2) -->
+
+<!-- ``` -->
+
+
+<!-- ## Trial run -->
+
+<!-- ```{r} -->
+<!-- dat.use = raw %>%  -->
+<!--   filter(spec == "BC9") %>%  -->
+<!--   filter(cond == "alone") %>%  -->
+<!--   filter(pH == 5) -->
+
+<!-- initial.guess = c(r=.01,  -->
+<!--                   k=max(dat.use$cfus)) -->
+<!-- fit1 = optim(par = initial.guess, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log -->
+<!-- ) -->
+<!-- #good practice: double check by using the results of first -->
+<!-- # optim call as the initial guess for second call -->
+<!-- fit2 = optim(par = fit1$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log -->
+<!-- ) -->
+<!-- # and we have a fit! -->
+<!-- #let's see how it looks -->
+<!-- gglog_(dat.use, fit2) -->
+<!-- ``` -->
+
+
+<!-- ## Loop over all species (logistic, ph5) -->
+
+<!-- The goal is (a) to try to fit each species, and (b) to save the resulting fit. Note that this may do poorly for species that do not grow at all when alone. -->
+
+<!-- Update: does not play nice with JB7. In the sense that it breaks. removing for now. -->
+
+<!-- ```{r} -->
+<!-- #we'll save our results as a data frame -->
+<!-- res.log = NULL -->
+<!-- spec.use = unique(raw$spec) -->
+<!-- spec.use = spec.use[spec.use!="JB7"] -->
+
+<!-- for(cur.spec in spec.use){ -->
+<!--   print(cur.spec) -->
+<!--   dat.use = raw %>%  -->
+<!--     filter(spec == cur.spec) %>%  -->
+<!--     filter(cond == "alone") %>%  -->
+<!--     filter(pH == 5) -->
+<!--   weights = dat.use %>%  -->
+<!--     group_by(rep) %>%  -->
+<!--     summarize(cfubar = mean(cfus^2)) -->
+<!--   #put on reasonable scale for numerics -->
+<!--   weights$cfubar=weights$cfubar/min(weights$cfubar) -->
+
+<!--   initial.guess = c(r=2,  -->
+<!--                     k=max(dat.use$cfus)) -->
+<!--   fit1 = optim(par = initial.guess, -->
+<!--                fn = obj_cv, -->
+<!--                dat = dat.use, -->
+<!--                ode_fun = ode_log, -->
+<!--                # scale.vec = weights$cfubar, -->
+<!--                scale.vec = 1, -->
+<!--                method="L-BFGS-B", -->
+<!--                upper=c(100, 10^12), -->
+<!--                lower=c(0, 1) -->
+<!--   ) -->
+<!--   #good practice: double check by using the results of first -->
+<!--   # optim call as the initial guess for second call -->
+<!--   fit2 = optim(par = fit1$par, -->
+<!--                fn = obj_cv, -->
+<!--                dat = dat.use, -->
+<!--                ode_fun = ode_log, -->
+<!--                scale.vec = weights$cfubar, -->
+<!--                method="L-BFGS-B", -->
+<!--                upper=c(100, 10^12), -->
+<!--                lower=c(0, 1) -->
+<!--   ) -->
+<!--   fit2 = optim(par = fit2$par, -->
+<!--                fn = obj_cv, -->
+<!--                dat = dat.use, -->
+<!--                ode_fun = ode_log, -->
+<!--                scale.vec = weights$cfubar, -->
+<!--                method="L-BFGS-B", -->
+<!--                upper=c(100, 10^12), -->
+<!--                lower=c(0, 1) -->
+<!--   ) -->
+<!--   fit2 = optim(par = fit2$par, -->
+<!--                fn = obj_cv, -->
+<!--                dat = dat.use, -->
+<!--                ode_fun = ode_log, -->
+<!--                scale.vec = weights$cfubar, -->
+<!--                method="L-BFGS-B", -->
+<!--                upper=c(100, 10^12), -->
+<!--                lower=c(0, 1) -->
+<!--   ) -->
+<!--   print(paste0("convergence = ",fit2$convergence)) -->
+<!--   # and we have a fit! -->
+<!--   res.cur=data.frame(spec=cur.spec, -->
+<!--                      ph=5, -->
+<!--                      r=fit2$par[1], -->
+<!--                      k=fit2$par[2], -->
+<!--                      fit.status = fit2$convergence -->
+<!--   ) -->
+<!--   res.log=rbind(res.cur,res.log) -->
+<!--   #let's see how it looks -->
+<!--   gout = gglog_(dat.use, fit2) -->
+<!--   gfig_saver(gout, -->
+<!--              filename=paste0("logistic-",cur.spec,"-ph5"), -->
+<!--              description = "initial fitting (in loop)", -->
+<!--              width=18, height =9) -->
+<!-- } -->
+<!-- write.csv(x=res.log, -->
+<!--           file=here("4_res","logistic-loop-fits.csv")) -->
+<!-- ``` -->
+
+<!-- ## Custom fit problem species -->
+
+<!-- ### JB370 -->
+
+<!-- Update: by constraining initial fit, we get a starting parameter set for fit2 that gives reasonable results. -->
+
+<!-- ```{r} -->
+<!-- cur.spec="JB370" -->
+<!-- dat.use = raw %>%  -->
+<!--   filter(spec == cur.spec) %>%  -->
+<!--   filter(cond == "alone") %>%  -->
+<!--   filter(pH == 5) -->
+<!-- weights = dat.use %>%  -->
+<!--   group_by(rep) %>%  -->
+<!--   summarize(cfubar = mean(cfus^2)) -->
+<!-- #put on reasonable scale for numerics -->
+
+<!-- initial.guess = c(r=10,  -->
+<!--                   k=max(dat.use$cfus)) -->
+<!-- fit1 = optim(par = initial.guess, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              # scale.vec = weights$cfubar, -->
+<!--              scale.vec = 1, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(1, 1) -->
+<!-- ) -->
+<!-- #good practice: double check by using the results of first -->
+<!-- # optim call as the initial guess for second call -->
+<!-- fit2 = optim(par = fit1$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- fit2 = optim(par = fit2$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- fit2 = optim(par = fit2$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- print(paste0("convergence = ",fit2$convergence)) -->
+<!-- # and we have a fit! -->
+<!-- res.cur=data.frame(spec=cur.spec, -->
+<!--                    ph=5, -->
+<!--                    r=fit2$par[1], -->
+<!--                    k=fit2$par[2], -->
+<!--                    fit.status = fit2$convergence -->
+<!-- ) -->
+<!-- res.log[res.log$spec==cur.spec,]=res.cur -->
+<!-- #let's see how it looks -->
+<!-- gout = gglog_(dat.use, fit2) -->
+<!-- gfig_saver(gout, -->
+<!--            filename=paste0("logistic-",cur.spec,"-ph5"), -->
+<!--            description = "initial fitting (in loop)", -->
+<!--            width=18, height =9) -->
+<!-- ``` -->
+
+<!-- ### BC10 -->
+
+<!-- Update: can't get this one to behave -->
+
+<!-- ```{r} -->
+<!-- cur.spec="BC10" -->
+<!-- dat.use = raw %>%  -->
+<!--   filter(spec == cur.spec) %>%  -->
+<!--   filter(cond == "alone") %>%  -->
+<!--   filter(pH == 5) -->
+<!-- weights = dat.use %>%  -->
+<!--   group_by(rep) %>%  -->
+<!--   summarize(cfubar = max(cfus^2)) -->
+<!-- #put on reasonable scale for numerics -->
+<!-- weights$cfubar=weights$cfubar/min(weights$cfubar) -->
+
+<!-- initial.guess = c(r=1,  -->
+<!--                   k=max(dat.use$cfus)) -->
+<!-- fit1 = optim(par = initial.guess, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              # scale.vec = 1, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(5, 10^12), -->
+<!--              lower=c(1, 1) -->
+<!-- ) -->
+<!-- #good practice: double check by using the results of first -->
+<!-- # optim call as the initial guess for second call -->
+<!-- fit2 = optim(par = fit1$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- fit2 = optim(par = fit2$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- fit2 = optim(par = fit2$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- print(paste0("convergence = ",fit2$convergence)) -->
+<!-- # and we have a fit! -->
+<!-- res.cur=data.frame(spec=cur.spec, -->
+<!--                    ph=5, -->
+<!--                    r=fit2$par[1], -->
+<!--                    k=fit2$par[2], -->
+<!--                    fit.status = fit2$convergence -->
+<!-- ) -->
+<!-- res.log[res.log$spec==cur.spec,]=res.cur -->
+<!-- #let's see how it looks -->
+<!-- gout = gglog_(dat.use, fit2) -->
+<!-- gfig_saver(gout, -->
+<!--            filename=paste0("logistic-",cur.spec,"-ph5"), -->
+<!--            description = "initial fitting (in loop)", -->
+<!--            width=18, height =9) -->
+<!-- ``` -->
+
+
+<!-- ### JB5 -->
+<!-- Update: This one works pretty well when we set a reasonable minimum for K. Note that we have an outlier replicate that is messing up plotting. -->
+
+
+<!-- ```{r} -->
+<!-- cur.spec="JB5" -->
+<!-- dat.use = raw %>%  -->
+<!--   filter(spec == cur.spec) %>%  -->
+<!--   filter(cond == "alone") %>%  -->
+<!--   filter(pH == 5) -->
+<!-- weights = dat.use %>%  -->
+<!--   group_by(rep) %>%  -->
+<!--   summarize(cfubar = max(cfus^2)) -->
+<!-- #put on reasonable scale for numerics -->
+<!-- weights$cfubar=weights$cfubar/min(weights$cfubar) -->
+
+<!-- initial.guess = c(r=1,  -->
+<!--                   k=max(dat.use$cfus)) -->
+<!-- fit1 = optim(par = initial.guess, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              # scale.vec = 1, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(10, 10^12), -->
+<!--              lower=c(1, 5000) -->
+<!-- ) -->
+<!-- #good practice: double check by using the results of first -->
+<!-- # optim call as the initial guess for second call -->
+<!-- fit2 = optim(par = fit1$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(0, 5000) -->
+<!-- ) -->
+<!-- fit2 = optim(par = fit2$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(0, 5000) -->
+<!-- ) -->
+<!-- fit2 = optim(par = fit2$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(100, 10^12), -->
+<!--              lower=c(0, 5000) -->
+<!-- ) -->
+<!-- print(paste0("convergence = ",fit2$convergence)) -->
+<!-- # and we have a fit! -->
+<!-- res.cur=data.frame(spec=cur.spec, -->
+<!--                    ph=5, -->
+<!--                    r=fit2$par[1], -->
+<!--                    k=fit2$par[2], -->
+<!--                    fit.status = fit2$convergence -->
+<!-- ) -->
+<!-- res.log[res.log$spec==cur.spec,]=res.cur -->
+<!-- #let's see how it looks -->
+<!-- #For this one, removing replicat 1, which has crazy outlier -->
+<!-- dat.plot=dat.use %>%  -->
+<!--   filter(rep != "1") -->
+<!-- gout = gglog_(dat.plot, fit2) -->
+<!-- gfig_saver(gout, -->
+<!--            filename=paste0("logistic-",cur.spec,"-ph5"), -->
+<!--            description = "initial fitting (in loop)", -->
+<!--            width=18, height =9) -->
+<!-- ``` -->
+
+<!-- ### JB7 -->
+<!-- Update: This one works pretty well when we set a reasonable minimum for K. Note that we have an outlier replicate that is messing up plotting. -->
+
+
+<!-- ```{r} -->
+<!-- cur.spec="JB7" -->
+<!-- dat.use = raw %>%  -->
+<!--   filter(spec == cur.spec) %>%  -->
+<!--   filter(cond == "alone") %>%  -->
+<!--   filter(pH == 5) -->
+<!-- weights = dat.use %>%  -->
+<!--   group_by(rep) %>%  -->
+<!--   summarize(cfubar = max(cfus^2)) -->
+<!-- #put on reasonable scale for numerics -->
+<!-- weights$cfubar=weights$cfubar/min(weights$cfubar) -->
+
+<!-- initial.guess = c(r=1,  -->
+<!--                   k=150) -->
+<!-- fit1 = optim(par = initial.guess, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              # scale.vec = 1, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(10, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- #good practice: double check by using the results of first -->
+<!-- # optim call as the initial guess for second call -->
+<!-- fit2 = optim(par = fit1$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(10, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- fit2 = optim(par = fit2$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(10, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- fit2 = optim(par = fit2$par, -->
+<!--              fn = obj_cv, -->
+<!--              dat = dat.use, -->
+<!--              ode_fun = ode_log, -->
+<!--              scale.vec = weights$cfubar, -->
+<!--              method="L-BFGS-B", -->
+<!--              upper=c(10, 10^12), -->
+<!--              lower=c(0, 1) -->
+<!-- ) -->
+<!-- print(paste0("convergence = ",fit2$convergence)) -->
+<!-- # and we have a fit! -->
+<!-- res.cur=data.frame(spec=cur.spec, -->
+<!--                    ph=5, -->
+<!--                    r=fit2$par[1], -->
+<!--                    k=fit2$par[2], -->
+<!--                    fit.status = fit2$convergence -->
+<!-- ) -->
+<!-- res.log=rbind(res.log, res.cur) -->
+<!-- #let's see how it looks -->
+<!-- #For this one, removing replicat 1, which has crazy outlier -->
+<!-- gout = gglog_(dat.use, fit2) -->
+<!-- gfig_saver(gout, -->
+<!--            filename=paste0("logistic-",cur.spec,"-ph5"), -->
+<!--            description = "initial fitting (in loop)", -->
+<!--            width=18, height =9) -->
+<!-- ``` -->
+
+<!-- ## save updated fits -->
+
+<!-- ```{r} -->
+<!-- write.csv(x=res.log, -->
+<!--           file=here("4_res","logistic-loop-fits.csv"), -->
+<!--           row.names = FALSE) -->
+<!-- ``` -->
+
+# Approach 2: fit linear models
+
+The underlying idea is that if we assume the communities are at equilibrium on day 21, if their dynamics are defined by lotka volterra dynamics, their abundance is a linear function of competitors. For the two-species LV model, the equilibrium densities of species 1 and species 2 (denoted $N_1^*$ and $N_2^*$) are defined by
+
+\[N_1^* = K_1 - \alpha_{12}N_2^*\]
+
+Since we're assuming the populations are at equilibrium, we know $N_1^*$ and $N_2^*$, and we can just fit a regression model to estimate $K$ and $\alpha$. (and we can use the regression framework to estimate our error)
+
+Using our pairwise experiments, we can estimate all parameters for species 1 simultaneously, with
+
+\[N_1^* = K_1 - \alpha_{12}N_2^* - \alpha_{12}N_2^*-\dots\]
+
+Note that when fitting the above model, for any given entry, only 0 or 1 of the Ns on the right hand side will be non-zero (that is, either the observation comes from a species alone, in which case all other Ns are 0, or it comes from a two-species experiment, in which case ONE other N will be some postitive number, and the rest will be zeros). 
+
+Using this framework, we can fit the data and see how well it predicts the observed 7-species community.
+
+Note two caveats:
+
+* if it doesn't fit the 7-species data well, that suggests either complex interactions OR that one or more of the data sets isn't at equilibrium.
+* The error structure is probably pretty complicated, since we're "re-using" the same data to estimate the parameters for multiple species. I may need to pick Elizabeth's brain on this.
+
+Potential exciting followup: Does this approach, as fit to high pH, do a better job predicting the data? This would suggest that the non-pairwise-effects are mediated by pH!
+
+## Step 1: restructure data 
+
+We need a data frame with a row for each experiment, and a column for the density of each species. 
+
+```{r}
+#make empty data frame
+#We want to store cfus for each species, 
+df.template = 
+  dat.mat = setNames(data.frame(matrix(ncol = 2*length(unique(raw$spec))+2, nrow = 0)),
+                     c(as.character(unique(raw$spec)), "cond", "rep",paste0("pres.",c(as.character(unique(raw$spec)))))
+  )
+raw.use = raw %>% 
+  filter(day == 21) %>% 
+  filter(pH == 5)
+#handle the alones
+for(cur.spec in unique(raw.use$spec)){
+  print(cur.spec)
+  dat.cur = raw.use %>% 
+    filter(spec == cur.spec) %>% 
+    filter(cond == "alone")
+  df.fill=as.data.frame(matrix(0, 
+                               nrow=nrow(dat.cur),
+                               ncol=ncol(dat.mat)))
+  names(df.fill) = names(dat.mat)
+  df.fill[,cur.spec]=dat.cur$cfus
+  df.fill[,"rep"]=dat.cur$rep
+  df.fill[,"cond"]="alone"
+  df.fill[,paste0("pres.",cur.spec)] = T
+  dat.mat = rbind(dat.mat, df.fill)
+}
+
+## pairs
+spec.vec = as.character(unique(raw.use$spec))
+
+for(i.spec in 1:(length(spec.vec)-1)){
+  cur.spec = spec.vec[i.spec]
+  for(j.spec in (i.spec+1):length(spec.vec)){
+    other.spec = spec.vec[j.spec]
+    #get cfus of current species
+    dat.cur = raw.use %>% 
+      filter(spec == cur.spec) %>% 
+      filter(cond == other.spec)
+    #get cfus of other species
+    dat.other = raw.use %>% 
+      filter(spec == other.spec) %>% 
+      filter(cond == cur.spec)
+    #handle replicate mismatching
+    dat.cur = dat.cur[dat.cur$rep %in% dat.other$rep,]
+    dat.other = dat.other[dat.other$rep %in% dat.cur$rep,]
+    dat.cur=dat.cur[order(dat.cur$rep),]
+    dat.other=dat.other[order(dat.other$rep),]
+    
+    ## The following code is a bunch of sanity checking.
+    if(nrow(dat.cur) != nrow(dat.other)){
+      stop("dimensions not matching up. investigate")
+      # print(paste(cur.spec, other.spec))
+      # print("dimensions not matching up. investigate")
+    }
+    if(any(dat.cur$rep != dat.other$rep)){
+      stop("replicates not matching up. investigate")
+      # print(paste(cur.spec, other.spec))
+      # print("replicates not matching up. investigate")
+    }
+    df.fill=as.data.frame(matrix(0,
+                                 nrow=nrow(dat.cur),
+                                 ncol=ncol(dat.mat)))
+    names(df.fill) = names(dat.mat)
+    df.fill[ , cur.spec] = dat.cur$cfus
+    df.fill[ , other.spec] = dat.other$cfus
+    df.fill[,"rep"]=dat.cur$rep
+    df.fill[,"cond"]="paired-comp"
+    df.fill[,paste0("pres.",cur.spec)] = T
+    df.fill[,paste0("pres.",other.spec)] = T
+    dat.mat = rbind(dat.mat, df.fill)
+  }
+}
+dat.mat$day = 21
+dat.mat$pH = 5
+names(dat.mat)[names(dat.mat)=="pres.135E"]="pres.X135E"
+
+write.csv(dat.mat, 
+          file = here("2_data_wrangling","matrix-form.csv"),
+          row.names = FALSE
+)
+```
+
+## Fit at once
+
+### Testing: fit one species
+
+```{r}
+library(lme4)
+dat.fit = read.csv(file = here("2_data_wrangling","matrix-form.csv"))
+#NOTE: R adds a leading X to column names that start with numbers
+
+out = lm(BC9 ~ BC10 + JB5 + JB7 + X135E + JBC + JB370,
+         data = dat.fit[dat.fit$pres.BC9==1,])
+summary(out)
+hist(resid(out), breaks=20)
+# coefficients(out)
+
+dat.log=dat.fit
+dat.log[,1:7] = log(dat.log[,1:7]+1)
+#let's try a log transform, because that seems relevant
+out.log = lm(BC9 ~ BC10 + JB5 + JB7 + X135E + JBC + JB370,
+             data = dat.log[dat.log$pres.BC9==1,])
+hist(resid(out.log), breaks=20)
+
+#Both seem okay, linear scale seems a bit better. For simplicity, I'm going to stick with non-log transformed for now. It should be reasonably easy to update this later.
+```
+
+```{r}
+out.pois = glm(BC9 ~ BC10 + JB5 + JB7 + X135E + JBC + JB370,
+               data = dat.fit[dat.fit$pres.BC9==1,], family="poisson")
+AIC(out, out.pois)
+
+# library(MASS)
+# out.nb = glm.nb(BC9 ~ BC10 + JB5 + JB7 + X135E + JBC + JB370,
+#          data = dat.fit[dat.fit$pres.BC9==1,])
+# AIC(out, out.nb)
+```
+
+#### Poisson or normal?
+
+```{r}
+aic.comp = data.frame(species = spec.vec,
+                      aic.norm = rep(-999, length(spec.vec)),
+                      aic.pois = rep(-999, length(spec.vec))
+)
+specvec.fit=spec.vec
+specvec.fit[specvec.fit=="135E"] = "X135E"
+for(i.spec in 1:length(spec.vec)){
+  cur.spec = specvec.fit[i.spec]
+  print(cur.spec)
+  #generate formula automatically
+  form = paste0(cur.spec," ~ ", paste(specvec.fit[-i.spec], collapse = " + "))
+  ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
+  dat.cur = dat.fit[ind.use,]
+  out.cur = lm(formula(form),
+               data = dat.cur)
+  aic.comp$aic.norm[i.spec]=AIC(out.cur)
+  out.pois = glm(formula(form),
+                 data = dat.cur, family = "poisson")
+  aic.comp$aic.pois[i.spec]=AIC(out.pois)
+}
+```
+
+Comparing AICs, it's clear that normally distributed error is far better than poisson distributed.
+
+```{r results = 'asis'}
+pander(aic.comp)
+```
+
+
+### Loop over all species
+```{r}
+res.est = NULL
+spec.vecfit = unique(raw$spec)
+spec.vecfit[spec.vecfit=="135E"] = "X135E"
+for(i.spec in 1:length(spec.vec)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #generate formula automatically
+  form = paste0(cur.spec," ~ ", paste(spec.vecfit[-i.spec], collapse = " + "))
+  ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
+  dat.cur = dat.fit[ind.use,]
+  out.cur = lm(formula(form),
+               data = dat.cur)
+  cur.df = data.frame(est = coefficients(out.cur),
+                      se = coef(summary(out.cur))[,2])
+  #switch to alphas (for everything but Ks, which are the first entry) by multiplying by -1
+  cur.df$est[-1]=-cur.df$est[-1]
+  cur.df$spec = cur.spec
+  cur.df$name = rownames(cur.df)
+  cur.df$pH = 5
+  rownames(cur.df)=NULL
+  cur.df$name[1] = "K"
+  #reorder
+  cur.df=cur.df[,c("spec","name","est","se", "pH")]
+  res.est = rbind(res.est, cur.df)
+}
+## and that's our fits
+## 
+write.csv(res.est, 
+          file = here("4_res",
+                      "coefficient-estimates-pH5.csv"),
+          row.names = FALSE
+)
+## write metadata
+cat("meta-data for coefficeint-estimates.csv",
+    file = here("4_res", "coefficient-estimates-metadata.txt"),
+    sep = "\n")
+cat(c("Fitting Lotka-Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium",
+      "We assume the error is normally distributed - this seems close enough to true.",
+      "",
+      "spec is the focal species",
+      "name is the coefficient name. In the cases where name is a species name, it's an alpha term, and the species named is the competing species",
+      "est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1.",
+      "se is the standard error from the lienar regression"),
+    file = here("4_res", "coefficient-estimates-pH5-metadata.txt"),
+    sep = "\n",
+    append=T)
+```
+
+
+
+<!-- ### Comparing k estimates -->
+
+<!-- Here we look at how the estimates of K differ between Approach 1 and Approach 2. -->
+
+
+<!-- ```{r} -->
+<!-- #read in trajectory-based estimates -->
+<!-- dat.traj = read.csv(file=here("4_res","logistic-loop-fits.csv")) -->
+<!-- dat.traj$spec[dat.traj$spec=="135E"] = "X135E" -->
+
+<!-- #grab the k-relevant data from our regression approach -->
+<!-- k.lm = res.est %>%  -->
+<!--   filter(name=="K") -->
+
+<!-- #Let's extract the "alone" data from dat.mat -->
+<!-- dat.alone  = raw %>%  -->
+<!--   filter(pH == 5) %>%  -->
+<!--   filter(day == 21) %>%  -->
+<!--   filter(cond == "alone") -->
+<!-- dat.alone$spec[dat.alone$spec=="135E"]="X135E" -->
+
+<!-- ggplot(k.lm, aes(x=spec, y = est))+ -->
+<!--   geom_col(aes(fill = spec))+ -->
+<!--   geom_errorbar(aes(x =spec,  -->
+<!--                     ymin=est-se, -->
+<!--                     ymax=est+se), -->
+<!--                 width = .1 -->
+<!--   )+ -->
+<!--   geom_point(data = dat.traj, -->
+<!--              aes(x = spec,  -->
+<!--                  y = k), size=2)+ -->
+<!--   geom_point(data = dat.alone, -->
+<!--              aes(x = spec, y = cfus), -->
+<!--              size = 2, shape = 17)+ -->
+<!--   ggtitle("Fitted estimates of carrying capacity K\n(from all data)")+ -->
+<!--   xlab("species")+ -->
+<!--   ylab("estimate, error bars, etc")+ -->
+<!--   theme.mine -->
+
+<!-- ``` -->
+
+<!-- That is not satisfying. We are notably under and overshooting our actual data. I think we are picking up structure in the competition coefficients, which is being attributed to K. -->
+
+<!-- **Update!** I was an idiot, and was using data without species 1 introduced to fit the population of species 1. This meant there were a lot of cases where the regression was trying to find the coefficients that made sense for species 2 and 3 to have big positive numbers and species 1 to have 0. After fixing this and redoing the analysis, we something far more satisfying. Our answers are fairly similar to the "alone only" data fit, except that JB5 estimates are much higher (looks like the high value from the alone value isn't an outlier), and our estimates for JB7 is slightly negative.  -->
+
+<!-- I'm not entirely sure which is better to use, but it's far *easier* to use the "fit at once", so I'm going to try that out and predict the size of each of our populations from the "everybody" data.  -->
+
+## Comparing to community data
+
+### restructure data
+
+```{r}
+raw.com = raw %>% 
+  filter(cond == "community") %>% 
+  filter(day == 21) %>% 
+  filter(pH == 5)
+
+nrep = max(raw.com$rep)
+dat.com = data.frame(BC9 = rep(-99, nrep),
+                     BC10 = rep(-99, nrep),
+                     JB5 = rep(-99, nrep),
+                     JB7 = rep(-99, nrep),
+                     X135E = rep(-99, nrep),
+                     JBC = rep(-99, nrep),
+                     JB370 = rep(-99, nrep),
+                     rep = 1:nrep
+)
+
+
+## pairs
+raw.com$spec[raw.com$spec=="135E"] = "X135E"
+spec.vec = as.character(unique(raw.com$spec))
+
+for(cur.spec in spec.vec){
+  #get cfus of current species
+  dat.cur = raw.com %>% 
+    filter(spec == cur.spec) 
+  dat.com[dat.cur$rep,cur.spec] = dat.cur$cfus
+}
+## add NAs
+dat.com[dat.com==-99]=NA
+
+
+write.csv(dat.com, 
+          file = here("2_data_wrangling","matrix-form-comdat.csv"),
+          row.names = FALSE
+)
+
+```
+
+### predicting
+
+```{r}
+dat.fit = read.csv(file = here("2_data_wrangling","matrix-form.csv"))
+dat.com = na.omit(dat.com)
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+dat.pred.pois = dat.pred
+dat.pred.long = NULL
+dat.pred.long.pois = NULL
+for(i.spec in 1:(length(spec.vec))){
+  print(cur.spec)
+  cur.spec = spec.vecfit[i.spec]
+  #generate formula automatically
+  form = paste0(cur.spec," ~ ", paste(spec.vecfit[-i.spec], collapse = " + "))
+  ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
+  dat.cur = dat.fit[ind.use,]
+  out.cur = lm(formula(form),
+               data = dat.cur)
+  dat.pred[,cur.spec] = predict(out.cur, newdata = dat.com)
+  #with CIs, for dat.pred.long
+  cur.df = as.data.frame(predict(out.cur, newdata = dat.com, interval = "confidence"))
+  cur.df$replicate=dat.com$rep
+  cur.df$spec = cur.spec
+  cur.df$fam="normal"
+  cur.df$within = dat.com[,cur.spec] > cur.df[, "lwr"] &
+    dat.com[, cur.spec] < cur.df[, "upr"]
+  dat.pred.long = rbind(dat.pred.long, cur.df)
+  ## Now for poisson
+  out.cur = glm(formula(form),
+                data = dat.cur,
+                family="poisson")
+  dat.pred.pois[,cur.spec] = predict(out.cur, newdata = dat.com, type="response")
+  # with CIs, for dat.pred.long
+  cur.df = as.data.frame(predict(out.cur, newdata = dat.com, se.fit=TRUE, type="response"))
+  cur.df$replicate=dat.com$rep
+  cur.df$spec = cur.spec
+  cur.df$fam="pois"
+  dat.pred.long.pois = rbind(dat.pred.long.pois, cur.df)
+}
+dat.pred.long.pois$ph = 5
+
+write.csv(dat.pred.long,
+          here("4_res","predictions-from-pH5.csv"),
+          row.names=F
+)
+write.csv(dat.pred.long,
+          here("4_res","predictions-from-pH5-poisson.csv"),
+          row.names=F
+)
+
+```
+
+So our predicted community not only doesn't match our actual community very well, it also doesn't really match possible realities very well. We have a lot of negative numbers.
+
+```{r results='asis'}
+pander(dat.pred)
+```
+
+### Visualizing
+
+```{r}
+
+dat.pred.long$replicate = as.character(dat.pred.long$replicate)
+dat.pred.long.pois$replicate = as.character(dat.pred.long.pois$replicate)
+dat.pred.long.pois$fit = dat.pred.long.pois$fit + 1
+dat.com.long = dat.com %>% 
+  pivot_longer(cols = !matches("rep"), 
+               names_to = "spec") %>% 
+  rename(fit = value)
+
+ggplot(data = dat.pred.long, aes(x = spec, y = fit))+
+  geom_col(aes(fill=replicate),
+           position = position_dodge(.7),
+           width=.7)+
+  geom_point(data = dat.com.long, shape=17, 
+             position = position_dodge(.7),
+             aes(group = rep), 
+             size=3)+
+  xlab("species")+
+  ylab("cfus")+
+  ggtitle("predictions vs data based on pH 5\n (predictions are bars, data are triangles)")+
+  theme.mine+
+  scale_y_log10()
+
+ggplot(data = dat.pred.long.pois, aes(x = spec, y = fit))+
+  geom_col(aes(fill=replicate),
+           position = position_dodge(.7),
+           width=.7)+
+  geom_point(data = dat.com.long, shape=17, 
+             position = position_dodge(.7),
+             aes(group = rep), 
+             size=3)+
+  xlab("species")+
+  ylab("cfus")+
+  ggtitle("predictions vs data based on pH 5\n (predictions are bars, data are triangles)")+
+  theme.mine+
+  scale_y_log10()
+
+
+```
+
+
+<!-- Let's see how that looks once we exclude BC9 and JB5 -->
+
+<!-- ```{r} -->
+<!-- dat.com.plot = dat.com.long %>%  -->
+<!--   filter(spec != "BC9") %>%  -->
+<!--   filter(spec != "JB5") -->
+<!-- dat.pred.plot = dat.pred.long %>%  -->
+<!--   filter(spec != "BC9") %>%  -->
+<!--   filter(spec != "JB5")  -->
+<!-- dat.com.plot$rep=as.character(dat.com.plot$rep) -->
+<!-- dat.pred.plot$replicate=as.character(dat.pred.plot$replicate) -->
+<!-- dat.pred.plot$rep = dat.pred.plot$replicate -->
+
+<!-- ggplot(data = dat.pred.plot, aes(x = spec, y = fit))+ -->
+<!--   geom_col(aes(fill=rep), -->
+<!--            position = position_dodge(.7), -->
+<!--            width=.7)+ -->
+<!--   geom_point(data = dat.com.plot,  -->
+<!--              shape=17, -->
+<!--              position = position_dodge(.7), -->
+<!--              aes(group=rep))+ -->
+<!--   xlab("species")+ -->
+<!--   ylab("cfus")+ -->
+<!--   scale_y_log10()+ -->
+<!--   theme.mine -->
+<!-- ``` -->
+
+
+<!-- Still not much concordance -->
+
+
+# pH 7
+
+Now that we can fit Lotka Volterra with regression models, let's try again, but with pH 7.
+
+## Restructuring the data
+
+```{r}
+#make empty data frame
+#We want to store cfus for each species, 
+dat.mat7 = setNames(data.frame(matrix(ncol = 2*length(unique(raw$spec))+2, nrow = 0)),
+                    c(as.character(unique(raw$spec)), "cond", "rep",paste0("pres.",c(as.character(unique(raw$spec)))))
+)
+raw.use = raw %>% 
+  filter(day == 21) %>% 
+  filter(pH == 7)
+#handle the alones
+for(cur.spec in unique(raw.use$spec)){
+  print(cur.spec)
+  dat.cur = raw.use %>% 
+    filter(spec == cur.spec) %>% 
+    filter(cond == "alone")
+  df.fill=as.data.frame(matrix(0, 
+                               nrow=nrow(dat.cur),
+                               ncol=ncol(dat.mat7)))
+  names(df.fill) = names(dat.mat7)
+  df.fill[,cur.spec]=dat.cur$cfus
+  df.fill[,"rep"]=dat.cur$rep
+  df.fill[,"cond"]="alone"
+  df.fill[,paste0("pres.",cur.spec)] = T
+  dat.mat7 = rbind(dat.mat7, df.fill)
+}
+
+## pairs
+spec.vec = as.character(unique(raw.use$spec))
+
+for(i.spec in 1:(length(spec.vec)-1)){
+  cur.spec = spec.vec[i.spec]
+  for(j.spec in (i.spec+1):length(spec.vec)){
+    other.spec = spec.vec[j.spec]
+    #get cfus of current species
+    dat.cur = raw.use %>% 
+      filter(spec == cur.spec) %>% 
+      filter(cond == other.spec)
+    #get cfus of other species
+    dat.other = raw.use %>% 
+      filter(spec == other.spec) %>% 
+      filter(cond == cur.spec)
+    #handle replicate mismatching
+    dat.cur = dat.cur[dat.cur$rep %in% dat.other$rep,]
+    dat.other = dat.other[dat.other$rep %in% dat.cur$rep,]
+    dat.cur=dat.cur[order(dat.cur$rep),]
+    dat.other=dat.other[order(dat.other$rep),]
+    
+    ## The following code is a bunch of sanity checking.
+    if(nrow(dat.cur) != nrow(dat.other)){
+      stop("dimensions not matching up. investigate")
+      # print(paste(cur.spec, other.spec))
+      # print("dimensions not matching up. investigate")
+    }
+    if(any(dat.cur$rep != dat.other$rep)){
+      stop("replicates not matching up. investigate")
+      # print(paste(cur.spec, other.spec))
+      # print("replicates not matching up. investigate")
+    }
+    df.fill=as.data.frame(matrix(0,
+                                 nrow=nrow(dat.cur),
+                                 ncol=ncol(dat.mat7)))
+    names(df.fill) = names(dat.mat7)
+    df.fill[ , cur.spec] = dat.cur$cfus
+    df.fill[ , other.spec] = dat.other$cfus
+    df.fill[,"rep"]=dat.cur$rep
+    df.fill[,"cond"]="paired-comp"
+    df.fill[,paste0("pres.",cur.spec)] = T
+    df.fill[,paste0("pres.",other.spec)] = T
+    dat.mat7 = rbind(dat.mat7, df.fill)
+  }
+}
+dat.mat7$day = 21
+dat.mat7$pH = 7
+names(dat.mat7)[names(dat.mat7)=="pres.135E"]="pres.X135E"
+
+write.csv(dat.mat7, 
+          file = here("2_data_wrangling","matrix-form-pH7.csv"),
+          row.names = FALSE
+)
+```
+
+### Loop over all species
+```{r}
+dat.fit = read.csv(file = here("2_data_wrangling","matrix-form-pH7.csv"))
+res.est = NULL
+spec.vecfit = unique(raw$spec)
+spec.vecfit[spec.vecfit=="135E"] = "X135E"
+for(i.spec in 1:length(spec.vec)){
+  print(cur.spec)
+  cur.spec = spec.vecfit[i.spec]
+  #generate formula automatically
+  form = paste0(cur.spec," ~ ", paste(spec.vecfit[-i.spec], collapse = " + "))
+  ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
+  dat.cur = dat.fit[ind.use,]
+  out.cur = lm(formula(form),
+               data = dat.cur)
+  est = coefficients(out.cur)
+  #sometimes we're getting NAs for se
+  #and this doesn't even show up in coef(summary())
+  # so we have to do something a little fiddly.
+  se = est*NA
+  coef.temp = coef(summary(out.cur))[,2]
+  se[names(coef.temp)] = coef.temp
+  cur.df = data.frame(est = est,
+                      se = se)
+  #switch to alphas (for everything but Ks, which are the first entry) by multiplying by -1
+  cur.df$est[-1]=-cur.df$est[-1]
+  cur.df$spec = cur.spec
+  cur.df$name = rownames(cur.df)
+  rownames(cur.df)=NULL
+  cur.df$name[1] = "K"
+  #reorder
+  cur.df=cur.df[,c("spec","name","est","se")]
+  res.est = rbind(res.est, cur.df)
+}
+## and that's our fits
+## 
+write.csv(res.est, 
+          file = here("4_res",
+                      "coefficient-estimates-pH7.csv"),
+          row.names = FALSE
+)
+## write metadata
+cat("meta-data for coefficeint-estimates.csv",
+    file = here("4_res", "coefficient-estimates-pH7-metadata.txt"),
+    sep = "\n")
+cat(c("Fitting Lotka-Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium",
+      "As before, but now we are doing pH7 data",
+      "We assume the error is normally distributed - this seems close enough to true.",
+      "",
+      "spec is the focal species",
+      "name is the coefficient name. In the cases where name is a species name, it's an alpha term, and the species named is the competing species",
+      "est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1.",
+      "se is the standard error from the lienar regression"),
+    file = here("4_res", "coefficient-estimates-pH7-metadata.txt"),
+    sep = "\n",
+    append=T)
+```
+
+### Comparing k estimates
+
+Here we look at how the estimates of K differ between Approach 1 and Approach 2.
+
+
+```{r}
+#read in trajectory-based estimates
+dat.traj = read.csv(file=here("4_res","logistic-loop-fits.csv"))
+dat.traj$spec[dat.traj$spec=="135E"] = "X135E"
+
+#grab the k-relevant data from our regression approach
+k.lm = res.est %>% 
+  filter(name=="K")
+
+#Let's extract the "alone" data from dat.mat
+dat.alone  = raw %>% 
+  filter(pH == 7) %>% 
+  filter(day == 21) %>% 
+  filter(cond == "alone")
+dat.alone$spec[dat.alone$spec=="135E"]="X135E"
+
+ggplot(k.lm, aes(x=spec, y = est))+
+  geom_col(aes(fill = spec))+
+  geom_errorbar(aes(x =spec, 
+                    ymin=est-se,
+                    ymax=est+se),
+                width = .1
+  )+
+  geom_point(data = dat.traj,
+             aes(x = spec, 
+                 y = k), size=2)+
+  geom_point(data = dat.alone,
+             aes(x = spec, y = cfus),
+             size = 2, shape = 17)+
+  ggtitle("Fitted estimates of carrying capacity K\n(from all data)")+
+  xlab("species")+
+  ylab("estimate, error bars, etc")+
+  theme.mine
+
+```
+
+## Comparing to community data
+
+### restructure data
+
+We did this the first time around. We can just read in dat.com
+
+```{r}
+dat.com = read.csv(file = here("2_data_wrangling","matrix-form-comdat.csv")
+)
+
+```
+
+### predicting
+
+```{r}
+dat.fit = read.csv(here("2_data_wrangling",
+                        "matrix-form-pH7.csv")
+)
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+dat.pred.pois=dat.pred
+dat.pred.long.pois = dat.pred.long = NULL
+for(i.spec in 1:length(spec.vec)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #generate formula automatically
+  form = paste0(cur.spec," ~ ", paste(spec.vecfit[-i.spec], collapse = " + "))
+  ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
+  dat.cur = dat.fit[ind.use,]
+  out.cur = lm(formula(form),
+               data = dat.cur)
+  dat.pred[,cur.spec] = predict(out.cur, newdata = dat.com)
+  #with CIs, for dat.pred.long
+  cur.df = as.data.frame(predict(out.cur, newdata = dat.com, interval = "confidence"))
+  cur.df$replicate=dat.com$rep
+  cur.df$spec = cur.spec
+  cur.df$fam = "normal"
+  cur.df$within = dat.com[,cur.spec] > cur.df[, "lwr"] &
+    dat.com[, cur.spec] < cur.df[, "upr"]
+  dat.pred.long = rbind(dat.pred.long, cur.df)
+  #now poisson
+  out.cur = glm(formula(form),
+                data = dat.cur,
+                family="poisson")
+  dat.pred.pois[,cur.spec] = predict(out.cur, newdata = dat.com, type="response")
+  # with CIs, for dat.pred.long
+  cur.df = as.data.frame(predict(out.cur, newdata = dat.com, se.fit=TRUE, type="response"))
+  cur.df$replicate=dat.com$rep
+  cur.df$spec = cur.spec
+  cur.df$fam="pois"
+  dat.pred.long.pois = rbind(dat.pred.long.pois, cur.df)
+}
+
+dat.pred.long.pois$ph = 7
+
+write.csv(dat.pred.long,
+          here("4_res","predictions-from-pH7.csv"),
+          row.names=F
+)
+# write.csv(dat.pred.long.pois,
+# here("4_res","predictions-from-pH7-pois.csv"),
+# row.names=F
+# )
+```
+
+### Visualizing
+
+```{r}
+dat.pred.long$replicate = as.character(dat.pred.long$replicate)
+dat.pred.long = dat.pred.long %>% 
+  filter(replicate != "3")
+
+dat.pred.long.pois$replicate = as.character(dat.pred.long.pois$replicate)
+dat.pred.long.pois = dat.pred.long.pois %>% 
+  filter(replicate != "3")
+
+
+dat.com.long = dat.com %>% 
+  pivot_longer(cols = !matches("rep"), 
+               names_to = "spec") %>% 
+  rename(fit = value) %>% 
+  filter(rep != 3)
+
+write.csv(dat.com.long, here("4_res","community-data-long.csv"), row.names=F)
+
+
+ggplot(data = dat.pred.long, aes(x = spec, y = fit))+
+  geom_col(aes(fill=replicate),
+           position = position_dodge(.7),
+           width=.7)+
+  geom_point(data = dat.com.long, shape=17, 
+             position = position_dodge(.7),
+             aes(group = rep),
+             size=3)+
+  xlab("species")+
+  ylab("cfus")+
+  ggtitle("predictions vs data based on pH 7\n (predictions are bars, data are triangles)")+
+  theme.mine+
+  scale_y_log10()
+
+ggplot(data = dat.pred.long.pois, aes(x = spec, y = fit))+
+  geom_col(aes(fill=replicate),
+           position = position_dodge(.7),
+           width=.7)+
+  geom_point(data = dat.com.long, shape=17, 
+             position = position_dodge(.7),
+             aes(group = rep),
+             size=3)+
+  xlab("species")+
+  ylab("cfus")+
+  ggtitle("predictions vs data based on pH 7\n (predictions are bars, data are triangles)")+
+  theme.mine+
+  scale_y_log10()
+```
+
+
+
+# Comparing fits
+
+
+```{r}
+dat.pred.5=read.csv(here("4_res","predictions-from-pH5.csv"))
+dat.pred.7=read.csv(here("4_res","predictions-from-pH7.csv"))
+
+
+dat.com.long$rep = as.character(dat.com.long$rep)
+dat.com.long = dat.com.long %>% 
+  filter(rep != "3")
+
+## account for zeros on log scale
+dat.com.long$fit=dat.com.long$fit+1
+dat.pred.5$fit = dat.pred.5$fit+1
+dat.pred.7$fit = dat.pred.7$fit+1
+
+ggplot(data = dat.com.long, aes(x = spec, y = fit))+
+  geom_col(aes(fill=rep),
+           position = position_dodge(.7),
+           width=.7)+
+  geom_point(data = dat.pred.5, shape=17, 
+             position = position_dodge(.7),
+             aes(group = replicate),
+             size=3)+
+  geom_point(data = dat.pred.7, shape=21, 
+             position = position_dodge(.7),
+             aes(group = replicate),
+             size=3,
+             fill="black")+
+  xlab("species")+
+  ylab("cfus")+
+  ggtitle("Comparing fits: bars are DATA, triangles are pH 5 predictions, circles are ph 7.")+
+  theme.mine+
+  scale_y_log10()
+
+```
+
+```{r}
+dat.pred.5$absfit=abs(dat.pred.5$fit)
+dat.pred.5$fitcol="black"
+dat.pred.5$fitcol[dat.pred.5$fit<0]="red"
+
+dat.pred.7$absfit=abs(dat.pred.7$fit)
+dat.pred.7$fitcol="black"
+dat.pred.7$fitcol[dat.pred.7$fit<0]="red"
+
+gfin = ggplot(data = dat.com.long, aes(x = spec, y = fit))+
+  geom_col(aes(fill=rep),
+           position = position_dodge(.7),
+           width=.7)+
+  geom_point(data = dat.pred.5, shape=17, 
+             position = position_dodge(.7),
+             aes(y = absfit, 
+                 group = replicate),
+             size=3,
+             col=dat.pred.5$fitcol)+
+  geom_point(data = dat.pred.7, shape=20, 
+             position = position_dodge(.7),
+             aes(y = absfit, 
+                 group = replicate),
+             size=5,
+             col=dat.pred.7$fitcol)+
+  xlab("species")+
+  ylab("cfus")+
+  ggtitle("")+
+  theme.mine+ 
+  ggtitle("Comparing fits: bars are DATA, triangles are pH 5 predictions, circles are ph 7.\n Predictions are shown by absolute value - red points are negative values")+
+  scale_y_log10()
+
+gfig_saver(gfig = gfin,
+           filename = "comparing-ph-fits",
+           description = "Plot of predictions of community dynamics from LV dynamics. Triangles are pH 5 predictions from single-species and pairwise competition experiments, circles from ph7. Bars are from the actual experiments.")
+```
+
+## Quantifying error
+
+Quick check: MSE
+
+```{r}
+temp = dat.pred.5 %>% 
+  select(replicate, spec, fit) %>% 
+  rename(pred.5 = fit) %>% 
+  rename(rep = replicate)
+
+temp2 = dat.pred.7 %>% 
+  select(replicate, spec, fit) %>% 
+  rename(pred.7 = fit)%>% 
+  rename(rep = replicate)
+
+dat.comp = merge(temp, temp2)
+dat.comp = merge(dat.comp, dat.com.long)
+dat.comp
+#MSE for ph 5:
+mse.ph5 = mean((dat.comp$fit-dat.comp$pred.5)^2)
+#MSE for ph 7:
+mse.ph7 = mean((dat.comp$fit-dat.comp$pred.7)^2)
+
+mse.ph5/mse.ph7
+```
+
+Using this method, our error for ph5 is `r mse.ph5/mse.ph7` times worse than our error for ph7.
+
+
+# Which interactions change
+
+This is attempt 2, which is excluding the interaction terms for species which are at 0 density in pH 5
+
+```{r}
+dat.7 = read.csv(here("2_data_wrangling",
+                        "matrix-form-pH7.csv"))
+dat.5 = read.csv(here("2_data_wrangling",
+                        "matrix-form.csv"))
+dat.full = rbind(dat.7, dat.5)
+dat.full$pH=as.character(dat.full$pH)
+```
+
+```{r}
+findings = list()
+sigfind = NULL
+```
+
+
+## BC9
+```{r}
+dat.cur = dat.full[dat.full$pres.BC9==1,]
+out = lm(BC9 ~ BC10*pH + JB5*pH + JB7 + X135E*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$BC9 = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "Insufficient variation in JB7 at pH5. Excluding JB7:pH")
+#no terms mattered
+```
+
+## BC10
+```{r}
+dat.cur = dat.full[dat.full$pres.BC10==1,]
+out = lm(BC10 ~ BC9*pH + JB5*pH + JB7*pH + X135E*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$BC10 = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "All terms included")
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "BC10"
+sigfind = rbind(sigfind, sigfind.cur)
+
+```
+
+## JB5
+```{r}
+dat.cur = dat.full[dat.full$pres.JB5==1,]
+out = lm(JB5 ~ BC9*pH + BC10*pH + JB7*pH + X135E*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$JB5 = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "All terms included")
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "JB5"
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+## JB7
+```{r}
+dat.cur = dat.full[dat.full$pres.JB7==1,]
+out = lm(JB7 ~ BC9*pH + BC10*pH + JB5*pH + X135E*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$JB7 = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "All terms included")
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "JB7"
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+## X135E
+```{r}
+dat.cur = dat.full[dat.full$pres.X135E==1,]
+out = lm(X135E ~ BC9*pH + BC10*pH + JB5*pH + JB7*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$X135E = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "All terms included")
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "X135E"
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+## JBC
+```{r}
+dat.cur = dat.full[dat.full$pres.JBC==1,]
+# View(dat.cur)
+out = lm(JBC ~ BC9*pH + BC10*pH + JB5 + JB7*pH + X135E + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$JBC = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "Insufficient JB5 and X135E at pH 5 - both JB5:pH and X135E:pH were removed.")
+#adding to overall data frame
+sigfind.cur = as.data.frame(temp) 
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "JBC"
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+## JB370
+```{r}
+dat.cur = dat.full[dat.full$pres.JB370==1,]
+out = lm(JB370 ~ BC9*pH + BC10*pH + JB5*pH + JB7*pH + X135E*pH + JBC*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$JB370 = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "All terms included")
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "JB370"
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+
+## Saving
+
+```{r}
+write.csv(sigfind,here("4_res","pH-interaction-estimates.csv"))
+
+saveRDS(findings, file = here("4_res","ph-interactions-list-obj.RDS"))
+```
+
