@@ -376,6 +376,8 @@ for(i.spec in 1:length(spec.vec)){
   ## modify the data to ensure we're accounting for k
   ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
   dat.cur = dat.fit[ind.use,]
+  dat.cur = dat.cur %>% 
+    filter(cond !="alone")
   dat.cur[,cur.spec]=dat.cur[,cur.spec]-k.cur
   #generate formula automatically
   #
@@ -419,55 +421,6 @@ cat(c("Fitting Lotka-Volterra coefficients K and alpha through linear regression
     append=T)
 ```
 
-
-
-<!-- ### Comparing k estimates -->
-
-<!-- Here we look at how the estimates of K differ between Approach 1 and Approach 2. -->
-
-
-<!-- ```{r} -->
-<!-- #read in trajectory-based estimates -->
-<!-- dat.traj = read.csv(file=here("4_res","logistic-loop-fits.csv")) -->
-<!-- dat.traj$spec[dat.traj$spec=="135E"] = "X135E" -->
-
-<!-- #grab the k-relevant data from our regression approach -->
-<!-- k.lm = res.est %>%  -->
-<!--   filter(name=="K") -->
-
-<!-- #Let's extract the "alone" data from dat.mat -->
-<!-- dat.alone  = raw %>%  -->
-<!--   filter(pH == 5) %>%  -->
-<!--   filter(day == 21) %>%  -->
-<!--   filter(cond == "alone") -->
-<!-- dat.alone$spec[dat.alone$spec=="135E"]="X135E" -->
-
-<!-- ggplot(k.lm, aes(x=spec, y = est))+ -->
-<!--   geom_col(aes(fill = spec))+ -->
-<!--   geom_errorbar(aes(x =spec,  -->
-<!--                     ymin=est-se, -->
-<!--                     ymax=est+se), -->
-<!--                 width = .1 -->
-<!--   )+ -->
-<!--   geom_point(data = dat.traj, -->
-<!--              aes(x = spec,  -->
-<!--                  y = k), size=2)+ -->
-<!--   geom_point(data = dat.alone, -->
-<!--              aes(x = spec, y = cfus), -->
-<!--              size = 2, shape = 17)+ -->
-<!--   ggtitle("Fitted estimates of carrying capacity K\n(from all data)")+ -->
-<!--   xlab("species")+ -->
-<!--   ylab("estimate, error bars, etc")+ -->
-<!--   theme.mine -->
-
-<!-- ``` -->
-
-<!-- That is not satisfying. We are notably under and overshooting our actual data. I think we are picking up structure in the competition coefficients, which is being attributed to K. -->
-
-<!-- **Update!** I was an idiot, and was using data without species 1 introduced to fit the population of species 1. This meant there were a lot of cases where the regression was trying to find the coefficients that made sense for species 2 and 3 to have big positive numbers and species 1 to have 0. After fixing this and redoing the analysis, we something far more satisfying. Our answers are fairly similar to the "alone only" data fit, except that JB5 estimates are much higher (looks like the high value from the alone value isn't an outlier), and our estimates for JB7 is slightly negative.  -->
-
-<!-- I'm not entirely sure which is better to use, but it's far *easier* to use the "fit at once", so I'm going to try that out and predict the size of each of our populations from the "everybody" data.  -->
-
 ## Comparing to community data
 
 ### restructure data
@@ -508,108 +461,71 @@ write.csv(dat.com,
           file = here("2_data_wrangling","matrix-form-comdat.csv"),
           row.names = FALSE
 )
-
 ```
 
 ### predicting
 
 ```{r}
-dat.fit = read.csv(file = here("2_data_wrangling","matrix-form.csv"))
+# read in our community data (e.g. what we saved last chunk)
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH5.csv"))
 dat.com = na.omit(dat.com)
 dat.pred = dat.com
 dat.pred[,-which(names(dat.com)=="rep")]=0
-dat.pred.pois = dat.pred
-dat.pred.long = NULL
-dat.pred.long.pois = NULL
-for(i.spec in 1:(length(spec.vec))){
-  print(cur.spec)
+for(i.spec in 1:(length(spec.vecfit))){
   cur.spec = spec.vecfit[i.spec]
-  #generate formula automatically
-  form = paste0(cur.spec," ~ ", paste(spec.vecfit[-i.spec], collapse = " + "))
-  ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
-  dat.cur = dat.fit[ind.use,]
-  out.cur = lm(formula(form),
-               data = dat.cur)
-  dat.pred[,cur.spec] = predict(out.cur, newdata = dat.com)
-  #with CIs, for dat.pred.long
-  cur.df = as.data.frame(predict(out.cur, newdata = dat.com, interval = "confidence"))
-  cur.df$replicate=dat.com$rep
-  cur.df$spec = cur.spec
-  cur.df$fam="normal"
-  cur.df$within = dat.com[,cur.spec] > cur.df[, "lwr"] &
-    dat.com[, cur.spec] < cur.df[, "upr"]
-  dat.pred.long = rbind(dat.pred.long, cur.df)
-  ## Now for poisson
-  out.cur = glm(formula(form),
-                data = dat.cur,
-                family="poisson")
-  dat.pred.pois[,cur.spec] = predict(out.cur, newdata = dat.com, type="response")
-  # with CIs, for dat.pred.long
-  cur.df = as.data.frame(predict(out.cur, newdata = dat.com, se.fit=TRUE, type="response"))
-  cur.df$replicate=dat.com$rep
-  cur.df$spec = cur.spec
-  cur.df$fam="pois"
-  dat.pred.long.pois = rbind(dat.pred.long.pois, cur.df)
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  dat.pred[,cur.spec] = pred.cur
 }
-dat.pred.long.pois$ph = 5
+dat.pred$ph = 5
 
-write.csv(dat.pred.long,
+write.csv(dat.pred,
           here("4_res","predictions-from-pH5.csv"),
           row.names=F
 )
-write.csv(dat.pred.long,
-          here("4_res","predictions-from-pH5-poisson.csv"),
-          row.names=F
-)
-
 ```
 
 So our predicted community not only doesn't match our actual community very well, it also doesn't really match possible realities very well. We have a lot of negative numbers.
 
-```{r results='asis'}
-pander(dat.pred)
-```
-
 ### Visualizing
 
 ```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 5 predictions"
+dat.gg = dat.plot
 
-dat.pred.long$replicate = as.character(dat.pred.long$replicate)
-dat.pred.long.pois$replicate = as.character(dat.pred.long.pois$replicate)
-dat.pred.long.pois$fit = dat.pred.long.pois$fit + 1
-dat.com.long = dat.com %>% 
-  pivot_longer(cols = !matches("rep"), 
-               names_to = "spec") %>% 
-  rename(fit = value)
+dat.plot = data.frame(est = apply(dat.com,2, median))
+dat.plot$spec = colnames(dat.com)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "Actual community"
+dat.gg = rbind(dat.gg, dat.plot)
 
-ggplot(data = dat.pred.long, aes(x = spec, y = fit))+
-  geom_col(aes(fill=replicate),
-           position = position_dodge(.7),
-           width=.7)+
-  geom_point(data = dat.com.long, shape=17, 
-             position = position_dodge(.7),
-             aes(group = rep), 
-             size=3)+
-  xlab("species")+
-  ylab("cfus")+
-  ggtitle("predictions vs data based on pH 5\n (predictions are bars, data are triangles)")+
-  theme.mine+
-  scale_y_log10()
-
-ggplot(data = dat.pred.long.pois, aes(x = spec, y = fit))+
-  geom_col(aes(fill=replicate),
-           position = position_dodge(.7),
-           width=.7)+
-  geom_point(data = dat.com.long, shape=17, 
-             position = position_dodge(.7),
-             aes(group = rep), 
-             size=3)+
-  xlab("species")+
-  ylab("cfus")+
-  ggtitle("predictions vs data based on pH 5\n (predictions are bars, data are triangles)")+
-  theme.mine+
-  scale_y_log10()
-
+ggplot(data = dat.gg, aes(fill = spec, x = scenario, y = rel))+
+  geom_col()+
+  ylab("relative abundance")+
+  theme.mine
 
 ```
 
@@ -764,7 +680,7 @@ for(i.spec in 1:length(spec.vec)){
     filter(cond=="alone") %>% 
     filter(pH == 7)
   out.k = lm(cfus ~ 1, data = dat.k )
-  k.cur = out$coefficients[[1]]
+  k.cur = out.k$coefficients[[1]]
   ## modify the data to ensure we're accounting for k
   ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
   dat.cur = dat.fit[ind.use,]
@@ -818,47 +734,6 @@ cat(c("Fitting Lotka-Volterra coefficients K and alpha through linear regression
     append=T)
 ```
 
-### Comparing k estimates
-
-Here we look at how the estimates of K differ between Approach 1 and Approach 2.
-
-
-```{r}
-#read in trajectory-based estimates
-dat.traj = read.csv(file=here("4_res","logistic-loop-fits.csv"))
-dat.traj$spec[dat.traj$spec=="135E"] = "X135E"
-
-#grab the k-relevant data from our regression approach
-k.lm = res.est %>% 
-  filter(name=="K")
-
-#Let's extract the "alone" data from dat.mat
-dat.alone  = raw %>% 
-  filter(pH == 7) %>% 
-  filter(day == 21) %>% 
-  filter(cond == "alone")
-dat.alone$spec[dat.alone$spec=="135E"]="X135E"
-
-ggplot(k.lm, aes(x=spec, y = est))+
-  geom_col(aes(fill = spec))+
-  geom_errorbar(aes(x =spec, 
-                    ymin=est-se,
-                    ymax=est+se),
-                width = .1
-  )+
-  geom_point(data = dat.traj,
-             aes(x = spec, 
-                 y = k), size=2)+
-  geom_point(data = dat.alone,
-             aes(x = spec, y = cfus),
-             size = 2, shape = 17)+
-  ggtitle("Fitted estimates of carrying capacity K\n(from all data)")+
-  xlab("species")+
-  ylab("estimate, error bars, etc")+
-  theme.mine
-
-```
-
 ## Comparing to community data
 
 ### restructure data
@@ -873,108 +748,222 @@ dat.com = read.csv(file = here("2_data_wrangling","matrix-form-comdat.csv")
 
 ### predicting
 
+Note that we have no estimate for the effect of 135E on JBC since it never survives, BUT we don't have it in the final community. I'm converting all estimates of interactions coming from X135E in the calculations to avoid NA propogation.
+
 ```{r}
-dat.fit = read.csv(here("2_data_wrangling",
-                        "matrix-form-pH7.csv")
-)
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH7.csv"))
 dat.pred = dat.com
 dat.pred[,-which(names(dat.com)=="rep")]=0
-dat.pred.pois=dat.pred
-dat.pred.long.pois = dat.pred.long = NULL
-for(i.spec in 1:length(spec.vec)){
+for(i.spec in 1:length(spec.vecfit)){
   cur.spec = spec.vecfit[i.spec]
   print(cur.spec)
-  #generate formula automatically
-  form = paste0(cur.spec," ~ ", paste(spec.vecfit[-i.spec], collapse = " + "))
-  ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
-  dat.cur = dat.fit[ind.use,]
-  out.cur = lm(formula(form),
-               data = dat.cur)
-  dat.pred[,cur.spec] = predict(out.cur, newdata = dat.com)
-  #with CIs, for dat.pred.long
-  cur.df = as.data.frame(predict(out.cur, newdata = dat.com, interval = "confidence"))
-  cur.df$replicate=dat.com$rep
-  cur.df$spec = cur.spec
-  cur.df$fam = "normal"
-  cur.df$within = dat.com[,cur.spec] > cur.df[, "lwr"] &
-    dat.com[, cur.spec] < cur.df[, "upr"]
-  dat.pred.long = rbind(dat.pred.long, cur.df)
-  #now poisson
-  out.cur = glm(formula(form),
-                data = dat.cur,
-                family="poisson")
-  dat.pred.pois[,cur.spec] = predict(out.cur, newdata = dat.com, type="response")
-  # with CIs, for dat.pred.long
-  cur.df = as.data.frame(predict(out.cur, newdata = dat.com, se.fit=TRUE, type="response"))
-  cur.df$replicate=dat.com$rep
-  cur.df$spec = cur.spec
-  cur.df$fam="pois"
-  dat.pred.long.pois = rbind(dat.pred.long.pois, cur.df)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  if(cur.spec =="JBC"){
+    coefs.vec["X135E"]=0
+  }
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  dat.pred[,cur.spec] = pred.cur
 }
 
-dat.pred.long.pois$ph = 7
+dat.pred$ph = 7
 
-write.csv(dat.pred.long,
+write.csv(dat.pred,
           here("4_res","predictions-from-pH7.csv"),
           row.names=F
 )
-# write.csv(dat.pred.long.pois,
-# here("4_res","predictions-from-pH7-pois.csv"),
-# row.names=F
-# )
 ```
 
 ### Visualizing
 
+Adding to our existing set of predictions
+
 ```{r}
-dat.pred.long$replicate = as.character(dat.pred.long$replicate)
-dat.pred.long = dat.pred.long %>% 
-  filter(replicate != "3")
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 7 predictions"
+dat.gg = rbind(dat.gg, dat.plot)
 
-dat.pred.long.pois$replicate = as.character(dat.pred.long.pois$replicate)
-dat.pred.long.pois = dat.pred.long.pois %>% 
-  filter(replicate != "3")
+ggplot(data = dat.gg, aes(fill = spec, x = scenario, y = rel))+
+  geom_col()+
+  ylab("relative abundance")+
+  theme.mine
 
-
-dat.com.long = dat.com %>% 
-  pivot_longer(cols = !matches("rep"), 
-               names_to = "spec") %>% 
-  rename(fit = value) %>% 
-  filter(rep != 3)
-
-write.csv(dat.com.long, here("4_res","community-data-long.csv"), row.names=F)
-
-
-ggplot(data = dat.pred.long, aes(x = spec, y = fit))+
-  geom_col(aes(fill=replicate),
-           position = position_dodge(.7),
-           width=.7)+
-  geom_point(data = dat.com.long, shape=17, 
-             position = position_dodge(.7),
-             aes(group = rep),
-             size=3)+
-  xlab("species")+
-  ylab("cfus")+
-  ggtitle("predictions vs data based on pH 7\n (predictions are bars, data are triangles)")+
-  theme.mine+
-  scale_y_log10()
-
-ggplot(data = dat.pred.long.pois, aes(x = spec, y = fit))+
-  geom_col(aes(fill=replicate),
-           position = position_dodge(.7),
-           width=.7)+
-  geom_point(data = dat.com.long, shape=17, 
-             position = position_dodge(.7),
-             aes(group = rep),
-             size=3)+
-  xlab("species")+
-  ylab("cfus")+
-  ggtitle("predictions vs data based on pH 7\n (predictions are bars, data are triangles)")+
-  theme.mine+
-  scale_y_log10()
 ```
 
 
+# Other predictions
+
+##  JBC coefficient @ pH 7
+
+What if only JBC had any effects on other species?
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH7.csv"))
+## turn anything that's not a K or from JBC to 0
+dat.coefs[!dat.coefs$name %in% c("K","JBC"), "est"]=0
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+for(i.spec in 1:length(spec.vecfit)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  if(cur.spec =="JBC"){
+    coefs.vec["X135E"]=0
+  }
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  dat.pred[,cur.spec] = pred.cur
+}
+
+dat.pred$ph = 7
+
+write.csv(dat.pred,
+          here("4_res","predictions-onlyJBC-pH7.csv"),
+          row.names=F
+)
+```
+
+Add to our quick visualization dataframe
+```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 7 only-JBC predictions"
+dat.gg = rbind(dat.gg, dat.plot)
+```
+
+
+##  JBC + 135E @ pH 5
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH5.csv"))
+## turn anything that's not a K or from JBC to 0
+dat.coefs[!dat.coefs$name %in% c("K","JBC", "X135E"), "est"]=0
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+for(i.spec in 1:length(spec.vecfit)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  if(cur.spec =="JBC"){
+    coefs.vec["X135E"]=0
+  }
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  dat.pred[,cur.spec] = pred.cur
+}
+
+dat.pred$ph = 5
+
+write.csv(dat.pred,
+          here("4_res","predictions-onlyJBC-135E-pH5.csv"),
+          row.names=F
+)
+```
+
+Add to our quick visualization dataframe
+```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 5 only-JBC+135E predictions"
+dat.gg = rbind(dat.gg, dat.plot)
+```
+
+# Final visualization
+
+```{r}
+ggplot(data = dat.gg, aes(fill = spec, x = scenario, y = rel))+
+  geom_col()+
+  ylab("relative abundance")+
+  theme.mine
+```
+
+# Quick (gross) visual check
+
+We notice that the pH 7 predictions are almost the same if we only include JBC. This would make sense only if the overwhelming majority of interactions come from JBC (Penicillium). Remember that the total effect of an interaction is the interaction coefficient times the population size of the source of interaction. Here we plot this term (as an absolute value, on a log scale).
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH7.csv"))
+
+dat.commed = apply(dat.com, 2, median)
+dat.temp = dat.coefs %>% 
+  filter(name != "K")
+dat.temp$eff = dat.temp$est * dat.commed[dat.temp$name]
+dat.temp$effab=abs(dat.temp$eff)
+# 
+# ggplot(dat.temp, aes(x = name, y = est))+
+#   geom_point()+
+#   scale_y_log10()
+# ggplot(dat.temp, aes(x = name, y = eff, col=spec))+
+#   geom_line(aes(group=spec))+
+#   geom_point()
+
+ggplot(dat.temp, aes(x = name, y = effab, col=spec))+
+  geom_line(aes(group=spec))+
+  geom_point()+
+  scale_y_log10()+theme.mine
+
+```
+
+We see by far the strongest estimated interactions in the pH 7 data are expected to come from JBC, so cutting out all other interactions should not have any effect.
 
 # Comparing fits
 
