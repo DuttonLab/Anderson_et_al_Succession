@@ -183,9 +183,8 @@ Using this framework, we can fit the data and see how well it predicts the obser
 Note two caveats:
 
 * if it doesn't fit the 7-species data well, that suggests either complex interactions OR that one or more of the data sets isn't at equilibrium.
-* The error structure is probably pretty complicated, since we're "re-using" the same data to estimate the parameters for multiple species. I may need to pick Elizabeth's brain on this.
+* The error structure is probably pretty complicated, since we're "re-using" the same data to estimate the parameters for multiple species. Elizabeth and I both think this isn't worth worrying about
 
-Potential exciting followup: Does this approach, as fit to high pH, do a better job predicting the data? This would suggest that the non-pairwise-effects are mediated by pH!
 
 Update (8/26/21): fitting the data in two step process: first estimate k, then calculate everything else. So estimate k using original data, then for interaction terms fit a no-intercept model after subtracting the carrying capacity.
 
