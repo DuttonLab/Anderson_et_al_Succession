@@ -947,22 +947,20 @@ temp = Anova(out)
 temp = temp[grep(':',rownames(temp)),]
 temp = temp[temp$`Pr(>F)`<.1,]
 
-## kludgy way of extracting coefficients
-## Note that Anova gives rownames for coefficients, while out gives rownames for
-##   the coefficient LEVELS, so we need to turn pH into pH7
-coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
-
 findings$BC10 = list(all = Anova(out),
                      sigint = temp,
                      meta = "All terms included")
 #making piece to add to to overall data frame
-sigfind.cur =as.data.frame(temp)
+sigfind.cur = as.data.frame(temp)
 
 ## calculating the original interaction coefficient sign
 names.temp = gsub("pH","",rownames(temp))
 names.temp = gsub(":","", names.temp)
 coef.orig = -coefficients(out)[names.temp]
-
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
 coef.new =coef.orig -coef.temp
 ## calculate change in the sign
 sigfind.cur$coef.orig = coef.orig
@@ -985,16 +983,22 @@ summary(out)
 temp = Anova(out)
 temp = temp[grep(':',rownames(temp)),]
 temp = temp[temp$`Pr(>F)`<.1,]
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
 ## kludgy way of extracting coefficients
 ## Note that Anova gives rownames for coefficients, while out gives rownames for
 ##   the coefficient LEVELS, so we need to turn pH into pH7
 coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
-findings$JB5 = list(all = Anova(out),
-                    sigint = temp,
-                    meta = "All terms included")
-#adding to overall data frame
-sigfind.cur =as.data.frame(temp) 
-sigfind.cur$sign = sign(coef.temp)
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
 sigfind.cur$source.species = gsub(":","",
                                   gsub("pH","",rownames(sigfind.cur)))
 sigfind.cur$target.species = "JB5"
@@ -1010,16 +1014,26 @@ summary(out)
 temp = Anova(out)
 temp = temp[grep(':',rownames(temp)),]
 temp = temp[temp$`Pr(>F)`<.1,]
-## kludgy way of extracting coefficients
-## Note that Anova gives rownames for coefficients, while out gives rownames for
-##   the coefficient LEVELS, so we need to turn pH into pH7
-coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+
 findings$JB7 = list(all = Anova(out),
                     sigint = temp,
                     meta = "All terms included")
 #adding to overall data frame
 sigfind.cur =as.data.frame(temp) 
-sigfind.cur$sign = sign(coef.temp)
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
 sigfind.cur$source.species = gsub(":","",
                                   gsub("pH","",rownames(sigfind.cur)))
 sigfind.cur$target.species = "JB7"
@@ -1035,16 +1049,25 @@ summary(out)
 temp = Anova(out)
 temp = temp[grep(':',rownames(temp)),]
 temp = temp[temp$`Pr(>F)`<.1,]
-## kludgy way of extracting coefficients
-## Note that Anova gives rownames for coefficients, while out gives rownames for
-##   the coefficient LEVELS, so we need to turn pH into pH7
-coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
 findings$X135E = list(all = Anova(out),
                       sigint = temp,
                       meta = "All terms included")
 #adding to overall data frame
 sigfind.cur =as.data.frame(temp) 
-sigfind.cur$sign = sign(coef.temp)
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
 sigfind.cur$source.species = gsub(":","",
                                   gsub("pH","",rownames(sigfind.cur)))
 sigfind.cur$target.species = "X135E"
@@ -1062,16 +1085,25 @@ summary(out)
 temp = Anova(out)
 temp = temp[grep(':',rownames(temp)),]
 temp = temp[temp$`Pr(>F)`<.1,]
-## kludgy way of extracting coefficients
-## Note that Anova gives rownames for coefficients, while out gives rownames for
-##   the coefficient LEVELS, so we need to turn pH into pH7
-coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
 findings$JBC = list(all = Anova(out),
                     sigint = temp,
                     meta = "Insufficient JB5 and X135E at pH 5 - both JB5:pH and X135E:pH were removed.")
 #adding to overall data frame
 sigfind.cur = as.data.frame(temp) 
-sigfind.cur$sign = sign(coef.temp)
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
 sigfind.cur$source.species = gsub(":","",
                                   gsub("pH","",rownames(sigfind.cur)))
 sigfind.cur$target.species = "JBC"
@@ -1087,16 +1119,25 @@ summary(out)
 temp = Anova(out)
 temp = temp[grep(':',rownames(temp)),]
 temp = temp[temp$`Pr(>F)`<.1,]
-## kludgy way of extracting coefficients
-## Note that Anova gives rownames for coefficients, while out gives rownames for
-##   the coefficient LEVELS, so we need to turn pH into pH7
-coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
 findings$JB370 = list(all = Anova(out),
                       sigint = temp,
                       meta = "All terms included")
 #adding to overall data frame
 sigfind.cur =as.data.frame(temp) 
-sigfind.cur$sign = sign(coef.temp)
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
 sigfind.cur$source.species = gsub(":","",
                                   gsub("pH","",rownames(sigfind.cur)))
 sigfind.cur$target.species = "JB370"
