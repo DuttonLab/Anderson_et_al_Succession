@@ -1,0 +1,7 @@
+– 135E: Candida/Diutina catenulata. An early colonizing yeast. Almost or completely wiped out by Penicillium whenever it's in coculture. A cheese medium deacidifier.
+– BC10: Staphylococcus xylosus. A fast-growing, early colonizing bacteria. A cheese medium deacidifier.
+– BC9: Staphylococcus equorum. A slightly less competitive bacterial Staph, but Ben's lab has done work (Kastman et al. 2016) showing that Scopulariopsis might be specifically supporting the growth of this species in mixed coculture through siderophore (iron-scavenging) sharing.
+– JB5: Brevibacterium sp. Relatively slow-growing Actinobacteria. Acid sensitive probably due to sensitivity of an important protease that helps acquire amino acids from macromolecular cheese. Late-colonizer in succession.
+– JB7: Brachybacterium sp. Actinobacterial species that is so acid sensitive that it can't grow alone on cheese. Late-colonizer in succession.
+– JBC: Penicillium sp. A filamentous fungus that inhibits the growth of most other community partners. Also a deacidifier, though, so some interesting balances there.
+– JB370: Scopulariopsis sp. Another filamentous fungus, though a weaker spore-former than Penicillium. Also a deacidifier.
