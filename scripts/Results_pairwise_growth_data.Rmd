@@ -443,7 +443,7 @@ for(s in levels(d.18$species)) {
 
 # organized layout of graphs, no repeating pairs
 layout.col1 <- plot_grid(
-  plotlist = list(as_ggplot(text_grob("Diutina", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+  plotlist = list(as_ggplot(text_grob("Diutina", face = "italic", size = 12, vjust = 3.3, hjust=0.3)),
                   l.pw.plots[[1]]+theme(axis.text.y = element_text(size = 10)),
                   l.pw.plots[[3]]+theme(axis.text.y = element_text(size = 10)),
                   l.pw.plots[[4]]+theme(axis.text.y = element_text(size = 10)),
@@ -454,7 +454,7 @@ layout.col1 <- plot_grid(
   ncol = 1, align = "h")
 layout.col2 <- plot_grid(
   plotlist = list(NULL,
-                  as_ggplot(text_grob("S. xylosus", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  as_ggplot(text_grob("S. xylosus", face = "italic", size = 12, vjust = 3.3, hjust=0.5)),
                   l.pw.plots[[9]], 
                   l.pw.plots[[12]],
                   l.pw.plots[[13]],
@@ -464,7 +464,7 @@ layout.col2 <- plot_grid(
   ncol = 1, align = "h")
 layout.col3 <- plot_grid(
   plotlist = list(NULL, NULL,
-                  as_ggplot(text_grob("S. equorum", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  as_ggplot(text_grob("S. equorum", face = "italic", size = 12, vjust = 3.3, hjust=0.5)),
                   l.pw.plots[[17]], 
                   l.pw.plots[[21]],
                   l.pw.plots[[22]],
@@ -473,7 +473,7 @@ layout.col3 <- plot_grid(
   ncol = 1, align = "h")
 layout.col4 <- plot_grid(
   plotlist = list(NULL, NULL, NULL,
-                  as_ggplot(text_grob("Brevibacterium", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  as_ggplot(text_grob("Brevibacterium", face = "italic", size = 12, vjust = 3.3, hjust=0.45)),
                   l.pw.plots[[25]],
                   l.pw.plots[[30]],
                   l.pw.plots[[31]],
@@ -481,20 +481,20 @@ layout.col4 <- plot_grid(
   ncol = 1, align = "h")
 layout.col5 <- plot_grid(
   plotlist = list(NULL, NULL, NULL, NULL,
-                  as_ggplot(text_grob("Brachybacterium", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  as_ggplot(text_grob("Brachybacterium", face = "italic", size = 12, vjust = 3.3, hjust=0.45)),
                   l.pw.plots[[33]],
                   l.pw.plots[[39]],
                   l.pw.plots[[40]]+theme(axis.text.x = element_text(size = 10))), 
   ncol = 1, align = "h")
 layout.col6 <- plot_grid(
   plotlist = list(NULL, NULL, NULL, NULL, NULL,
-                  as_ggplot(text_grob("Penicillium", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  as_ggplot(text_grob("Penicillium", face = "italic", size = 12, vjust = 3.3, hjust=0.5)),
                   l.pw.plots[[41]],
                   l.pw.plots[[48]]+theme(axis.text.x = element_text(size = 10))), 
   ncol = 1, align = "h")
 layout.col7 <- plot_grid(
   plotlist = list(NULL, NULL, NULL, NULL, NULL, NULL,
-                  as_ggplot(text_grob("Scopulariopsis", face = "italic", size = 12, vjust = 2.5, hjust=0.5)),
+                  as_ggplot(text_grob("Scopulariopsis", face = "italic", size = 12, vjust = 3.3, hjust=0.5)),
                   l.pw.plots[[49]]+theme(axis.text.x = element_text(size = 10))), 
   ncol = 1, align = "h")
 
@@ -904,8 +904,8 @@ ggplot(d.growthEffects %>% mutate(abs.delt.r = abs(delt.r),
   scale_fill_manual(values = species.palette, guide = "none") +
   scale_x_discrete(labels = names) +
   theme_bw() +
-  labs(x = "focal species", 
-       y = expression(atop("change in per capita growth rate of partner (per day)", 
+  labs(x = "focal taxon", 
+       y = expression(atop("change in per capita growth rate of target taxon (per day)", 
                 "abs(" ~rate[coculture] ~"-" ~rate[monoculture] ~")")),
        shape = paste("growth change\ndirection")) +
   theme(panel.grid.major.x = element_blank(),

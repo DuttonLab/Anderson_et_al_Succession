@@ -30,20 +30,20 @@ load(here("figures/plotting_objects.RData"))
 Collin took alone and pairwise CFU data for each species at day 21, assuming this was the "equilibrium" point (which would be where population size no longer changes, and dn/dt == 0), and used it to fit the Lotka-Volterra competition model to predict cell counts of each species in the complete community.
 
 ```{r load in data}
-estimates <- rbind(read_csv(here("wrangled_data/model_predictions/coefficient-estimates-pH5.csv")),
-                   read_csv(here("wrangled_data/model_predictions/coefficient-estimates-pH7.csv")) %>%
+estimates <- rbind(read_csv(here("4_res/coefficient-estimates-pH5.csv")),
+                   read_csv(here("4_res/coefficient-estimates-pH7.csv")) %>%
                      mutate(pH = 7)) %>%
   mutate(spec = recode(spec, "X135E" = "135E"), name = recode(name, "X135E" = "135E"))
 
-predictions <- rbind(read_csv(here("wrangled_data/model_predictions/predictions-from-pH5.csv")) %>%
-                     mutate(pH = 5),
-                   read_csv(here("wrangled_data/model_predictions/predictions-from-pH7.csv")) %>%
-                     mutate(pH = 7)) %>%
-  select(spec, pH, replicate, fit) %>%
+predictions <- rbind(read_csv(here("4_res/predictions-from-pH5.csv")) %>%
+                     pivot_longer(., cols = !c(rep, ph), names_to = "spec", values_to = "fit"),
+                   read_csv(here("4_res/predictions-from-pH7.csv")) %>%
+                     pivot_longer(., cols = !c(rep, ph), names_to = "spec", values_to = "fit")) %>%
+  rename(pH = ph, replicate = rep) %>%
   mutate(spec = recode(spec, "X135E" = "135E")) %>%
   na.omit()
 
-data <- read_csv(here("wrangled_data/model_predictions/community-data-long.csv")) %>%
+data <- read_csv(here("4_res/community-data-long.csv")) %>%
   mutate(spec = recode(spec, "X135E" = "135E"),
          fit = fit - 1)
 colnames(data) <- c("replicate", "spec", "fit")
@@ -249,7 +249,8 @@ pred.rel <- predictions %>%
 rel.abund <- rbind(pred.rel,
                    data %>%
                      group_by(replicate) %>% 
-                     mutate(rel.abund = fit/sum(fit),
+                     mutate(fit.mod = ifelse(fit < 0, 0, fit),
+                            rel.abund = fit.mod/sum(fit.mod),
                             value = "actual") %>%
   select(spec, value, replicate, rel.abund)
 )
@@ -275,8 +276,103 @@ ggplot(rel.abund %>% filter(replicate != 3)) +
   facet_grid(. ~ value, scales = "free_x", 
              labeller = label_parsed)
 
-ggsave(here("figures/rel_abundance_predicted_communities.png"), device="png", width = 7, height = 2.7, units = "in")
+#ggsave(here("figures/rel_abundance_predicted_communities.png"), device="png", width = 7, height = 2.7, units = "in")
 
+```
+
+```{r plot predictions as community relative abundance, echo = F, message = F, warning = F}
+# compile community predictions
+pred.files <- list.files(here("4_res/"), pattern = "predictions-*", full.names = T)
+
+l.pred <- lapply(pred.files, function(x) {
+  read_csv(x) %>% 
+    pivot_longer(cols = !c("rep", "ph"), names_to = "taxa", values_to = "cfus") %>%
+    mutate(predictor = str_sub(basename(x), 13, -5),
+           taxa = recode(taxa, "X135E" = "135E"))
+})
+
+pred <- do.call(rbind, l.pred)
+
+# convert to relative abundance data
+pred.rel <- pred %>%  
+  mutate(fit.mod = ifelse(cfus < 0, 0, cfus)) %>%
+  group_by(predictor, rep) %>% 
+  mutate(rel.abund = fit.mod/sum(fit.mod)) %>% 
+  select(taxa, predictor, rep, rel.abund)
+
+rel.abund <- rbind(pred.rel %>%
+                     group_by(taxa, predictor) %>%
+                     summarize(rel.abund = mean(rel.abund)),
+                   data %>%
+                     group_by(replicate) %>% 
+                     mutate(fit.mod = ifelse(fit < 0, 0, fit),
+                            rel.abund = fit.mod/sum(fit.mod),
+                            predictor = "actual",
+                            taxa = spec) %>%
+                     group_by(taxa, predictor) %>%
+                     summarize(rel.abund = mean(rel.abund))) %>%
+  mutate(predictor = factor(predictor,
+         levels = c("actual", "from-pH5", "from-pH7",
+                    "onlyJBC-135E-pH5", "onlyJBC-pH7"),
+         labels = c('italic("in vitro")~"community data"',
+                    '"prediction from all pH 5 data"',
+                    '"prediction from all pH 7 data"',
+                    'atop("prediction from pH 5, only",
+                    italic("Dituina")~"&"~italic("Penicillium")~"effectors")',
+                    '"prediction from pH 7, only"~italic("Penicillium")~"as an effector"')))
+
+# %>% filter(predictor != "\"prediction from pH 7, only\"~italic(\"Penicillium\")~\"as an effector\"",
+#                            predictor != "\"prediction from all pH 7 data\"" )
+
+# plot
+ggplot(rel.abund) + 
+  geom_bar(aes(x = predictor, y = rel.abund, 
+               fill=factor(taxa, 
+                           levels = c("JB7","JB5","BC10","BC9", "JB370","JBC","135E"))), 
+           stat = "identity", position = "fill", scale = "freex") +
+  barp.theme + theme_bw() + 
+  scale_y_continuous(labels = scales::percent, expand = c(0.005,0.005),
+                     minor_breaks = c(0, .25, .5, .75, 1)) +
+  scale_x_discrete(labels = function(x) parse(text=x)) +
+  labs(x = NULL) +
+  theme(legend.text = element_text(face = "italic"),
+        panel.grid.major.x = element_blank(),
+        axis.text.x = element_text(angle = 35, hjust = 1),
+        plot.margin = margin(0.2, 0.2, 0.2, 1, "cm"))
+
+ggsave(here("figures/rel_abundance_predicted_communities.png"), device="png", width = 5, height = 3.3, units = "in")
+
+```
+
+```{r}
+all.pred <- rbind(data %>% mutate(predictor = "actual") %>% group_by(predictor, spec) %>%
+        summarize(cfus = mean(fit)),
+      pred %>% group_by(predictor, taxa) %>% 
+        summarize(cfus = mean(cfus)) %>%
+        rename(spec = taxa)) %>%
+  mutate(cfus.mod = ifelse(cfus < 0, 0, cfus))
+
+ggplot(all.pred %>%
+         mutate(spec = factor(spec, levels = names(names)[-c(8:9)])), 
+       aes(x = spec, y = cfus.mod)) +
+  geom_bar(data = . %>% filter(predictor == "actual"),
+           aes(fill = spec), stat = "identity", color = "white",
+           position = "dodge", width = 0.8, lwd = 1.3) +
+  scale_fill_manual(values = species.palette, guide = "none") +
+  scale_x_discrete(labels = names) +
+  geom_point(data = . %>% filter(predictor != "actual"),
+             aes(shape = predictor)) +
+  scale_y_log10(limits = c(1, 1e10), breaks = c(1e2, 1e4, 1e6, 1e8, 1e0, 1e10),
+                minor_breaks=trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", label_math(10^.x)),
+                expand = c(0,0)) +
+  theme_bw() +
+  labs(y = "colony-forming units",
+       x = "community member",
+       color = paste("media pH of\npairwise cocultures\nfor prediction"),
+       subtitle = "bars show actual CFUs, points show replicate model predictions") +
+  theme(axis.text.x = element_text(angle = 45, face = "italic", hjust = 1),
+        plot.subtitle = element_text(size = 6))
 ```
 
 
