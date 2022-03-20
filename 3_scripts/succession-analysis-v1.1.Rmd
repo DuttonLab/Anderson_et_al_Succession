@@ -382,6 +382,55 @@ cat(c("Fitting Lotka-Volterra coefficients K and alpha through linear regression
     append=T)
 ```
 
+#### Visualizing for talk
+
+```{r}
+library(scales)
+# res.heatmap = matrix(-999, nrow = length(spec.vec),
+#                      ncol = length(spec.vec))
+# colnames(res.heatmap)=spec.vec
+# rownames(res.heatmap)=spec.vec
+# 
+# for(cur.spec in unique(res.est$spec)){
+#   res.est.use = res.est[res.est$spec == cur.spec & res.est$name!="K",]
+#   res.heatmap[cur.spec,res.est.use$name] = res.est.use$est
+# }
+# diag(res.heatmap) = NA
+
+res.est$sign = sign(res.est$est)
+# res.est$est.sc = sign(res.est$est)*log(abs(res.est$est))
+
+ggplot(res.est %>% filter(name != "K"), aes(x = name, y = spec)) +
+  geom_tile(aes(fill = sign))+
+  scale_fill_gradient2(low = muted("blue"),
+                       high = muted("red"))
+
+temp = res.est %>% filter(name != "K")
+range(temp$est)
+
+
+```
+
+
+```{r}
+## quick thought: scale by carrying capacity
+res.sc = res.est
+for(cur.name in unique(res.sc$spec)){
+  res.sc[res.sc$name==cur.name, "est"] = 
+    res.sc[res.sc$name==cur.name, "est"] * 
+    res.sc$est[res.sc$spec == cur.name & res.sc$name == "K"]
+}
+
+res.sc$est.sc = sign(res.sc$est)*log(abs(res.sc$est))
+
+ggplot(res.sc %>% filter(name != "K"), aes(x = name, y = spec)) +
+  geom_tile(aes(fill = est.sc))+
+  scale_fill_gradient2(low = muted("blue"),
+                       high = muted("red"))
+
+```
+
+
 ## Comparing to community data
 
 ### restructure data
@@ -961,7 +1010,7 @@ coef.orig = -coefficients(out)[names.temp]
 ## Note that Anova gives rownames for coefficients, while out gives rownames for
 ##   the coefficient LEVELS, so we need to turn pH into pH7
 coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
-coef.new =coef.orig -coef.temp
+coef.new =coef.orig - coef.temp
 ## calculate change in the sign
 sigfind.cur$coef.orig = coef.orig
 sigfind.cur$coef.new = coef.new
