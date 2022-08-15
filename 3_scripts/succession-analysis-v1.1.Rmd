@@ -908,6 +908,36 @@ dat.plot$scenario = "ph 5 only-JBC+135E predictions"
 dat.gg = rbind(dat.gg, dat.plot)
 ```
 
+# MSE 
+
+```{r}
+real = dat.gg %>% 
+  filter(scenario == "Actual community")
+
+print("ph 5 all MSE")
+pred.cur = dat.gg %>% 
+  filter(scenario == "ph 5 predictions")
+mean((real$est-pred.cur$est)^2)
+
+print("ph 7 all MSE")
+pred.cur = dat.gg %>% 
+  filter(scenario == "ph 7 predictions")
+mean((real$est-pred.cur$est)^2)
+
+print("ph 7 one effector")
+pred.cur = dat.gg %>% 
+  filter(scenario == "ph 7 only-JBC predictions")
+mean((real$est-pred.cur$est)^2)
+
+print("ph 5 two effectors")
+pred.cur = dat.gg %>% 
+  filter(scenario == "ph 5 only-JBC+135E predictions")
+mean((real$est-pred.cur$est)^2)
+
+
+```
+
+
 # Final visualization
 
 ```{r}
