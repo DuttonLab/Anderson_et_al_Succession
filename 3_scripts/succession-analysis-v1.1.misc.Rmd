@@ -1,0 +1,1234 @@
+---
+title: "Cheese Succession (Brooke paper)"
+author: "Collin Edwards"
+date: "`r Sys.Date()`"
+output:   
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+# Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## libraries
+
+```{r}
+library(here)
+library(tidyverse)
+library(deSolve)
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+library(viridis)
+library(pander)
+library(car)
+```
+
+
+## Functions
+
+Sometimes it's helpful to define a function for code we want to re-use a lot. The key function like that for me is something I call `gfig_saver`, which makes saving ggplot figures systematic.
+
+```{r gfig_saver}
+# function for saving ggplot figures and metadata. As fig_starter (which is for base graphics), except that saving ggfigures is inherently cleaner, as you are not feeding commands to an open graphics device
+
+gfig_saver=function(gfig, #object to be saved
+                    filename, #name of figure file to save as WITHOUT SUFFIX
+                    description, #vector of strings, each will be put in its own line of meta file
+                    ##  Note: generating file is defined in the function, date and time is automatically added.
+                    ##default figure info:
+                    width=12,
+                    height=8,
+                    res=300,
+                    units="in",
+                    figfold="5_figs" #folder to save figures in
+){
+  ## save meta file
+  cat(c(description,
+        "",##easy way to add an extra line to separate description for basic data.
+        
+        paste("from", knitr::current_input()),
+        "RDS file with same name contains ggplot object used to generate this figure.",
+        as.character(Sys.time())),
+      sep="\n",
+      file=here(figfold, paste0(filename,"_meta.txt", sep=""))
+  )
+  #save figure as jpg (change code here for other figure types)
+  ggsave(filename=here(figfold, paste0(filename,".jpg")),
+         plot=gfig,
+         device="jpeg",
+         dpi=res,
+         width=width, height=height, units=units
+  )
+  ggsave(filename=here(figfold, paste0(filename,".pdf")),
+         plot=gfig,
+         device="pdf",
+         dpi=res,
+         width=width, height=height, units=units
+  )
+  #save ggplot object as RDS file, for easy manipulation later
+  saveRDS(object = gfig, file=here(figfold, paste0(filename,".RDS")))
+}
+```
+
+
+```{r}
+theme.mine=theme(plot.title = element_text(face="bold", size=24),
+                 text=element_text(size=rel(4.5)),
+                 legend.text=element_text(size=rel(2))
+)
+```
+
+
+## Purpose
+
+The goal is to determine whether data from single-speceis and pairwise expeirments (e.g. at most pairwise interactions) in Brooke's cheese data can explain the community dynamics from treatments innoculated with a full 7-species community. The manuscript for this project is [here](https://docs.google.com/document/u/1/d/1KIhnJMmHf3wOXv_0DQ9UgcjIVkz1v0FGFiyUVdktreE/edit?ts=608b2425).
+
+## Plan
+
+*Currently from email - reformat as necessary*
+
+The goal:
+
+Determine if the 7-species community can be predicted/described by pairwise interactions (we're pretty sure it can't, but it would be nice to say that for certain). 
+
+The problem(s):
+
+"Community" is hard to define. With only 4 time points, classical population dynamics approaches are liable to run into issues. Estimating confidence intervals from the standard trajectory-matching approach for fitting population dynamics models is... hard? I don't know how to do it, and would need to do a lot of digging.
+
+The solution (I think):
+
+If we imagine that the system is actually following Lotka-Volterra competition (the simplest competition model), then at least for the 2-species experiments, the populations will eventually reach an equilibrium (which can have one of the populations at size zero). The equilibrium for Lotka Volterra is clearly defined in terms of just carrying capacity and interaction terms (generally denoted with "alphas") that capture either competition or stimulation. Using that knowledge, and assuming that the populations are at equilibrium on day 21, we can estimate the alphas and the carrying capacity from the paired experiments, and see if those predict the final population sizes of the 7-species community.
+
+A little math background:
+The Lotka-Volterra competition model is defined by a system of Ordinary Differential Equations (ODEs). This is fancy math-speak for some equations that define how the size of the populations changes at any given point in time, based on the current size of the populations. For LV, it's this set of equations:
+
+image.png
+Where 
+x_i is the population size of species i, 
+the r parameters correspond to intrinsic growth rates (growth when not competing)
+the K parameters correspond to the carrying capacity in the absence of other species
+alpha_ij is the competition coefficient for species j on species i. I like to think of this as a conversion rate - an alpha_ij of 2 means that each individual of species j has the same competition effect on species i as would 2 individuals of species i. So big values mean the other species has a strong suppression effect, small values mean a minimal suppression effect. I'm not used to LV with positive effects, but negative alphas mean that one species is helping the other.
+There is a lot of really cool math that has gone into things we can discover/prove with ODEs, but we actually don't need most of it right now. If our populations are at equilibrium in our day 21 data, that means the population sizes aren't changing. So there's no rate of change, so dx/dt is 0. If we set the left hand side of each equation to zero, and do a little re-arranging of terms with algebra, we get:
+
+x_1 = K_1 - alpha_21 * x_2
+
+(and the other version, where each number is swapped)
+
+And that's kind of dry looking, but it's just a different version of
+
+y = mx + b.
+
+where y and x are the sizes of our two populations (e.g. the things we have data for)
+
+Taking this approach, we can find carrying capacity and interaction terms with linear regression using the single-species and pairwise interaction data (!!). We still face the caveats of our various assumptions (below), but this is suddenly incredibly tractable. And the question of "What would the 7-species community look like if it were mostly the result of pairwise interactions" could, I think, be addressed pretty easily at that point. The 7-species version of lotka volterra has more equations, but the equilibrium has the same structure, I believe, except it's 
+
+K_1 - (sum of all six appropriate alpha * x terms). 
+
+(I'll double check that at some point here). So we can use our fitted versions of all our K and alpha values from the pairwise and single-species experiments, plug them into the equation for equilibrium of the 7-species model, and predict what we would expect the 7-species equilibrium would be (assuming only pairwise interactions mattered). To look at if reality is significantly different from what we predict, we can use parametric bootstrapping: basically we generate "random" K and alpha values based on our estimated distributions from fitting those parameters from the single-species and pairwise experiments, and for each set of random K and alpha values, we make a prediction for the final community. We can do that a bunch of times, and that creates a distribution of expectations assuming pairwise interactions - if the real data is outside of 95% of that, then it's significantly different. Since in this case we have 7 abundances that are not independent, we may need to use something like PERMANOVA to compare the bootstrap-simulated final communities with the actual 7-species community data, but that shouldn't actually be very hard.
+
+Some caveats:
+First, we're assuming that lotka volterra dynamics do a good job of capturing the key dynamics in the system. Second, we're assuming that populations are at equilibrium on day 21 -- from the data, it looks like they are in some cases, and not in others. Additionally, communities of more than 2 species with lotka volterra competition aren't guaranteed to have an equilibrium at all - they can exhibit non-equilibrium dynamics like periodic cycles through time, or mathematical chaos. 
+
+Looking at the results (e.g. Fig 1A), it certainly looks like we're wrong in making these assumptions, but that we're probably close enough. (Any modeling work will be making some incorrect assumptions - the goal is to make sure they don't matter). My take on all of this is that (a) it doesn't look like there's anything too crazy going on here (no sine-wave type behavior we can see, for example), (b) there's a lot that's unknown in modeling microbial communities, and it seems like the most elaborate things being used right now are Lotka Volterra, so I think we're in fine company, and (c) we have to work with the data we have, and while it's astounding in a lot of ways, we don't have enough time points to effectively do more elaborate modeling of population dynamics. 
+
+So I would go forward with this as described above, so long as we're clear about what we're doing in the text (happy to help make the writing clear on that). I think once I've at least prototyped this, I might also run it by a few more senior theoretical ecologists I work with, in case I'm missing some subtle issue.
+
+One thing to bear in mind is that LV is also often unsuited to capturing mutualisms -- there are some parameter values where both species explode to infinite size even though there's a finite carrying capacity. I don't think that's an issue with our data, but it's something to be aware of. I haven't dug into it a ton, but there has been recent work on how to model community dynamics and coexistence when working with mutualisms. I might need to take a look at that at some point (although again, I think we have a good plan outlined above).
+
+Some anti-caveats
+
+One of the nice things about only working with the stable equilibrium (aside from the math being tractable) is that we're not actually making any assumptions about growth rate or dynamics up to that point. We're just assuming that each species has an equilibrium size that is a linear function of the other species at equilibrium. So if we wanted to, we could actually NOT call this lotka volterra, since our approach encompasses ANY model with that equilibrium conditions, not just lotka volterra. (But I think we still couch it in terms of LV, because folks are familiar with that). 
+
+A few pieces I may need to explore:
+We're using some of the data to estimate different parameters in independent analyses, and it's not quite clear to me how we account for that when representing error (e.g. our estimate of alpha_21 and alpha_12 come from fitting the same data of pairwise species competition, but we're fitting that data in two different equations). I may need to think some more and/or consult Elizabeth. Additionally, there's a generalized Lotka Volterra model that I'm not super familiar with, but appears to be more common for working with many-species communities. I believe that it is fundamentally the same thing as I've outlined above, but the formulation is different (e.g. different parameter names, somewhat different version of the equation), and it might be good to rework my math to match that nomenclature. I might dig into it. 
+
+The plan:
+I try this out with the data - fit the carrying capacities and the alphas with linear regression, see how well it predicts the data that I'm using to fit it, see how it predicts the 7-species community. I expect this will take a day or less of time, and I should be able to fit that in in the next two weeks. This won't focus on significance testing, but just "can we estimate parameters" and "what do our estimated parameters suggest". 
+I write up a brief description of the methodology with code and example figures, and run it by Elizabeth Crone (statistical ecologist who can make suggestions on the non-independence of the different regressions), and then Steve Ellner, Sebastian Schrieber, and/or Giles Hooker, who have expertise in working with dynamical models (and in Giles' case, literally wrote the book for fitting dynamical models to data) and can act as an additional sounding board for the "let's assume we're at equilibrium" bit. 
+???
+Profit.
+
+
+
+
+## Read in data
+
+```{r}
+dat.orig = raw = read.csv(here("1_raw_data",
+                               "2018_08_21_Bayley_allPW.csv"))
+```
+
+# Approach: Use linear models
+
+If we assume the communities are at equilibrium on day 21, and if their dynamics are defined by lotka volterra dynamics, their abundance is a linear function of the densities of competitors. For the two-species LV model, the equilibrium densities of species 1 and species 2 (denoted $N_1^*$ and $N_2^*$) are defined by
+
+\[N_1^* = K_1 - \alpha_{12}N_2^*\]
+
+and
+
+\[N_2^* = K_2 - \alpha_{21}N_1^*\]
+
+
+Since we're assuming the populations are at equilibrium, our observations give us $N_1^*$ and $N_2^*$, and we can fit a regression model to estimate $K$ and the $\alpha$ terms. (and we can use the regression framework to estimate our error)
+
+Using our pairwise experiments, we can estimate all parameters for species 1 simultaneously, with
+
+\[N_1^* = K_1 - \alpha_{12}N_2^* - \alpha_{13}N_3^*-\dots\]
+
+Note that when fitting the above model, for any given entry, at most one of the Ns on the right hand side will be non-zero (that is, either the observation comes from a species alone, in which case all other Ns are 0, or it comes from a two-species experiment, in which case ONE other N will be some postitive number, and the rest will be zeros). 
+
+Using this framework, we can fit the data and see how well it predicts the observed 7-species community.
+
+Note two caveats:
+
+* if it doesn't fit the 7-species data well, that suggests either complex interactions OR that one or more of the data sets isn't at equilibrium.
+* The error structure is probably pretty complicated, since we're "re-using" the same data to estimate the parameters for multiple species. Elizabeth and I both think this isn't worth worrying about
+
+
+Update (8/26/21): fitting the data in two step process: first estimate k, then calculate everything else. So estimate k using original data, then for interaction terms fit a no-intercept model after subtracting the carrying capacity.
+
+## Step 1: restructure data 
+
+We need a data frame with a row for each experiment, and a column for the density of each species. 
+
+```{r}
+#make empty data frame
+#We want to store cfus for each species, 
+df.template = 
+  dat.mat = setNames(data.frame(matrix(ncol = 2*length(unique(raw$spec))+2, nrow = 0)),
+                     c(as.character(unique(raw$spec)), "cond", "rep",paste0("pres.",c(as.character(unique(raw$spec)))))
+  )
+raw.use = raw %>% 
+  filter(day == 21) %>% 
+  filter(pH == 5)
+#handle the alones
+for(cur.spec in unique(raw.use$spec)){
+  print(cur.spec)
+  dat.cur = raw.use %>% 
+    filter(spec == cur.spec) %>% 
+    filter(cond == "alone")
+  df.fill=as.data.frame(matrix(0, 
+                               nrow=nrow(dat.cur),
+                               ncol=ncol(dat.mat)))
+  names(df.fill) = names(dat.mat)
+  df.fill[,cur.spec]=dat.cur$cfus
+  df.fill[,"rep"]=dat.cur$rep
+  df.fill[,"cond"]="alone"
+  df.fill[,paste0("pres.",cur.spec)] = T
+  dat.mat = rbind(dat.mat, df.fill)
+}
+
+## pairs
+spec.vec = as.character(unique(raw.use$spec))
+
+for(i.spec in 1:(length(spec.vec)-1)){
+  cur.spec = spec.vec[i.spec]
+  for(j.spec in (i.spec+1):length(spec.vec)){
+    other.spec = spec.vec[j.spec]
+    #get cfus of current species
+    dat.cur = raw.use %>% 
+      filter(spec == cur.spec) %>% 
+      filter(cond == other.spec)
+    #get cfus of other species
+    dat.other = raw.use %>% 
+      filter(spec == other.spec) %>% 
+      filter(cond == cur.spec)
+    #handle replicate mismatching
+    dat.cur = dat.cur[dat.cur$rep %in% dat.other$rep,]
+    dat.other = dat.other[dat.other$rep %in% dat.cur$rep,]
+    dat.cur=dat.cur[order(dat.cur$rep),]
+    dat.other=dat.other[order(dat.other$rep),]
+    
+    ## The following code is a bunch of sanity checking.
+    if(nrow(dat.cur) != nrow(dat.other)){
+      stop("dimensions not matching up. investigate")
+      # print(paste(cur.spec, other.spec))
+      # print("dimensions not matching up. investigate")
+    }
+    if(any(dat.cur$rep != dat.other$rep)){
+      stop("replicates not matching up. investigate")
+      # print(paste(cur.spec, other.spec))
+      # print("replicates not matching up. investigate")
+    }
+    df.fill=as.data.frame(matrix(0,
+                                 nrow=nrow(dat.cur),
+                                 ncol=ncol(dat.mat)))
+    names(df.fill) = names(dat.mat)
+    df.fill[ , cur.spec] = dat.cur$cfus
+    df.fill[ , other.spec] = dat.other$cfus
+    df.fill[,"rep"]=dat.cur$rep
+    df.fill[,"cond"]="paired-comp"
+    df.fill[,paste0("pres.",cur.spec)] = T
+    df.fill[,paste0("pres.",other.spec)] = T
+    dat.mat = rbind(dat.mat, df.fill)
+  }
+}
+dat.mat$day = 21
+dat.mat$pH = 5
+names(dat.mat)[names(dat.mat)=="pres.135E"]="pres.X135E"
+
+write.csv(dat.mat, 
+          file = here("2_data_wrangling","matrix-form.csv"),
+          row.names = FALSE
+)
+```
+
+## Fitting
+
+Note that we use carrying capacities calculated from the monocultures.
+
+### Testing: fit one species
+
+```{r}
+library(lme4)
+dat.fit = read.csv(file = here("2_data_wrangling","matrix-form.csv"))
+#NOTE: R adds a leading X to column names that start with numbers
+
+dat.k = dat.orig %>% 
+  filter(day==21) %>% 
+  filter(spec=="BC9") %>% 
+  filter(cond=="alone") %>% 
+  filter(pH == 5)
+out = lm(cfus ~ 1, data = dat.k )
+k.cur = out$coefficients[[1]]
+dat.mod = dat.fit[dat.fit$pres.BC9==1,]
+dat.mod$BC9=dat.mod$BC9-k.cur
+out = lm(BC9 ~ -1 + BC10 + JB5 + JB7 + X135E + JBC + JB370,
+         data = dat.mod)
+summary(out)
+hist(resid(out), breaks=20)
+# coefficients(out)
+
+dat.log=dat.fit
+dat.log[,1:7] = log(dat.log[,1:7]+1)
+#let's try a log transform, because that seems relevant
+out.log = lm(BC9 ~ BC10 + JB5 + JB7 + X135E + JBC + JB370,
+             data = dat.log[dat.log$pres.BC9==1,])
+hist(resid(out.log), breaks=20)
+
+#The linear scale appears better, and is simpler to handle.
+```
+
+### Loop over all species
+```{r}
+res.est = NULL
+spec.vecfit = unique(raw$spec)
+spec.vecfit[spec.vecfit=="135E"] = "X135E"
+for(i.spec in 1:length(spec.vec)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  
+  ## calculate K
+  dat.k = dat.orig 
+  dat.k$spec[dat.k$spec=="135E"]="X135E"
+  dat.k = dat.k %>% 
+    filter(day==21) %>% 
+    filter(spec==cur.spec) %>% 
+    filter(cond=="alone") %>% 
+    filter(pH == 5)
+  out.k = lm(cfus ~ 1, data = dat.k )
+  k.cur = out.k$coefficients[[1]]
+  ## modify the data to ensure we're accounting for k
+  ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
+  dat.cur = dat.fit[ind.use,]
+  dat.cur = dat.cur %>% 
+    filter(cond !="alone")
+  dat.cur[,cur.spec]=dat.cur[,cur.spec]-k.cur
+  #generate formula automatically
+  # Note that we are fit a zero-intercept model, as we have already subtracted out K.
+  #
+  form = paste0(cur.spec," ~ -1 + ", paste(spec.vecfit[-i.spec], collapse = " + "))
+  out.cur = lm(formula(form),
+               data = dat.cur)
+  cur.df = data.frame(est = c(coefficients(out.k),coefficients(out.cur)),
+                      se = c(coef(summary(out.k))[,2], coef(summary(out.cur))[,2]))
+  #switch to alphas (for everything but Ks, which are the first entry) by multiplying by -1
+  cur.df$est[-1]=-cur.df$est[-1]
+  cur.df$spec = cur.spec
+  cur.df$name = rownames(cur.df)
+  cur.df$pH = 5
+  rownames(cur.df)=NULL
+  cur.df$name[1] = "K"
+  #reorder
+  cur.df=cur.df[,c("spec","name","est","se", "pH")]
+  res.est = rbind(res.est, cur.df)
+}
+## and that's our fits
+## 
+write.csv(res.est, 
+          file = here("4_res",
+                      "coefficient-estimates-pH5.csv"),
+          row.names = FALSE
+)
+## write metadata
+cat("meta-data for coefficeint-estimates.csv",
+    file = here("4_res", "coefficient-estimates-metadata.txt"),
+    sep = "\n")
+cat(c("Fitting Lotka-Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium",
+      "We assume the error is normally distributed - this seems close enough to true.",
+      "",
+      "spec is the focal species",
+      "name is the coefficient name. In the cases where name is a species name, it's an alpha term, and the species named is the competing species",
+      "est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1.",
+      "se is the standard error from the lienar regression"),
+    file = here("4_res", "coefficient-estimates-pH5-metadata.txt"),
+    sep = "\n",
+    append=T)
+```
+
+#### Visualizing for talk
+
+```{r}
+library(scales)
+# res.heatmap = matrix(-999, nrow = length(spec.vec),
+#                      ncol = length(spec.vec))
+# colnames(res.heatmap)=spec.vec
+# rownames(res.heatmap)=spec.vec
+# 
+# for(cur.spec in unique(res.est$spec)){
+#   res.est.use = res.est[res.est$spec == cur.spec & res.est$name!="K",]
+#   res.heatmap[cur.spec,res.est.use$name] = res.est.use$est
+# }
+# diag(res.heatmap) = NA
+
+res.est$sign = sign(res.est$est)
+# res.est$est.sc = sign(res.est$est)*log(abs(res.est$est))
+
+ggplot(res.est %>% filter(name != "K"), aes(x = name, y = spec)) +
+  geom_tile(aes(fill = sign))+
+  scale_fill_gradient2(low = muted("blue"),
+                       high = muted("red"))
+
+temp = res.est %>% filter(name != "K")
+range(temp$est)
+
+
+```
+
+
+```{r}
+## quick thought: scale by carrying capacity
+res.sc = res.est
+for(cur.name in unique(res.sc$spec)){
+  res.sc[res.sc$name==cur.name, "est"] = 
+    res.sc[res.sc$name==cur.name, "est"] * 
+    res.sc$est[res.sc$spec == cur.name & res.sc$name == "K"]
+}
+
+res.sc$est.sc = sign(res.sc$est)*log(abs(res.sc$est))
+
+ggplot(res.sc %>% filter(name != "K"), aes(x = name, y = spec)) +
+  geom_tile(aes(fill = est.sc))+
+  scale_fill_gradient2(low = muted("blue"),
+                       high = muted("red"))
+
+```
+
+
+## Comparing to community data
+
+### restructure data
+
+```{r}
+raw.com = raw %>% 
+  filter(cond == "community") %>% 
+  filter(day == 21) %>% 
+  filter(pH == 5)
+
+nrep = max(raw.com$rep)
+dat.com = data.frame(BC9 = rep(-99, nrep),
+                     BC10 = rep(-99, nrep),
+                     JB5 = rep(-99, nrep),
+                     JB7 = rep(-99, nrep),
+                     X135E = rep(-99, nrep),
+                     JBC = rep(-99, nrep),
+                     JB370 = rep(-99, nrep),
+                     rep = 1:nrep
+)
+
+
+## pairs
+raw.com$spec[raw.com$spec=="135E"] = "X135E"
+spec.vec = as.character(unique(raw.com$spec))
+
+for(cur.spec in spec.vec){
+  #get cfus of current species
+  dat.cur = raw.com %>% 
+    filter(spec == cur.spec) 
+  dat.com[dat.cur$rep,cur.spec] = dat.cur$cfus
+}
+## add NAs
+dat.com[dat.com==-99]=NA
+
+
+write.csv(dat.com, 
+          file = here("2_data_wrangling","matrix-form-comdat.csv"),
+          row.names = FALSE
+)
+```
+
+### predicting
+
+```{r}
+# read in our community data (e.g. what we saved last chunk)
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH5.csv"))
+dat.com = na.omit(dat.com)
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+for(i.spec in 1:(length(spec.vecfit))){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  dat.pred[,cur.spec] = pred.cur
+}
+dat.pred$ph = 5
+
+write.csv(dat.pred,
+          here("4_res","predictions-from-pH5.csv"),
+          row.names=F
+)
+```
+
+So our predicted community not only doesn't match our actual community very well, it also doesn't really match possible realities very well. We have a lot of negative numbers.
+
+### Visualizing
+
+```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 5 predictions"
+dat.gg = dat.plot
+
+dat.plot = data.frame(est = apply(dat.com,2, median))
+dat.plot$spec = colnames(dat.com)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "Actual community"
+dat.gg = rbind(dat.gg, dat.plot)
+
+ggplot(data = dat.gg, aes(fill = spec, x = scenario, y = rel))+
+  geom_col()+
+  ylab("relative abundance")+
+  theme.mine
+
+```
+
+
+# pH 7
+
+Now that we can fit Lotka Volterra with regression models, let's try again, but with pH 7.
+
+## quick sanity check for ks
+
+```{r}
+dat.orig %>%  
+  filter(cond == "alone") %>%  
+  filter(day == 21) %>% 
+  filter(pH == 5 ) %>%
+  # View() %>% 
+  group_by(spec) %>% 
+  summarize(cfus = median(cfus))
+```
+
+
+## Restructuring the data
+
+```{r}
+#make empty data frame
+#We want to store cfus for each species, 
+dat.mat7 = setNames(data.frame(matrix(ncol = 2*length(unique(raw$spec))+2, nrow = 0)),
+                    c(as.character(unique(raw$spec)), "cond", "rep",paste0("pres.",c(as.character(unique(raw$spec)))))
+)
+raw.use = raw %>% 
+  filter(day == 21) %>% 
+  filter(pH == 7)
+#handle the alones
+for(cur.spec in unique(raw.use$spec)){
+  print(cur.spec)
+  dat.cur = raw.use %>% 
+    filter(spec == cur.spec) %>% 
+    filter(cond == "alone")
+  df.fill=as.data.frame(matrix(0, 
+                               nrow=nrow(dat.cur),
+                               ncol=ncol(dat.mat7)))
+  names(df.fill) = names(dat.mat7)
+  df.fill[,cur.spec]=dat.cur$cfus
+  df.fill[,"rep"]=dat.cur$rep
+  df.fill[,"cond"]="alone"
+  df.fill[,paste0("pres.",cur.spec)] = T
+  dat.mat7 = rbind(dat.mat7, df.fill)
+}
+
+## pairs
+spec.vec = as.character(unique(raw.use$spec))
+
+# Process all pairwise interaction experiments
+for(i.spec in 1:(length(spec.vec)-1)){ #focal species
+  cur.spec = spec.vec[i.spec]
+  for(j.spec in (i.spec+1):length(spec.vec)){
+    other.spec = spec.vec[j.spec]
+    #get cfus of current species
+    dat.cur = raw.use %>% 
+      filter(spec == cur.spec) %>% 
+      filter(cond == other.spec)
+    #get cfus of other species
+    dat.other = raw.use %>% 
+      filter(spec == other.spec) %>% 
+      filter(cond == cur.spec)
+    #The replicates might not be lined up. Make it so.
+    dat.cur = dat.cur[dat.cur$rep %in% dat.other$rep,]
+    dat.other = dat.other[dat.other$rep %in% dat.cur$rep,]
+    dat.cur=dat.cur[order(dat.cur$rep),]
+    dat.other=dat.other[order(dat.other$rep),]
+    
+    ## Sanity checking to make sure everything is lining up.
+    if(nrow(dat.cur) != nrow(dat.other)){
+      stop("dimensions not matching up. investigate")
+    }
+    if(any(dat.cur$rep != dat.other$rep)){
+      stop("replicates not matching up. investigate")
+    }
+    ## if all is working, combine the pieces into a data frame for 
+    ##   the current species pair, then stitch to the overall data frame.
+    df.fill=as.data.frame(matrix(0,
+                                 nrow=nrow(dat.cur),
+                                 ncol=ncol(dat.mat7)))
+    names(df.fill) = names(dat.mat7)
+    df.fill[ , cur.spec] = dat.cur$cfus
+    df.fill[ , other.spec] = dat.other$cfus
+    df.fill[,"rep"]=dat.cur$rep
+    df.fill[,"cond"]="paired-comp"
+    df.fill[,paste0("pres.",cur.spec)] = T
+    df.fill[,paste0("pres.",other.spec)] = T
+    dat.mat7 = rbind(dat.mat7, df.fill)
+  }
+}
+dat.mat7$day = 21
+dat.mat7$pH = 7
+names(dat.mat7)[names(dat.mat7)=="pres.135E"]="pres.X135E"
+
+write.csv(dat.mat7, 
+          file = here("2_data_wrangling","matrix-form-pH7.csv"),
+          row.names = FALSE
+)
+```
+
+## Fit the model
+
+```{r}
+dat.fit = read.csv(file = here("2_data_wrangling","matrix-form-pH7.csv"))
+res.est = NULL
+spec.vecfit = unique(raw$spec)
+spec.vecfit[spec.vecfit=="135E"] = "X135E"
+for(i.spec in 1:length(spec.vec)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  
+  ## calculate K
+  dat.k = dat.orig 
+  dat.k$spec[dat.k$spec=="135E"]="X135E"
+  dat.k = dat.k %>% 
+    filter(day==21) %>% 
+    filter(spec==cur.spec) %>% 
+    filter(cond=="alone") %>% 
+    filter(pH == 7)
+  out.k = lm(cfus ~ 1, data = dat.k )
+  k.cur = out.k$coefficients[[1]]
+  
+  ## modify the data to ensure we're accounting for K
+  ind.use = dat.fit[,paste0("pres.",cur.spec)]==1
+  dat.cur = dat.fit[ind.use,]
+  dat.cur[,cur.spec]=dat.cur[,cur.spec]-k.cur
+  #generate formula automatically
+  # Note that we are fit a zero-intercept model, as we have already subtracted out K.
+  #
+  form = paste0(cur.spec," ~ -1 + ", paste(spec.vecfit[-i.spec], collapse = " + "))
+  out.cur = lm(formula(form),
+               data = dat.cur)
+  est = coefficients(out.cur)
+  #sometimes we're getting NAs for se
+  #and this doesn't even show up in coef(summary())
+  # so we have to do something a little fiddly.
+  se = est*NA
+  coef.temp = coef(summary(out.cur))[,2]
+  se[names(coef.temp)] = coef.temp
+  cur.df = data.frame(est = c(coefficients(out.k), est),
+                      se = c(coef(summary(out.k))[,2],se))
+  #switch to alphas (for everything but Ks, which are the first entry) by multiplying by -1
+  cur.df$est[-1]=-cur.df$est[-1]
+  cur.df$spec = cur.spec
+  cur.df$name = rownames(cur.df)
+  cur.df$pH = 7
+  rownames(cur.df)=NULL
+  cur.df$name[1] = "K"
+  #reorder
+  cur.df=cur.df[,c("spec","name","est","se", "pH")]
+  res.est = rbind(res.est, cur.df)
+}
+
+write.csv(res.est, 
+          file = here("4_res",
+                      "coefficient-estimates-pH7.csv"),
+          row.names = FALSE
+)
+## write metadata
+cat("meta-data for coefficeint-estimates.csv",
+    file = here("4_res", "coefficient-estimates-pH7-metadata.txt"),
+    sep = "\n")
+cat(c("Fitting Lotka-Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium",
+      "As before, but now we are doing pH7 data",
+      "We assume the error is normally distributed - this seems close enough to true.",
+      "",
+      "spec is the focal species",
+      "name is the coefficient name. In the cases where name is a species name, it's an alpha term, and the species named is the competing species",
+      "est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1.",
+      "se is the standard error from the lienar regression"),
+    file = here("4_res", "coefficient-estimates-pH7-metadata.txt"),
+    sep = "\n",
+    append=T)
+```
+
+## Comparing to community data
+
+### restructure data
+
+We already did this for the pH5 predictions, and we're using the same community data. We can just read in `matrix-form-comdat.csv`.
+
+```{r}
+dat.com = read.csv(file = here("2_data_wrangling","matrix-form-comdat.csv")
+)
+
+```
+
+### predicting
+
+Note that we have no estimate for the effect of 135E on JBC since it never survives, BUT we don't have it in the final community. I'm converting all estimates of interactions coming from X135E to 0 in the calculations to avoid NA propogation.
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH7.csv"))
+#make a data fram to store predictions - easiest way is to grab existing community data frame and empty it.
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+for(i.spec in 1:length(spec.vecfit)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  if(cur.spec =="JBC"){
+    coefs.vec["X135E"]=0
+  }
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  # (using some transformations (the `t()` function) to make the right pieces line
+  # up)
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  dat.pred[,cur.spec] = pred.cur
+}
+
+dat.pred$ph = 7
+
+write.csv(dat.pred,
+          here("4_res","predictions-from-pH7.csv"),
+          row.names=F
+)
+```
+
+### Visualizing
+
+Adding to our existing set of predictions
+
+```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 7 predictions"
+dat.gg = rbind(dat.gg, dat.plot)
+
+ggplot(data = dat.gg, aes(fill = spec, x = scenario, y = rel))+
+  geom_col()+
+  ylab("relative abundance")+
+  theme.mine
+
+```
+
+
+# Other predictions
+
+pH 7 has better correspondence to our actual community, but it's far from correct. Brooke has some hypotheses on this.
+
+##  JBC coefficient @ pH 7
+
+What if only JBC had any effects on other species?
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH7.csv"))
+## turn anything that's not a K or from JBC to 0
+dat.coefs[!dat.coefs$name %in% c("K","JBC"), "est"]=0
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+for(i.spec in 1:length(spec.vecfit)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  if(cur.spec =="JBC"){
+    coefs.vec["X135E"]=0
+  }
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  dat.pred[,cur.spec] = pred.cur
+}
+
+dat.pred$ph = 7
+
+write.csv(dat.pred,
+          here("4_res","predictions-onlyJBC-pH7.csv"),
+          row.names=F
+)
+```
+
+Add to our quick visualization dataframe
+```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 7 only-JBC predictions"
+dat.gg = rbind(dat.gg, dat.plot)
+```
+
+
+##  JBC + 135E @ pH 5
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH5.csv"))
+## turn anything that's not a K or from JBC to 0
+dat.coefs[!dat.coefs$name %in% c("K","JBC", "X135E"), "est"]=0
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+for(i.spec in 1:length(spec.vecfit)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  if(cur.spec =="JBC"){
+    coefs.vec["X135E"]=0
+  }
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  dat.pred[,cur.spec] = pred.cur
+}
+
+dat.pred$ph = 5
+
+write.csv(dat.pred,
+          here("4_res","predictions-onlyJBC-135E-pH5.csv"),
+          row.names=F
+)
+```
+
+Add to our quick visualization dataframe
+```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 5 only-JBC+135E predictions"
+dat.gg = rbind(dat.gg, dat.plot)
+```
+
+# MSE 
+
+```{r}
+real = dat.gg %>% 
+  filter(scenario == "Actual community")
+
+print("ph 5 all MSE")
+pred.cur = dat.gg %>% 
+  filter(scenario == "ph 5 predictions")
+mean((real$est-pred.cur$est)^2)
+
+print("ph 7 all MSE")
+pred.cur = dat.gg %>% 
+  filter(scenario == "ph 7 predictions")
+mean((real$est-pred.cur$est)^2)
+
+print("ph 7 one effector")
+pred.cur = dat.gg %>% 
+  filter(scenario == "ph 7 only-JBC predictions")
+mean((real$est-pred.cur$est)^2)
+
+print("ph 5 two effectors")
+pred.cur = dat.gg %>% 
+  filter(scenario == "ph 5 only-JBC+135E predictions")
+mean((real$est-pred.cur$est)^2)
+
+
+```
+
+
+# Final visualization
+
+```{r}
+ggplot(data = dat.gg, aes(fill = spec, x = scenario, y = rel))+
+  geom_col()+
+  ylab("relative abundance")+
+  theme.mine
+```
+
+## Quick visual check of pH 7 JBC-only
+
+We notice that the pH 7 predictions are almost the same if we only include JBC. This would make sense only if the overwhelming majority of interactions come from JBC (Penicillium). Remember that the total effect of an interaction is the interaction coefficient times the population size of the source of interaction. Here we plot this term (as an absolute value, on a log scale).
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH7.csv"))
+
+dat.commed = apply(dat.com, 2, median)
+dat.temp = dat.coefs %>% 
+  filter(name != "K")
+dat.temp$eff = dat.temp$est * dat.commed[dat.temp$name]
+dat.temp$effab=abs(dat.temp$eff)
+# 
+# ggplot(dat.temp, aes(x = name, y = est))+
+#   geom_point()+
+#   scale_y_log10()
+# ggplot(dat.temp, aes(x = name, y = eff, col=spec))+
+#   geom_line(aes(group=spec))+
+#   geom_point()
+
+ggplot(dat.temp, aes(x = name, y = effab, col=spec))+
+  geom_line(aes(group=spec))+
+  geom_point()+
+  scale_y_log10()+theme.mine
+
+```
+
+We see by far the strongest estimated interactions in the pH 7 data are expected to come from JBC, so cutting out all other interactions should not have any effect.
+
+# Which interactions change
+
+This is attempt 2, which is excluding the interaction terms for species which are at 0 density in pH 5
+
+Note: In addition to identifying the significant changes, we identify (a) the original sign of the ALPHA (negative of coefficient estimate) (b) the direction of change of THE ALPHA, and the change in the magnitude of the alpha.
+
+```{r}
+dat.7 = read.csv(here("2_data_wrangling",
+                      "matrix-form-pH7.csv"))
+dat.5 = read.csv(here("2_data_wrangling",
+                      "matrix-form.csv"))
+dat.full = rbind(dat.7, dat.5)
+dat.full$pH=as.character(dat.full$pH)
+```
+
+```{r}
+findings = list()
+sigfind = NULL
+```
+
+
+## BC9
+```{r}
+dat.cur = dat.full[dat.full$pres.BC9==1,]
+out = lm(BC9 ~ BC10*pH + JB5*pH + JB7 + X135E*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$BC9 = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "Insufficient variation in JB7 at pH5. Excluding JB7:pH")
+#no terms mattered
+```
+
+## BC10
+```{r}
+dat.cur = dat.full[dat.full$pres.BC10==1,]
+out = lm(BC10 ~ BC9*pH + JB5*pH + JB7*pH + X135E*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+
+findings$BC10 = list(all = Anova(out),
+                     sigint = temp,
+                     meta = "All terms included")
+#making piece to add to to overall data frame
+sigfind.cur = as.data.frame(temp)
+
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig - coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "BC10"
+sigfind = rbind(sigfind, sigfind.cur)
+
+```
+
+## JB5
+```{r}
+dat.cur = dat.full[dat.full$pres.JB5==1,]
+out = lm(JB5 ~ BC9*pH + BC10*pH + JB7*pH + X135E*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "JB5"
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+## JB7
+```{r}
+dat.cur = dat.full[dat.full$pres.JB7==1,]
+out = lm(JB7 ~ BC9*pH + BC10*pH + JB5*pH + X135E*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+
+findings$JB7 = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "All terms included")
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "JB7"
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+## X135E
+```{r}
+dat.cur = dat.full[dat.full$pres.X135E==1,]
+out = lm(X135E ~ BC9*pH + BC10*pH + JB5*pH + JB7*pH + JBC*pH + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$X135E = list(all = Anova(out),
+                      sigint = temp,
+                      meta = "All terms included")
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "X135E"
+
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+## JBC
+```{r}
+dat.cur = dat.full[dat.full$pres.JBC==1,]
+# View(dat.cur)
+out = lm(JBC ~ BC9*pH + BC10*pH + JB5 + JB7*pH + X135E + JB370*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$JBC = list(all = Anova(out),
+                    sigint = temp,
+                    meta = "Insufficient JB5 and X135E at pH 5 - both JB5:pH and X135E:pH were removed.")
+#adding to overall data frame
+sigfind.cur = as.data.frame(temp) 
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "JBC"
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+## JB370
+```{r}
+dat.cur = dat.full[dat.full$pres.JB370==1,]
+out = lm(JB370 ~ BC9*pH + BC10*pH + JB5*pH + JB7*pH + X135E*pH + JBC*pH,
+         data = dat.cur)
+summary(out)
+temp = Anova(out)
+temp = temp[grep(':',rownames(temp)),]
+temp = temp[temp$`Pr(>F)`<.1,]
+findings$JB370 = list(all = Anova(out),
+                      sigint = temp,
+                      meta = "All terms included")
+#adding to overall data frame
+sigfind.cur =as.data.frame(temp) 
+## calculating the original interaction coefficient sign
+names.temp = gsub("pH","",rownames(temp))
+names.temp = gsub(":","", names.temp)
+coef.orig = -coefficients(out)[names.temp]
+## kludgy way of extracting coefficients
+## Note that Anova gives rownames for coefficients, while out gives rownames for
+##   the coefficient LEVELS, so we need to turn pH into pH7
+coef.temp = coefficients(out)[gsub("pH","pH7",rownames(temp))]
+coef.new =coef.orig -coef.temp
+## calculate change in the sign
+sigfind.cur$coef.orig = coef.orig
+sigfind.cur$coef.new = coef.new
+sigfind.cur$sign.change = -sign(coef.temp)
+sigfind.cur$magnitude.change = abs(coef.new/coef.orig)
+sigfind.cur$source.species = gsub(":","",
+                                  gsub("pH","",rownames(sigfind.cur)))
+sigfind.cur$target.species = "JB370"
+sigfind = rbind(sigfind, sigfind.cur)
+```
+
+
+## Saving
+
+```{r}
+write.csv(sigfind,here("4_res","pH-interaction-estimates.csv"), row.names = FALSE)
+
+saveRDS(findings, file = here("4_res","ph-interactions-list-obj.RDS"))
+```
+
