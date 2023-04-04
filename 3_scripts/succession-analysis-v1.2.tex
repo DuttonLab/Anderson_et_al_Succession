@@ -1,0 +1,3045 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Cheese Succession (Brooke paper)},
+  pdfauthor={Collin Edwards},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Cheese Succession (Brooke paper)}
+\author{Collin Edwards}
+\date{2023-04-04}
+
+\begin{document}
+\maketitle
+
+\hypertarget{setup}{%
+\section{Setup}\label{setup}}
+
+\hypertarget{libraries}{%
+\subsection{libraries}\label{libraries}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(here)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## here() starts at G:/repos/Anderson_et_al_Succession
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## -- Attaching packages --------------------------------------- tidyverse 1.3.2
+## --
+\end{verbatim}
+
+\begin{verbatim}
+## v ggplot2 3.4.1      v purrr   0.3.5 
+## v tibble  3.1.8      v dplyr   1.0.10
+## v tidyr   1.2.1      v stringr 1.4.1 
+## v readr   2.1.3      v forcats 0.5.2 
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(deSolve)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(gridExtra)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'gridExtra'
+## 
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(cowplot)}
+\FunctionTok{library}\NormalTok{(viridis)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Loading required package: viridisLite
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(pander)}
+\FunctionTok{library}\NormalTok{(car)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Loading required package: carData
+## 
+## Attaching package: 'car'
+## 
+## The following object is masked from 'package:dplyr':
+## 
+##     recode
+## 
+## The following object is masked from 'package:purrr':
+## 
+##     some
+\end{verbatim}
+
+\hypertarget{functions}{%
+\subsection{Functions}\label{functions}}
+
+Sometimes it's helpful to define a function for code we want to re-use a
+lot. The key function like that for me is something I call
+\texttt{gfig\_saver}, which makes saving ggplot figures systematic.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# function for saving ggplot figures and metadata. As fig\_starter (which is for base graphics), except that saving ggfigures is inherently cleaner, as you are not feeding commands to an open graphics device}
+
+\NormalTok{gfig\_saver}\OtherTok{=}\ControlFlowTok{function}\NormalTok{(gfig, }\CommentTok{\#object to be saved}
+\NormalTok{                    filename, }\CommentTok{\#name of figure file to save as WITHOUT SUFFIX}
+\NormalTok{                    description, }\CommentTok{\#vector of strings, each will be put in its own line of meta file}
+                    \DocumentationTok{\#\#  Note: generating file is defined in the function, date and time is automatically added.}
+                    \DocumentationTok{\#\#default figure info:}
+                    \AttributeTok{width=}\DecValTok{12}\NormalTok{,}
+                    \AttributeTok{height=}\DecValTok{8}\NormalTok{,}
+                    \AttributeTok{res=}\DecValTok{300}\NormalTok{,}
+                    \AttributeTok{units=}\StringTok{"in"}\NormalTok{,}
+                    \AttributeTok{figfold=}\StringTok{"5\_figs"} \CommentTok{\#folder to save figures in}
+\NormalTok{)\{}
+  \DocumentationTok{\#\# save meta file}
+  \FunctionTok{cat}\NormalTok{(}\FunctionTok{c}\NormalTok{(description,}
+        \StringTok{""}\NormalTok{,}\DocumentationTok{\#\#easy way to add an extra line to separate description for basic data.}
+        
+        \FunctionTok{paste}\NormalTok{(}\StringTok{"from"}\NormalTok{, knitr}\SpecialCharTok{::}\FunctionTok{current\_input}\NormalTok{()),}
+        \StringTok{"RDS file with same name contains ggplot object used to generate this figure."}\NormalTok{,}
+        \FunctionTok{as.character}\NormalTok{(}\FunctionTok{Sys.time}\NormalTok{())),}
+      \AttributeTok{sep=}\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,}
+      \AttributeTok{file=}\FunctionTok{here}\NormalTok{(figfold, }\FunctionTok{paste0}\NormalTok{(filename,}\StringTok{"\_meta.txt"}\NormalTok{, }\AttributeTok{sep=}\StringTok{""}\NormalTok{))}
+\NormalTok{  )}
+  \CommentTok{\#save figure as jpg (change code here for other figure types)}
+  \FunctionTok{ggsave}\NormalTok{(}\AttributeTok{filename=}\FunctionTok{here}\NormalTok{(figfold, }\FunctionTok{paste0}\NormalTok{(filename,}\StringTok{".jpg"}\NormalTok{)),}
+         \AttributeTok{plot=}\NormalTok{gfig,}
+         \AttributeTok{device=}\StringTok{"jpeg"}\NormalTok{,}
+         \AttributeTok{dpi=}\NormalTok{res,}
+         \AttributeTok{width=}\NormalTok{width, }\AttributeTok{height=}\NormalTok{height, }\AttributeTok{units=}\NormalTok{units}
+\NormalTok{  )}
+  \FunctionTok{ggsave}\NormalTok{(}\AttributeTok{filename=}\FunctionTok{here}\NormalTok{(figfold, }\FunctionTok{paste0}\NormalTok{(filename,}\StringTok{".pdf"}\NormalTok{)),}
+         \AttributeTok{plot=}\NormalTok{gfig,}
+         \AttributeTok{device=}\StringTok{"pdf"}\NormalTok{,}
+         \AttributeTok{dpi=}\NormalTok{res,}
+         \AttributeTok{width=}\NormalTok{width, }\AttributeTok{height=}\NormalTok{height, }\AttributeTok{units=}\NormalTok{units}
+\NormalTok{  )}
+  \CommentTok{\#save ggplot object as RDS file, for easy manipulation later}
+  \FunctionTok{saveRDS}\NormalTok{(}\AttributeTok{object =}\NormalTok{ gfig, }\AttributeTok{file=}\FunctionTok{here}\NormalTok{(figfold, }\FunctionTok{paste0}\NormalTok{(filename,}\StringTok{".RDS"}\NormalTok{)))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{theme.mine}\OtherTok{=}\FunctionTok{theme}\NormalTok{(}\AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face=}\StringTok{"bold"}\NormalTok{, }\AttributeTok{size=}\DecValTok{24}\NormalTok{),}
+                 \AttributeTok{text=}\FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size=}\FunctionTok{rel}\NormalTok{(}\FloatTok{4.5}\NormalTok{)),}
+                 \AttributeTok{legend.text=}\FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size=}\FunctionTok{rel}\NormalTok{(}\DecValTok{2}\NormalTok{))}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{purpose}{%
+\subsection{Purpose}\label{purpose}}
+
+The goal is to determine whether data from single-species and pairwise
+experiments (e.g.~at most pairwise interactions) in Brooke's cheese data
+can explain the community dynamics from treatments inoculated with a
+full 7-species community. The manuscript for this project is
+\href{https://docs.google.com/document/u/1/d/1KIhnJMmHf3wOXv_0DQ9UgcjIVkz1v0FGFiyUVdktreE/edit?ts=608b2425}{here}.
+
+\hypertarget{plan}{%
+\subsection{Plan}\label{plan}}
+
+\textbf{The goal:}
+
+Determine if the 7-species community can be predicted/described by
+pairwise interactions.
+
+\textbf{The problem:}
+
+``Community'' is hard to define. With only 4 time points, classical
+population dynamics approaches are liable to run into issues. Estimating
+confidence intervals from the standard trajectory-matching approach for
+fitting population dynamics models is unreasonable, as bootstrapping
+seems problematic with such little data.
+
+\textbf{The solution:}
+
+If we imagine that the system is actually following Lotka-Volterra
+competition (the simplest competition model), then at least for the
+2-species experiments, the populations will eventually reach an
+equilibrium (which can have one of the populations at size zero). The
+equilibrium for Lotka Volterra is clearly defined in terms of just
+carrying capacity and interaction terms (generally denoted with
+\(\alpha\)s) that capture either competition or stimulation. Using that
+knowledge, and assuming that the populations are at equilibrium on day
+21, we can estimate the alphas and the carrying capacity from the paired
+experiments, and see if those predict the final population sizes of the
+7-species community.
+
+\textbf{A little math background:}
+
+The Lotka-Volterra competition model is defined by a system of Ordinary
+Differential Equations (ODEs). This is fancy math-speak for some
+equations that define how the size of the populations changes at any
+given point in time, based on the current size of the populations. For
+LV, it's this set of equations:
+
+\[\frac{dx_1}{dt} = r_1x_1\big(1-\big(\frac{x_1 \alpha_1_2x_2}{K_2}\big)\big)\]
+
+Where x\_i is the population size of species i, the r parameters
+correspond to intrinsic growth rates (growth when not competing) the K
+parameters correspond to the carrying capacity in the absence of other
+species alpha\_ij is the competition coefficient for species j on
+species i. I like to think of this as a conversion rate - an alpha\_ij
+of 2 means that each individual of species j has the same competition
+effect on species i as would 2 individuals of species i. So big values
+mean the other species has a strong suppression effect, small values
+mean a minimal suppression effect. I'm not used to LV with positive
+effects, but negative alphas mean that one species is helping the other.
+There is a lot of really cool math that has gone into things we can
+discover/prove with ODEs, but we actually don't need most of it right
+now. If our populations are at equilibrium in our day 21 data, that
+means the population sizes aren't changing. So there's no rate of
+change, so dx/dt is 0. If we set the left hand side of each equation to
+zero, and do a little re-arranging of terms with algebra, we get:
+
+\[x_1 = K_1 - \alpha_2_1 * x_2\]
+
+(and the other version, where each number is swapped)
+
+And that's kind of dry looking, but it's just a different version of
+
+y = mx + b.
+
+where y and x are the sizes of our two populations (e.g.~the things we
+have data for)
+
+Taking this approach, we can find carrying capacity and interaction
+terms with linear regression using the single-species and pairwise
+interaction data (!!). We still face the caveats of our various
+assumptions (below), but this is suddenly incredibly tractable. And the
+question of ``What would the 7-species community look like if it were
+mostly the result of pairwise interactions'' could, I think, be
+addressed pretty easily at that point. The 7-species version of lotka
+volterra has more equations, but the equilibrium has the same structure,
+I believe, except it's
+
+K\_1 - (sum of all six appropriate alpha * x terms).
+
+(I'll double check that at some point here). So we can use our fitted
+versions of all our K and alpha values from the pairwise and
+single-species experiments, plug them into the equation for equilibrium
+of the 7-species model, and predict what we would expect the 7-species
+equilibrium would be (assuming only pairwise interactions mattered). To
+look at if reality is significantly different from what we predict, we
+can use parametric bootstrapping: basically we generate ``random'' K and
+alpha values based on our estimated distributions from fitting those
+parameters from the single-species and pairwise experiments, and for
+each set of random K and alpha values, we make a prediction for the
+final community. We can do that a bunch of times, and that creates a
+distribution of expectations assuming pairwise interactions - if the
+real data is outside of 95\% of that, then it's significantly different.
+Since in this case we have 7 abundances that are not independent, we may
+need to use something like PERMANOVA to compare the bootstrap-simulated
+final communities with the actual 7-species community data, but that
+shouldn't actually be very hard.
+
+Some caveats: First, we're assuming that lotka volterra dynamics do a
+good job of capturing the key dynamics in the system. Second, we're
+assuming that populations are at equilibrium on day 21 -- from the data,
+it looks like they are in some cases, and not in others. Additionally,
+communities of more than 2 species with lotka volterra competition
+aren't guaranteed to have an equilibrium at all - they can exhibit
+non-equilibrium dynamics like periodic cycles through time, or
+mathematical chaos.
+
+Looking at the results (e.g.~Fig 1A), it certainly looks like we're
+wrong in making these assumptions, but that we're probably close enough.
+(Any modeling work will be making some incorrect assumptions - the goal
+is to make sure they don't matter). My take on all of this is that (a)
+it doesn't look like there's anything too crazy going on here (no
+sine-wave type behavior we can see, for example), (b) there's a lot
+that's unknown in modeling microbial communities, and it seems like the
+most elaborate things being used right now are Lotka Volterra, so I
+think we're in fine company, and (c) we have to work with the data we
+have, and while it's astounding in a lot of ways, we don't have enough
+time points to effectively do more elaborate modeling of population
+dynamics.
+
+So I would go forward with this as described above, so long as we're
+clear about what we're doing in the text (happy to help make the writing
+clear on that). I think once I've at least prototyped this, I might also
+run it by a few more senior theoretical ecologists I work with, in case
+I'm missing some subtle issue.
+
+One thing to bear in mind is that LV is also often unsuited to capturing
+mutualisms -- there are some parameter values where both species explode
+to infinite size even though there's a finite carrying capacity. I don't
+think that's an issue with our data, but it's something to be aware of.
+I haven't dug into it a ton, but there has been recent work on how to
+model community dynamics and coexistence when working with mutualisms. I
+might need to take a look at that at some point (although again, I think
+we have a good plan outlined above).
+
+Some anti-caveats
+
+One of the nice things about only working with the stable equilibrium
+(aside from the math being tractable) is that we're not actually making
+any assumptions about growth rate or dynamics up to that point. We're
+just assuming that each species has an equilibrium size that is a linear
+function of the other species at equilibrium. So if we wanted to, we
+could actually NOT call this lotka volterra, since our approach
+encompasses ANY model with that equilibrium conditions, not just lotka
+volterra. (But I think we still couch it in terms of LV, because folks
+are familiar with that).
+
+A few pieces I may need to explore:
+
+We're using some of the data to estimate different parameters in
+independent analyses, and it's not quite clear to me how we account for
+that when representing error (e.g.~our estimate of alpha\_21 and
+alpha\_12 come from fitting the same data of pairwise species
+competition, but we're fitting that data in two different equations). I
+may need to think some more and/or consult Elizabeth. Additionally,
+there's a generalized Lotka Volterra model that I'm not super familiar
+with, but appears to be more common for working with many-species
+communities. I believe that it is fundamentally the same thing as I've
+outlined above, but the formulation is different (e.g.~different
+parameter names, somewhat different version of the equation), and it
+might be good to rework my math to match that nomenclature. I might dig
+into it.
+
+The plan: I try this out with the data - fit the carrying capacities and
+the alphas with linear regression, see how well it predicts the data
+that I'm using to fit it, see how it predicts the 7-species community. I
+expect this will take a day or less of time, and I should be able to fit
+that in in the next two weeks. This won't focus on significance testing,
+but just ``can we estimate parameters'' and ``what do our estimated
+parameters suggest''. I write up a brief description of the methodology
+with code and example figures, and run it by Elizabeth Crone
+(statistical ecologist who can make suggestions on the non-independence
+of the different regressions), and then Steve Ellner, Sebastian
+Schrieber, and/or Giles Hooker, who have expertise in working with
+dynamical models (and in Giles' case, literally wrote the book for
+fitting dynamical models to data) and can act as an additional sounding
+board for the ``let's assume we're at equilibrium'' bit. ??? Profit.
+
+\hypertarget{read-in-data}{%
+\subsection{Read in data}\label{read-in-data}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.orig }\OtherTok{=}\NormalTok{ raw }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"1\_raw\_data"}\NormalTok{,}
+                               \StringTok{"2018\_08\_21\_Bayley\_allPW.csv"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{approach-use-linear-models}{%
+\section{Approach: Use linear models}\label{approach-use-linear-models}}
+
+If we assume the communities are at equilibrium on day 21, and if their
+dynamics are defined by lotka volterra dynamics, their abundance is a
+linear function of the densities of competitors. For the two-species LV
+model, the equilibrium densities of species 1 and species 2 (denoted
+\(N_1^*\) and \(N_2^*\)) are defined by
+
+\[N_1^* = K_1 - \alpha_{12}N_2^*\]
+
+and
+
+\[N_2^* = K_2 - \alpha_{21}N_1^*\]
+
+Since we're assuming the populations are at equilibrium, our
+observations give us \(N_1^*\) and \(N_2^*\), and we can fit a
+regression model to estimate \(K\) and the \(\alpha\) terms. (and we can
+use the regression framework to estimate our error)
+
+Using our pairwise experiments, we can estimate all parameters for
+species 1 simultaneously, with
+
+\[N_1^* = K_1 - \alpha_{12}N_2^* - \alpha_{13}N_3^*-\dots\]
+
+Note that when fitting the above model, for any given entry, at most one
+of the Ns on the right hand side will be non-zero (that is, either the
+observation comes from a species alone, in which case all other Ns are
+0, or it comes from a two-species experiment, in which case ONE other N
+will be some postitive number, and the rest will be zeros).
+
+Using this framework, we can fit the data and see how well it predicts
+the observed 7-species community.
+
+Note two caveats:
+
+\begin{itemize}
+\tightlist
+\item
+  if it doesn't fit the 7-species data well, that suggests either
+  complex interactions OR that one or more of the data sets isn't at
+  equilibrium.
+\item
+  The error structure is probably pretty complicated, since we're
+  ``re-using'' the same data to estimate the parameters for multiple
+  species. Elizabeth and I both think this isn't worth worrying about
+\end{itemize}
+
+Update (8/26/21): fitting the data in two step process: first estimate
+k, then calculate everything else. So estimate k using original data,
+then for interaction terms fit a no-intercept model after subtracting
+the carrying capacity.
+
+\hypertarget{step-1-restructure-data}{%
+\subsection{Step 1: restructure data}\label{step-1-restructure-data}}
+
+We need a data frame with a row for each experiment, and a column for
+the density of each species.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#make empty data frame}
+\CommentTok{\#We want to store cfus for each species, }
+\NormalTok{df.template }\OtherTok{=} 
+\NormalTok{  dat.mat }\OtherTok{=} \FunctionTok{setNames}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\AttributeTok{ncol =} \DecValTok{2}\SpecialCharTok{*}\FunctionTok{length}\NormalTok{(}\FunctionTok{unique}\NormalTok{(raw}\SpecialCharTok{$}\NormalTok{spec))}\SpecialCharTok{+}\DecValTok{2}\NormalTok{, }\AttributeTok{nrow =} \DecValTok{0}\NormalTok{)),}
+                     \FunctionTok{c}\NormalTok{(}\FunctionTok{as.character}\NormalTok{(}\FunctionTok{unique}\NormalTok{(raw}\SpecialCharTok{$}\NormalTok{spec)), }\StringTok{"cond"}\NormalTok{, }\StringTok{"rep"}\NormalTok{,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,}\FunctionTok{c}\NormalTok{(}\FunctionTok{as.character}\NormalTok{(}\FunctionTok{unique}\NormalTok{(raw}\SpecialCharTok{$}\NormalTok{spec)))))}
+\NormalTok{  )}
+\NormalTok{raw.use }\OtherTok{=}\NormalTok{ raw }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(day }\SpecialCharTok{==} \DecValTok{21}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(pH }\SpecialCharTok{==} \DecValTok{5}\NormalTok{)}
+\CommentTok{\#handle the alones}
+\ControlFlowTok{for}\NormalTok{(cur.spec }\ControlFlowTok{in} \FunctionTok{unique}\NormalTok{(raw.use}\SpecialCharTok{$}\NormalTok{spec))\{}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+\NormalTok{  dat.cur }\OtherTok{=}\NormalTok{ raw.use }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(cond }\SpecialCharTok{==} \StringTok{"alone"}\NormalTok{)}
+\NormalTok{  df.fill}\OtherTok{=}\FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, }
+                               \AttributeTok{nrow=}\FunctionTok{nrow}\NormalTok{(dat.cur),}
+                               \AttributeTok{ncol=}\FunctionTok{ncol}\NormalTok{(dat.mat)))}
+  \FunctionTok{names}\NormalTok{(df.fill) }\OtherTok{=} \FunctionTok{names}\NormalTok{(dat.mat)}
+\NormalTok{  df.fill[,cur.spec]}\OtherTok{=}\NormalTok{dat.cur}\SpecialCharTok{$}\NormalTok{cfus}
+\NormalTok{  df.fill[,}\StringTok{"rep"}\NormalTok{]}\OtherTok{=}\NormalTok{dat.cur}\SpecialCharTok{$}\NormalTok{rep}
+\NormalTok{  df.fill[,}\StringTok{"cond"}\NormalTok{]}\OtherTok{=}\StringTok{"alone"}
+\NormalTok{  df.fill[,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,cur.spec)] }\OtherTok{=}\NormalTok{ T}
+\NormalTok{  dat.mat }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.mat, df.fill)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# pairs}
+\NormalTok{spec.vec }\OtherTok{=} \FunctionTok{as.character}\NormalTok{(}\FunctionTok{unique}\NormalTok{(raw.use}\SpecialCharTok{$}\NormalTok{spec))}
+
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{(}\FunctionTok{length}\NormalTok{(spec.vec)}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vec[i.spec]}
+  \ControlFlowTok{for}\NormalTok{(j.spec }\ControlFlowTok{in}\NormalTok{ (i.spec}\SpecialCharTok{+}\DecValTok{1}\NormalTok{)}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vec))\{}
+\NormalTok{    other.spec }\OtherTok{=}\NormalTok{ spec.vec[j.spec]}
+    \CommentTok{\#get cfus of current species}
+\NormalTok{    dat.cur }\OtherTok{=}\NormalTok{ raw.use }\SpecialCharTok{\%\textgreater{}\%} 
+      \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec) }\SpecialCharTok{\%\textgreater{}\%} 
+      \FunctionTok{filter}\NormalTok{(cond }\SpecialCharTok{==}\NormalTok{ other.spec)}
+    \CommentTok{\#get cfus of other species}
+\NormalTok{    dat.other }\OtherTok{=}\NormalTok{ raw.use }\SpecialCharTok{\%\textgreater{}\%} 
+      \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ other.spec) }\SpecialCharTok{\%\textgreater{}\%} 
+      \FunctionTok{filter}\NormalTok{(cond }\SpecialCharTok{==}\NormalTok{ cur.spec)}
+    \CommentTok{\#handle replicate mismatching}
+\NormalTok{    dat.cur }\OtherTok{=}\NormalTok{ dat.cur[dat.cur}\SpecialCharTok{$}\NormalTok{rep }\SpecialCharTok{\%in\%}\NormalTok{ dat.other}\SpecialCharTok{$}\NormalTok{rep,]}
+\NormalTok{    dat.other }\OtherTok{=}\NormalTok{ dat.other[dat.other}\SpecialCharTok{$}\NormalTok{rep }\SpecialCharTok{\%in\%}\NormalTok{ dat.cur}\SpecialCharTok{$}\NormalTok{rep,]}
+\NormalTok{    dat.cur}\OtherTok{=}\NormalTok{dat.cur[}\FunctionTok{order}\NormalTok{(dat.cur}\SpecialCharTok{$}\NormalTok{rep),]}
+\NormalTok{    dat.other}\OtherTok{=}\NormalTok{dat.other[}\FunctionTok{order}\NormalTok{(dat.other}\SpecialCharTok{$}\NormalTok{rep),]}
+    
+    \DocumentationTok{\#\# The following code is a bunch of sanity checking.}
+    \ControlFlowTok{if}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(dat.cur) }\SpecialCharTok{!=} \FunctionTok{nrow}\NormalTok{(dat.other))\{}
+      \FunctionTok{stop}\NormalTok{(}\StringTok{"dimensions not matching up. investigate"}\NormalTok{)}
+      \CommentTok{\# print(paste(cur.spec, other.spec))}
+      \CommentTok{\# print("dimensions not matching up. investigate")}
+\NormalTok{    \}}
+    \ControlFlowTok{if}\NormalTok{(}\FunctionTok{any}\NormalTok{(dat.cur}\SpecialCharTok{$}\NormalTok{rep }\SpecialCharTok{!=}\NormalTok{ dat.other}\SpecialCharTok{$}\NormalTok{rep))\{}
+      \FunctionTok{stop}\NormalTok{(}\StringTok{"replicates not matching up. investigate"}\NormalTok{)}
+      \CommentTok{\# print(paste(cur.spec, other.spec))}
+      \CommentTok{\# print("replicates not matching up. investigate")}
+\NormalTok{    \}}
+\NormalTok{    df.fill}\OtherTok{=}\FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}
+                                 \AttributeTok{nrow=}\FunctionTok{nrow}\NormalTok{(dat.cur),}
+                                 \AttributeTok{ncol=}\FunctionTok{ncol}\NormalTok{(dat.mat)))}
+    \FunctionTok{names}\NormalTok{(df.fill) }\OtherTok{=} \FunctionTok{names}\NormalTok{(dat.mat)}
+\NormalTok{    df.fill[ , cur.spec] }\OtherTok{=}\NormalTok{ dat.cur}\SpecialCharTok{$}\NormalTok{cfus}
+\NormalTok{    df.fill[ , other.spec] }\OtherTok{=}\NormalTok{ dat.other}\SpecialCharTok{$}\NormalTok{cfus}
+\NormalTok{    df.fill[,}\StringTok{"rep"}\NormalTok{]}\OtherTok{=}\NormalTok{dat.cur}\SpecialCharTok{$}\NormalTok{rep}
+\NormalTok{    df.fill[,}\StringTok{"cond"}\NormalTok{]}\OtherTok{=}\StringTok{"paired{-}comp"}
+\NormalTok{    df.fill[,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,cur.spec)] }\OtherTok{=}\NormalTok{ T}
+\NormalTok{    df.fill[,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,other.spec)] }\OtherTok{=}\NormalTok{ T}
+\NormalTok{    dat.mat }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.mat, df.fill)}
+\NormalTok{  \}}
+\NormalTok{\}}
+\NormalTok{dat.mat}\SpecialCharTok{$}\NormalTok{day }\OtherTok{=} \DecValTok{21}
+\NormalTok{dat.mat}\SpecialCharTok{$}\NormalTok{pH }\OtherTok{=} \DecValTok{5}
+\FunctionTok{names}\NormalTok{(dat.mat)[}\FunctionTok{names}\NormalTok{(dat.mat)}\SpecialCharTok{==}\StringTok{"pres.135E"}\NormalTok{]}\OtherTok{=}\StringTok{"pres.X135E"}
+
+\FunctionTok{write.csv}\NormalTok{(dat.mat, }
+          \AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form.csv"}\NormalTok{),}
+          \AttributeTok{row.names =} \ConstantTok{FALSE}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Make a data frame to store ALL community prediction data for MSE
+calculations at the end
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.all }\OtherTok{=} \ConstantTok{NULL}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{fitting}{%
+\subsection{Fitting}\label{fitting}}
+
+Note that we use carrying capacities calculated from the monocultures.
+
+\hypertarget{testing-fit-one-species}{%
+\subsubsection{Testing: fit one species}\label{testing-fit-one-species}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(lme4)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Loading required package: Matrix
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Attaching package: 'Matrix'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:tidyr':
+## 
+##     expand, pack, unpack
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.fit }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form.csv"}\NormalTok{))}
+\CommentTok{\#NOTE: R adds a leading X to column names that start with numbers}
+
+\NormalTok{dat.k }\OtherTok{=}\NormalTok{ dat.orig }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(day}\SpecialCharTok{==}\DecValTok{21}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(spec}\SpecialCharTok{==}\StringTok{"BC9"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(cond}\SpecialCharTok{==}\StringTok{"alone"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(pH }\SpecialCharTok{==} \DecValTok{5}\NormalTok{)}
+\NormalTok{out }\OtherTok{=} \FunctionTok{lm}\NormalTok{(cfus }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ dat.k )}
+\NormalTok{k.cur }\OtherTok{=}\NormalTok{ out}\SpecialCharTok{$}\NormalTok{coefficients[[}\DecValTok{1}\NormalTok{]]}
+\NormalTok{dat.mod }\OtherTok{=}\NormalTok{ dat.fit[dat.fit}\SpecialCharTok{$}\NormalTok{pres.BC9}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,]}
+\NormalTok{dat.mod}\SpecialCharTok{$}\NormalTok{BC9}\OtherTok{=}\NormalTok{dat.mod}\SpecialCharTok{$}\NormalTok{BC9}\SpecialCharTok{{-}}\NormalTok{k.cur}
+\NormalTok{out }\OtherTok{=} \FunctionTok{lm}\NormalTok{(BC9 }\SpecialCharTok{\textasciitilde{}} \SpecialCharTok{{-}}\DecValTok{1} \SpecialCharTok{+}\NormalTok{ BC10 }\SpecialCharTok{+}\NormalTok{ JB5 }\SpecialCharTok{+}\NormalTok{ JB7 }\SpecialCharTok{+}\NormalTok{ X135E }\SpecialCharTok{+}\NormalTok{ JBC }\SpecialCharTok{+}\NormalTok{ JB370,}
+         \AttributeTok{data =}\NormalTok{ dat.mod)}
+\FunctionTok{summary}\NormalTok{(out)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = BC9 ~ -1 + BC10 + JB5 + JB7 + X135E + JBC + JB370, 
+##     data = dat.mod)
+## 
+## Residuals:
+##        Min         1Q     Median         3Q        Max 
+## -237586019  -14199353   -1060000   14414118  330351390 
+## 
+## Coefficients:
+##         Estimate Std. Error t value Pr(>|t|)    
+## BC10   2.209e-02  3.607e-01   0.061 0.951658    
+## JB5    5.778e+03  4.211e+04   0.137 0.891965    
+## JB7    4.759e+04  6.769e+05   0.070 0.944510    
+## X135E  4.997e+00  1.107e+00   4.516 0.000131 ***
+## JBC   -2.143e-02  6.839e-01  -0.031 0.975256    
+## JB370  2.661e+01  3.578e+00   7.438 8.64e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 96680000 on 25 degrees of freedom
+## Multiple R-squared:  0.7519, Adjusted R-squared:  0.6923 
+## F-statistic: 12.62 on 6 and 25 DF,  p-value: 1.578e-06
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(}\FunctionTok{resid}\NormalTok{(out), }\AttributeTok{breaks=}\DecValTok{20}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{succession-analysis-v1.2_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# coefficients(out)}
+
+\CommentTok{\#UPDATED }\AlertTok{NOTE}\CommentTok{: upon reflection, the log scale enforces a different relationship between}
+\CommentTok{\# individuals, and would NOT capture the L{-}V model. So we should not do this even from}
+\CommentTok{\# a theoretical basis, even ignoring that practically the linear model fit better.}
+\CommentTok{\# }
+\CommentTok{\# dat.log=dat.fit}
+\CommentTok{\# dat.log[,1:7] = log(dat.log[,1:7]+1)}
+\CommentTok{\# \#let\textquotesingle{}s try a log transform, because that seems relevant}
+\CommentTok{\# out.log = lm(BC9 \textasciitilde{} BC10 + JB5 + JB7 + X135E + JBC + JB370,}
+\CommentTok{\#              data = dat.log[dat.log$pres.BC9==1,])}
+\CommentTok{\# hist(resid(out.log), breaks=20)}
+\CommentTok{\# \#The linear scale appears better, and is simpler to handle.}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{loop-over-all-species}{%
+\subsubsection{Loop over all species}\label{loop-over-all-species}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{res.est }\OtherTok{=} \ConstantTok{NULL}
+\NormalTok{spec.vecfit }\OtherTok{=} \FunctionTok{unique}\NormalTok{(raw}\SpecialCharTok{$}\NormalTok{spec)}
+\NormalTok{spec.vecfit[spec.vecfit}\SpecialCharTok{==}\StringTok{"135E"}\NormalTok{] }\OtherTok{=} \StringTok{"X135E"}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vec))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vecfit[i.spec]}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+  
+  \DocumentationTok{\#\# calculate K}
+\NormalTok{  dat.k }\OtherTok{=}\NormalTok{ dat.orig }
+\NormalTok{  dat.k}\SpecialCharTok{$}\NormalTok{spec[dat.k}\SpecialCharTok{$}\NormalTok{spec}\SpecialCharTok{==}\StringTok{"135E"}\NormalTok{]}\OtherTok{=}\StringTok{"X135E"}
+\NormalTok{  dat.k }\OtherTok{=}\NormalTok{ dat.k }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(day}\SpecialCharTok{==}\DecValTok{21}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec}\SpecialCharTok{==}\NormalTok{cur.spec) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(cond}\SpecialCharTok{==}\StringTok{"alone"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(pH }\SpecialCharTok{==} \DecValTok{5}\NormalTok{)}
+\NormalTok{  out.k }\OtherTok{=} \FunctionTok{lm}\NormalTok{(cfus }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ dat.k )}
+\NormalTok{  k.cur }\OtherTok{=}\NormalTok{ out.k}\SpecialCharTok{$}\NormalTok{coefficients[[}\DecValTok{1}\NormalTok{]]}
+  \DocumentationTok{\#\# modify the data to ensure we\textquotesingle{}re accounting for k}
+\NormalTok{  ind.use }\OtherTok{=}\NormalTok{ dat.fit[,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,cur.spec)]}\SpecialCharTok{==}\DecValTok{1}
+\NormalTok{  dat.cur }\OtherTok{=}\NormalTok{ dat.fit[ind.use,]}
+\NormalTok{  dat.cur }\OtherTok{=}\NormalTok{ dat.cur }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(cond }\SpecialCharTok{!=}\StringTok{"alone"}\NormalTok{)}
+\NormalTok{  dat.cur[,cur.spec]}\OtherTok{=}\NormalTok{dat.cur[,cur.spec]}\SpecialCharTok{{-}}\NormalTok{k.cur}
+  \CommentTok{\#generate formula automatically}
+  \CommentTok{\# Note that we are fitting a zero{-}intercept model, as we have already subtracted out K.}
+  \CommentTok{\#}
+\NormalTok{  form }\OtherTok{=} \FunctionTok{paste0}\NormalTok{(cur.spec,}\StringTok{" \textasciitilde{} {-}1 + "}\NormalTok{, }\FunctionTok{paste}\NormalTok{(spec.vecfit[}\SpecialCharTok{{-}}\NormalTok{i.spec], }\AttributeTok{collapse =} \StringTok{" + "}\NormalTok{))}
+\NormalTok{  out.cur }\OtherTok{=} \FunctionTok{lm}\NormalTok{(}\FunctionTok{formula}\NormalTok{(form),}
+               \AttributeTok{data =}\NormalTok{ dat.cur)}
+\NormalTok{  cur.df }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{c}\NormalTok{(}\FunctionTok{coefficients}\NormalTok{(out.k),}\FunctionTok{coefficients}\NormalTok{(out.cur)),}
+                      \AttributeTok{se =} \FunctionTok{c}\NormalTok{(}\FunctionTok{coef}\NormalTok{(}\FunctionTok{summary}\NormalTok{(out.k))[,}\DecValTok{2}\NormalTok{], }\FunctionTok{coef}\NormalTok{(}\FunctionTok{summary}\NormalTok{(out.cur))[,}\DecValTok{2}\NormalTok{]))}
+  \CommentTok{\#switch to alphas (for everything but Ks, which are the first entry) by multiplying by {-}1}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{est[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}\OtherTok{=}\SpecialCharTok{{-}}\NormalTok{cur.df}\SpecialCharTok{$}\NormalTok{est[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=}\NormalTok{ cur.spec}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{name }\OtherTok{=} \FunctionTok{rownames}\NormalTok{(cur.df)}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{pH }\OtherTok{=} \DecValTok{5}
+  \FunctionTok{rownames}\NormalTok{(cur.df)}\OtherTok{=}\ConstantTok{NULL}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{name[}\DecValTok{1}\NormalTok{] }\OtherTok{=} \StringTok{"K"}
+  \CommentTok{\#reorder}
+\NormalTok{  cur.df}\OtherTok{=}\NormalTok{cur.df[,}\FunctionTok{c}\NormalTok{(}\StringTok{"spec"}\NormalTok{,}\StringTok{"name"}\NormalTok{,}\StringTok{"est"}\NormalTok{,}\StringTok{"se"}\NormalTok{, }\StringTok{"pH"}\NormalTok{)]}
+\NormalTok{  res.est }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(res.est, cur.df)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "X135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# and that\textquotesingle{}s our fits}
+\DocumentationTok{\#\# }
+\FunctionTok{write.csv}\NormalTok{(res.est, }
+          \AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                      \StringTok{"coefficient{-}estimates{-}pH5.csv"}\NormalTok{),}
+          \AttributeTok{row.names =} \ConstantTok{FALSE}
+\NormalTok{)}
+\DocumentationTok{\#\# write metadata}
+\FunctionTok{cat}\NormalTok{(}\StringTok{"meta{-}data for coefficeint{-}estimates.csv"}\NormalTok{,}
+    \AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{, }\StringTok{"coefficient{-}estimates{-}metadata.txt"}\NormalTok{),}
+    \AttributeTok{sep =} \StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\FunctionTok{cat}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\StringTok{"Fitting Lotka{-}Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium"}\NormalTok{,}
+      \StringTok{"We assume the error is normally distributed {-} this seems close enough to true."}\NormalTok{,}
+      \StringTok{""}\NormalTok{,}
+      \StringTok{"spec is the focal species"}\NormalTok{,}
+      \StringTok{"name is the coefficient name. In the cases where name is a species name, it\textquotesingle{}s an alpha term, and the species named is the competing species"}\NormalTok{,}
+      \StringTok{"est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1."}\NormalTok{,}
+      \StringTok{"se is the standard error from the lienar regression"}\NormalTok{),}
+    \AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{, }\StringTok{"coefficient{-}estimates{-}pH5{-}metadata.txt"}\NormalTok{),}
+    \AttributeTok{sep =} \StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,}
+    \AttributeTok{append=}\NormalTok{T)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{visualizing-for-talk}{%
+\paragraph{Visualizing for talk}\label{visualizing-for-talk}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(scales)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'scales'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:viridis':
+## 
+##     viridis_pal
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:purrr':
+## 
+##     discard
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:readr':
+## 
+##     col_factor
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# res.heatmap = matrix({-}999, nrow = length(spec.vec),}
+\CommentTok{\#                      ncol = length(spec.vec))}
+\CommentTok{\# colnames(res.heatmap)=spec.vec}
+\CommentTok{\# rownames(res.heatmap)=spec.vec}
+\CommentTok{\# }
+\CommentTok{\# for(cur.spec in unique(res.est$spec))\{}
+\CommentTok{\#   res.est.use = res.est[res.est$spec == cur.spec \& res.est$name!="K",]}
+\CommentTok{\#   res.heatmap[cur.spec,res.est.use$name] = res.est.use$est}
+\CommentTok{\# \}}
+\CommentTok{\# diag(res.heatmap) = NA}
+
+\NormalTok{res.est}\SpecialCharTok{$}\NormalTok{sign }\OtherTok{=} \FunctionTok{sign}\NormalTok{(res.est}\SpecialCharTok{$}\NormalTok{est)}
+\CommentTok{\# res.est$est.sc = sign(res.est$est)*log(abs(res.est$est))}
+
+\FunctionTok{ggplot}\NormalTok{(res.est }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(name }\SpecialCharTok{!=} \StringTok{"K"}\NormalTok{), }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ name, }\AttributeTok{y =}\NormalTok{ spec)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_tile}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill =}\NormalTok{ sign))}\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_gradient2}\NormalTok{(}\AttributeTok{low =} \FunctionTok{muted}\NormalTok{(}\StringTok{"blue"}\NormalTok{),}
+                       \AttributeTok{high =} \FunctionTok{muted}\NormalTok{(}\StringTok{"red"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{succession-analysis-v1.2_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temp }\OtherTok{=}\NormalTok{ res.est }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(name }\SpecialCharTok{!=} \StringTok{"K"}\NormalTok{)}
+\FunctionTok{range}\NormalTok{(temp}\SpecialCharTok{$}\NormalTok{est)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -47588.24  46310.34
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# quick thought: scale by carrying capacity}
+\NormalTok{res.sc }\OtherTok{=}\NormalTok{ res.est}
+\ControlFlowTok{for}\NormalTok{(cur.name }\ControlFlowTok{in} \FunctionTok{unique}\NormalTok{(res.sc}\SpecialCharTok{$}\NormalTok{spec))\{}
+\NormalTok{  res.sc[res.sc}\SpecialCharTok{$}\NormalTok{name}\SpecialCharTok{==}\NormalTok{cur.name, }\StringTok{"est"}\NormalTok{] }\OtherTok{=} 
+\NormalTok{    res.sc[res.sc}\SpecialCharTok{$}\NormalTok{name}\SpecialCharTok{==}\NormalTok{cur.name, }\StringTok{"est"}\NormalTok{] }\SpecialCharTok{*} 
+\NormalTok{    res.sc}\SpecialCharTok{$}\NormalTok{est[res.sc}\SpecialCharTok{$}\NormalTok{spec }\SpecialCharTok{==}\NormalTok{ cur.name }\SpecialCharTok{\&}\NormalTok{ res.sc}\SpecialCharTok{$}\NormalTok{name }\SpecialCharTok{==} \StringTok{"K"}\NormalTok{]}
+\NormalTok{\}}
+
+\NormalTok{res.sc}\SpecialCharTok{$}\NormalTok{est.sc }\OtherTok{=} \FunctionTok{sign}\NormalTok{(res.sc}\SpecialCharTok{$}\NormalTok{est)}\SpecialCharTok{*}\FunctionTok{log}\NormalTok{(}\FunctionTok{abs}\NormalTok{(res.sc}\SpecialCharTok{$}\NormalTok{est))}
+
+\FunctionTok{ggplot}\NormalTok{(res.sc }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(name }\SpecialCharTok{!=} \StringTok{"K"}\NormalTok{), }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ name, }\AttributeTok{y =}\NormalTok{ spec)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_tile}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill =}\NormalTok{ est.sc))}\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_gradient2}\NormalTok{(}\AttributeTok{low =} \FunctionTok{muted}\NormalTok{(}\StringTok{"blue"}\NormalTok{),}
+                       \AttributeTok{high =} \FunctionTok{muted}\NormalTok{(}\StringTok{"red"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{succession-analysis-v1.2_files/figure-latex/unnamed-chunk-9-1.pdf}
+
+\hypertarget{comparing-to-community-data}{%
+\subsection{Comparing to community
+data}\label{comparing-to-community-data}}
+
+\hypertarget{restructure-data}{%
+\subsubsection{restructure data}\label{restructure-data}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{raw.com }\OtherTok{=}\NormalTok{ raw }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(cond }\SpecialCharTok{==} \StringTok{"community"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(day }\SpecialCharTok{==} \DecValTok{21}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(pH }\SpecialCharTok{==} \DecValTok{5}\NormalTok{)}
+
+\NormalTok{nrep }\OtherTok{=} \FunctionTok{max}\NormalTok{(raw.com}\SpecialCharTok{$}\NormalTok{rep)}
+\NormalTok{dat.com }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{BC9 =} \FunctionTok{rep}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{99}\NormalTok{, nrep),}
+                     \AttributeTok{BC10 =} \FunctionTok{rep}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{99}\NormalTok{, nrep),}
+                     \AttributeTok{JB5 =} \FunctionTok{rep}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{99}\NormalTok{, nrep),}
+                     \AttributeTok{JB7 =} \FunctionTok{rep}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{99}\NormalTok{, nrep),}
+                     \AttributeTok{X135E =} \FunctionTok{rep}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{99}\NormalTok{, nrep),}
+                     \AttributeTok{JBC =} \FunctionTok{rep}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{99}\NormalTok{, nrep),}
+                     \AttributeTok{JB370 =} \FunctionTok{rep}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{99}\NormalTok{, nrep),}
+                     \AttributeTok{rep =} \DecValTok{1}\SpecialCharTok{:}\NormalTok{nrep}
+\NormalTok{)}
+
+
+\DocumentationTok{\#\# pairs}
+\NormalTok{raw.com}\SpecialCharTok{$}\NormalTok{spec[raw.com}\SpecialCharTok{$}\NormalTok{spec}\SpecialCharTok{==}\StringTok{"135E"}\NormalTok{] }\OtherTok{=} \StringTok{"X135E"}
+\NormalTok{spec.vec }\OtherTok{=} \FunctionTok{as.character}\NormalTok{(}\FunctionTok{unique}\NormalTok{(raw.com}\SpecialCharTok{$}\NormalTok{spec))}
+
+\ControlFlowTok{for}\NormalTok{(cur.spec }\ControlFlowTok{in}\NormalTok{ spec.vec)\{}
+  \CommentTok{\#get cfus of current species}
+\NormalTok{  dat.cur }\OtherTok{=}\NormalTok{ raw.com }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec) }
+\NormalTok{  dat.com[dat.cur}\SpecialCharTok{$}\NormalTok{rep,cur.spec] }\OtherTok{=}\NormalTok{ dat.cur}\SpecialCharTok{$}\NormalTok{cfus}
+\NormalTok{\}}
+\DocumentationTok{\#\# add NAs}
+\NormalTok{dat.com[dat.com}\SpecialCharTok{=={-}}\DecValTok{99}\NormalTok{]}\OtherTok{=}\ConstantTok{NA}
+
+
+\FunctionTok{write.csv}\NormalTok{(dat.com, }
+          \AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{),}
+          \AttributeTok{row.names =} \ConstantTok{FALSE}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{predicting}{%
+\subsubsection{predicting}\label{predicting}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# read in our community data (e.g. what we saved last chunk)}
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{))}
+\CommentTok{\# read in our fitted coeffients}
+\NormalTok{dat.coefs }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                          \StringTok{"coefficient{-}estimates{-}pH5.csv"}\NormalTok{))}
+\NormalTok{dat.com }\OtherTok{=} \FunctionTok{na.omit}\NormalTok{(dat.com)}
+\NormalTok{dat.pred }\OtherTok{=}\NormalTok{ dat.com}
+\NormalTok{dat.pred[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(dat.com)}\SpecialCharTok{==}\StringTok{"rep"}\NormalTok{)]}\OtherTok{=}\DecValTok{0}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{(}\FunctionTok{length}\NormalTok{(spec.vecfit)))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vecfit[i.spec]}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+  \CommentTok{\#some cool manipulating to make it easy to access the right coefficients}
+  \CommentTok{\# ending in coefs.vec: a vector of coefficients labeled by name}
+\NormalTok{  coefs.cur }\OtherTok{=}\NormalTok{ dat.coefs }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec)}
+\NormalTok{  coefs.vec }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{est}
+  \FunctionTok{names}\NormalTok{(coefs.vec) }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{name}
+\NormalTok{  x.cur }\OtherTok{=}\NormalTok{ dat.com[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(dat.com) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(cur.spec, }\StringTok{"rep"}\NormalTok{))]}
+  \CommentTok{\#using element{-}wise multiplication to simplify the coding}
+  \CommentTok{\#This may look opaque, but you can confirm that it\textquotesingle{}s doing the right thing with }
+  \CommentTok{\# a test case:}
+  \CommentTok{\# test.mat = matrix(1:4, 2,2)}
+  \CommentTok{\# t(t(test.mat) * c(1,0))}
+\NormalTok{  pred.cur }\OtherTok{=}\NormalTok{ coefs.vec[}\StringTok{"K"}\NormalTok{] }\SpecialCharTok{{-}} 
+    \FunctionTok{rowSums}\NormalTok{(}\FunctionTok{t}\NormalTok{(}\FunctionTok{t}\NormalTok{(x.cur[,}\FunctionTok{names}\NormalTok{(coefs.vec)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]]) }\SpecialCharTok{*}\NormalTok{ (coefs.vec[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])))}
+\NormalTok{  pred.cur }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(}\DecValTok{0}\NormalTok{,pred.cur)}
+\NormalTok{  dat.pred[,cur.spec] }\OtherTok{=}\NormalTok{ pred.cur}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "X135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{ph }\OtherTok{=} \DecValTok{5}
+
+\FunctionTok{write.csv}\NormalTok{(dat.pred,}
+          \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}\StringTok{"predictions{-}from{-}pH5.csv"}\NormalTok{),}
+          \AttributeTok{row.names=}\NormalTok{F}
+\NormalTok{)}
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 predictions"}
+\NormalTok{pred.all }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(pred.all, dat.pred)}
+\end{Highlighting}
+\end{Shaded}
+
+So our predicted community not only doesn't match our actual community
+very well, it also doesn't really match possible realities very well. We
+have a lot of negative numbers.
+
+\hypertarget{visualizing}{%
+\subsubsection{Visualizing}\label{visualizing}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{apply}\NormalTok{(dat.pred,}\DecValTok{2}\NormalTok{, median))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=} \FunctionTok{colnames}\NormalTok{(dat.pred)}
+\NormalTok{dat.plot }\OtherTok{=}\NormalTok{ dat.plot[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{spec }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"rep"}\NormalTok{,}\StringTok{"ph"}\NormalTok{)),]}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{est }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est, }\DecValTok{0}\NormalTok{)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{rel }\OtherTok{=}\NormalTok{ dat.plot}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 predictions"}
+\NormalTok{dat.gg }\OtherTok{=}\NormalTok{ dat.plot}
+
+\NormalTok{dat.plot }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{apply}\NormalTok{(dat.com,}\DecValTok{2}\NormalTok{, median))}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=} \FunctionTok{colnames}\NormalTok{(dat.com)}
+\NormalTok{dat.plot }\OtherTok{=}\NormalTok{ dat.plot[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{spec }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"rep"}\NormalTok{,}\StringTok{"ph"}\NormalTok{)),]}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{est }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est, }\DecValTok{0}\NormalTok{)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{rel }\OtherTok{=}\NormalTok{ dat.plot}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"Actual community"}
+\NormalTok{dat.gg }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.gg, dat.plot)}
+
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ dat.gg, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill =}\NormalTok{ spec, }\AttributeTok{x =}\NormalTok{ scenario, }\AttributeTok{y =}\NormalTok{ rel))}\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{ylab}\NormalTok{(}\StringTok{"relative abundance"}\NormalTok{)}\SpecialCharTok{+}
+\NormalTok{  theme.mine}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 8 rows containing missing values (`position_stack()`).
+\end{verbatim}
+
+\includegraphics{succession-analysis-v1.2_files/figure-latex/unnamed-chunk-12-1.pdf}
+
+\hypertarget{ph-7}{%
+\section{pH 7}\label{ph-7}}
+
+Now that we can fit Lotka Volterra with regression models, let's try
+again, but with pH 7.
+
+\hypertarget{quick-sanity-check-for-ks}{%
+\subsection{quick sanity check for ks}\label{quick-sanity-check-for-ks}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.orig }\SpecialCharTok{\%\textgreater{}\%}  
+  \FunctionTok{filter}\NormalTok{(cond }\SpecialCharTok{==} \StringTok{"alone"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}  
+  \FunctionTok{filter}\NormalTok{(day }\SpecialCharTok{==} \DecValTok{21}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(pH }\SpecialCharTok{==}  \DecValTok{7}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \CommentTok{\# View() \%\textgreater{}\% }
+  \FunctionTok{group\_by}\NormalTok{(spec) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarize}\NormalTok{(}\AttributeTok{cfus =} \FunctionTok{median}\NormalTok{(cfus))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 7 x 2
+##   spec        cfus
+##   <chr>      <dbl>
+## 1 135E     5300000
+## 2 BC10   201000000
+## 3 BC9    260000000
+## 4 JB370    1100000
+## 5 JB5   4000000000
+## 6 JB7   1780000000
+## 7 JBC     67000000
+\end{verbatim}
+
+\hypertarget{restructuring-the-data}{%
+\subsection{Restructuring the data}\label{restructuring-the-data}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#make empty data frame}
+\CommentTok{\#We want to store cfus for each species, }
+\NormalTok{dat.mat7 }\OtherTok{=} \FunctionTok{setNames}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\AttributeTok{ncol =} \DecValTok{2}\SpecialCharTok{*}\FunctionTok{length}\NormalTok{(}\FunctionTok{unique}\NormalTok{(raw}\SpecialCharTok{$}\NormalTok{spec))}\SpecialCharTok{+}\DecValTok{2}\NormalTok{, }\AttributeTok{nrow =} \DecValTok{0}\NormalTok{)),}
+                    \FunctionTok{c}\NormalTok{(}\FunctionTok{as.character}\NormalTok{(}\FunctionTok{unique}\NormalTok{(raw}\SpecialCharTok{$}\NormalTok{spec)), }\StringTok{"cond"}\NormalTok{, }\StringTok{"rep"}\NormalTok{,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,}\FunctionTok{c}\NormalTok{(}\FunctionTok{as.character}\NormalTok{(}\FunctionTok{unique}\NormalTok{(raw}\SpecialCharTok{$}\NormalTok{spec)))))}
+\NormalTok{)}
+\NormalTok{raw.use }\OtherTok{=}\NormalTok{ raw }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(day }\SpecialCharTok{==} \DecValTok{21}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(pH }\SpecialCharTok{==} \DecValTok{7}\NormalTok{)}
+\CommentTok{\#handle the alones}
+\ControlFlowTok{for}\NormalTok{(cur.spec }\ControlFlowTok{in} \FunctionTok{unique}\NormalTok{(raw.use}\SpecialCharTok{$}\NormalTok{spec))\{}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+\NormalTok{  dat.cur }\OtherTok{=}\NormalTok{ raw.use }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(cond }\SpecialCharTok{==} \StringTok{"alone"}\NormalTok{)}
+\NormalTok{  df.fill}\OtherTok{=}\FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, }
+                               \AttributeTok{nrow=}\FunctionTok{nrow}\NormalTok{(dat.cur),}
+                               \AttributeTok{ncol=}\FunctionTok{ncol}\NormalTok{(dat.mat7)))}
+  \FunctionTok{names}\NormalTok{(df.fill) }\OtherTok{=} \FunctionTok{names}\NormalTok{(dat.mat7)}
+\NormalTok{  df.fill[,cur.spec]}\OtherTok{=}\NormalTok{dat.cur}\SpecialCharTok{$}\NormalTok{cfus}
+\NormalTok{  df.fill[,}\StringTok{"rep"}\NormalTok{]}\OtherTok{=}\NormalTok{dat.cur}\SpecialCharTok{$}\NormalTok{rep}
+\NormalTok{  df.fill[,}\StringTok{"cond"}\NormalTok{]}\OtherTok{=}\StringTok{"alone"}
+\NormalTok{  df.fill[,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,cur.spec)] }\OtherTok{=}\NormalTok{ T}
+\NormalTok{  dat.mat7 }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.mat7, df.fill)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# pairs}
+\NormalTok{spec.vec }\OtherTok{=} \FunctionTok{as.character}\NormalTok{(}\FunctionTok{unique}\NormalTok{(raw.use}\SpecialCharTok{$}\NormalTok{spec))}
+
+\CommentTok{\# Process all pairwise interaction experiments}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{(}\FunctionTok{length}\NormalTok{(spec.vec)}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{))\{ }\CommentTok{\#focal species}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vec[i.spec]}
+  \ControlFlowTok{for}\NormalTok{(j.spec }\ControlFlowTok{in}\NormalTok{ (i.spec}\SpecialCharTok{+}\DecValTok{1}\NormalTok{)}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vec))\{}
+\NormalTok{    other.spec }\OtherTok{=}\NormalTok{ spec.vec[j.spec]}
+    \CommentTok{\#get cfus of current species}
+\NormalTok{    dat.cur }\OtherTok{=}\NormalTok{ raw.use }\SpecialCharTok{\%\textgreater{}\%} 
+      \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec) }\SpecialCharTok{\%\textgreater{}\%} 
+      \FunctionTok{filter}\NormalTok{(cond }\SpecialCharTok{==}\NormalTok{ other.spec)}
+    \CommentTok{\#get cfus of other species}
+\NormalTok{    dat.other }\OtherTok{=}\NormalTok{ raw.use }\SpecialCharTok{\%\textgreater{}\%} 
+      \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ other.spec) }\SpecialCharTok{\%\textgreater{}\%} 
+      \FunctionTok{filter}\NormalTok{(cond }\SpecialCharTok{==}\NormalTok{ cur.spec)}
+    \CommentTok{\#The replicates might not be lined up. Make it so.}
+\NormalTok{    dat.cur }\OtherTok{=}\NormalTok{ dat.cur[dat.cur}\SpecialCharTok{$}\NormalTok{rep }\SpecialCharTok{\%in\%}\NormalTok{ dat.other}\SpecialCharTok{$}\NormalTok{rep,]}
+\NormalTok{    dat.other }\OtherTok{=}\NormalTok{ dat.other[dat.other}\SpecialCharTok{$}\NormalTok{rep }\SpecialCharTok{\%in\%}\NormalTok{ dat.cur}\SpecialCharTok{$}\NormalTok{rep,]}
+\NormalTok{    dat.cur}\OtherTok{=}\NormalTok{dat.cur[}\FunctionTok{order}\NormalTok{(dat.cur}\SpecialCharTok{$}\NormalTok{rep),]}
+\NormalTok{    dat.other}\OtherTok{=}\NormalTok{dat.other[}\FunctionTok{order}\NormalTok{(dat.other}\SpecialCharTok{$}\NormalTok{rep),]}
+    
+    \DocumentationTok{\#\# Sanity checking to make sure everything is lining up.}
+    \ControlFlowTok{if}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(dat.cur) }\SpecialCharTok{!=} \FunctionTok{nrow}\NormalTok{(dat.other))\{}
+      \FunctionTok{stop}\NormalTok{(}\StringTok{"dimensions not matching up. investigate"}\NormalTok{)}
+\NormalTok{    \}}
+    \ControlFlowTok{if}\NormalTok{(}\FunctionTok{any}\NormalTok{(dat.cur}\SpecialCharTok{$}\NormalTok{rep }\SpecialCharTok{!=}\NormalTok{ dat.other}\SpecialCharTok{$}\NormalTok{rep))\{}
+      \FunctionTok{stop}\NormalTok{(}\StringTok{"replicates not matching up. investigate"}\NormalTok{)}
+\NormalTok{    \}}
+    \DocumentationTok{\#\# if all is working, combine the pieces into a data frame for }
+    \DocumentationTok{\#\#   the current species pair, then stitch to the overall data frame.}
+\NormalTok{    df.fill}\OtherTok{=}\FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}
+                                 \AttributeTok{nrow=}\FunctionTok{nrow}\NormalTok{(dat.cur),}
+                                 \AttributeTok{ncol=}\FunctionTok{ncol}\NormalTok{(dat.mat7)))}
+    \FunctionTok{names}\NormalTok{(df.fill) }\OtherTok{=} \FunctionTok{names}\NormalTok{(dat.mat7)}
+\NormalTok{    df.fill[ , cur.spec] }\OtherTok{=}\NormalTok{ dat.cur}\SpecialCharTok{$}\NormalTok{cfus}
+\NormalTok{    df.fill[ , other.spec] }\OtherTok{=}\NormalTok{ dat.other}\SpecialCharTok{$}\NormalTok{cfus}
+\NormalTok{    df.fill[,}\StringTok{"rep"}\NormalTok{]}\OtherTok{=}\NormalTok{dat.cur}\SpecialCharTok{$}\NormalTok{rep}
+\NormalTok{    df.fill[,}\StringTok{"cond"}\NormalTok{]}\OtherTok{=}\StringTok{"paired{-}comp"}
+\NormalTok{    df.fill[,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,cur.spec)] }\OtherTok{=}\NormalTok{ T}
+\NormalTok{    df.fill[,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,other.spec)] }\OtherTok{=}\NormalTok{ T}
+\NormalTok{    dat.mat7 }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.mat7, df.fill)}
+\NormalTok{  \}}
+\NormalTok{\}}
+\NormalTok{dat.mat7}\SpecialCharTok{$}\NormalTok{day }\OtherTok{=} \DecValTok{21}
+\NormalTok{dat.mat7}\SpecialCharTok{$}\NormalTok{pH }\OtherTok{=} \DecValTok{7}
+\FunctionTok{names}\NormalTok{(dat.mat7)[}\FunctionTok{names}\NormalTok{(dat.mat7)}\SpecialCharTok{==}\StringTok{"pres.135E"}\NormalTok{]}\OtherTok{=}\StringTok{"pres.X135E"}
+
+\FunctionTok{write.csv}\NormalTok{(dat.mat7, }
+          \AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}pH7.csv"}\NormalTok{),}
+          \AttributeTok{row.names =} \ConstantTok{FALSE}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{fit-the-model}{%
+\subsection{Fit the model}\label{fit-the-model}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.fit }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}pH7.csv"}\NormalTok{))}
+\NormalTok{res.est }\OtherTok{=} \ConstantTok{NULL}
+\NormalTok{spec.vecfit }\OtherTok{=} \FunctionTok{unique}\NormalTok{(raw}\SpecialCharTok{$}\NormalTok{spec)}
+\NormalTok{spec.vecfit[spec.vecfit}\SpecialCharTok{==}\StringTok{"135E"}\NormalTok{] }\OtherTok{=} \StringTok{"X135E"}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vec))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vecfit[i.spec]}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+  
+  \DocumentationTok{\#\# calculate K}
+\NormalTok{  dat.k }\OtherTok{=}\NormalTok{ dat.orig }
+\NormalTok{  dat.k}\SpecialCharTok{$}\NormalTok{spec[dat.k}\SpecialCharTok{$}\NormalTok{spec}\SpecialCharTok{==}\StringTok{"135E"}\NormalTok{]}\OtherTok{=}\StringTok{"X135E"}
+\NormalTok{  dat.k }\OtherTok{=}\NormalTok{ dat.k }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(day}\SpecialCharTok{==}\DecValTok{21}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec}\SpecialCharTok{==}\NormalTok{cur.spec) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(cond}\SpecialCharTok{==}\StringTok{"alone"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(pH }\SpecialCharTok{==} \DecValTok{7}\NormalTok{)}
+\NormalTok{  out.k }\OtherTok{=} \FunctionTok{lm}\NormalTok{(cfus }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ dat.k )}
+\NormalTok{  k.cur }\OtherTok{=}\NormalTok{ out.k}\SpecialCharTok{$}\NormalTok{coefficients[[}\DecValTok{1}\NormalTok{]]}
+  
+  \DocumentationTok{\#\# modify the data to ensure we\textquotesingle{}re accounting for K}
+\NormalTok{  ind.use }\OtherTok{=}\NormalTok{ dat.fit[,}\FunctionTok{paste0}\NormalTok{(}\StringTok{"pres."}\NormalTok{,cur.spec)]}\SpecialCharTok{==}\DecValTok{1}
+\NormalTok{  dat.cur }\OtherTok{=}\NormalTok{ dat.fit[ind.use,]}
+\NormalTok{  dat.cur[,cur.spec]}\OtherTok{=}\NormalTok{dat.cur[,cur.spec]}\SpecialCharTok{{-}}\NormalTok{k.cur}
+  \CommentTok{\#generate formula automatically}
+  \CommentTok{\# Note that we are fit a zero{-}intercept model, as we have already subtracted out K.}
+  \CommentTok{\#}
+\NormalTok{  form }\OtherTok{=} \FunctionTok{paste0}\NormalTok{(cur.spec,}\StringTok{" \textasciitilde{} {-}1 + "}\NormalTok{, }\FunctionTok{paste}\NormalTok{(spec.vecfit[}\SpecialCharTok{{-}}\NormalTok{i.spec], }\AttributeTok{collapse =} \StringTok{" + "}\NormalTok{))}
+\NormalTok{  out.cur }\OtherTok{=} \FunctionTok{lm}\NormalTok{(}\FunctionTok{formula}\NormalTok{(form),}
+               \AttributeTok{data =}\NormalTok{ dat.cur)}
+\NormalTok{  est }\OtherTok{=} \FunctionTok{coefficients}\NormalTok{(out.cur)}
+  \CommentTok{\#sometimes we\textquotesingle{}re getting NAs for se}
+  \CommentTok{\#and this doesn\textquotesingle{}t even show up in coef(summary())}
+  \CommentTok{\# so we have to do something a little fiddly.}
+\NormalTok{  se }\OtherTok{=}\NormalTok{ est}\SpecialCharTok{*}\ConstantTok{NA}
+\NormalTok{  coef.temp }\OtherTok{=} \FunctionTok{coef}\NormalTok{(}\FunctionTok{summary}\NormalTok{(out.cur))[,}\DecValTok{2}\NormalTok{]}
+\NormalTok{  se[}\FunctionTok{names}\NormalTok{(coef.temp)] }\OtherTok{=}\NormalTok{ coef.temp}
+\NormalTok{  cur.df }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{c}\NormalTok{(}\FunctionTok{coefficients}\NormalTok{(out.k), est),}
+                      \AttributeTok{se =} \FunctionTok{c}\NormalTok{(}\FunctionTok{coef}\NormalTok{(}\FunctionTok{summary}\NormalTok{(out.k))[,}\DecValTok{2}\NormalTok{],se))}
+  \CommentTok{\#switch to alphas (for everything but Ks, which are the first entry) by multiplying by {-}1}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{est[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}\OtherTok{=}\SpecialCharTok{{-}}\NormalTok{cur.df}\SpecialCharTok{$}\NormalTok{est[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=}\NormalTok{ cur.spec}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{name }\OtherTok{=} \FunctionTok{rownames}\NormalTok{(cur.df)}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{pH }\OtherTok{=} \DecValTok{7}
+  \FunctionTok{rownames}\NormalTok{(cur.df)}\OtherTok{=}\ConstantTok{NULL}
+\NormalTok{  cur.df}\SpecialCharTok{$}\NormalTok{name[}\DecValTok{1}\NormalTok{] }\OtherTok{=} \StringTok{"K"}
+  \CommentTok{\#reorder}
+\NormalTok{  cur.df}\OtherTok{=}\NormalTok{cur.df[,}\FunctionTok{c}\NormalTok{(}\StringTok{"spec"}\NormalTok{,}\StringTok{"name"}\NormalTok{,}\StringTok{"est"}\NormalTok{,}\StringTok{"se"}\NormalTok{, }\StringTok{"pH"}\NormalTok{)]}
+\NormalTok{  res.est }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(res.est, cur.df)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "X135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{write.csv}\NormalTok{(res.est, }
+          \AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                      \StringTok{"coefficient{-}estimates{-}pH7.csv"}\NormalTok{),}
+          \AttributeTok{row.names =} \ConstantTok{FALSE}
+\NormalTok{)}
+\DocumentationTok{\#\# write metadata}
+\FunctionTok{cat}\NormalTok{(}\StringTok{"meta{-}data for coefficeint{-}estimates.csv"}\NormalTok{,}
+    \AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{, }\StringTok{"coefficient{-}estimates{-}pH7{-}metadata.txt"}\NormalTok{),}
+    \AttributeTok{sep =} \StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\FunctionTok{cat}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\StringTok{"Fitting Lotka{-}Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium"}\NormalTok{,}
+      \StringTok{"As before, but now we are doing pH7 data"}\NormalTok{,}
+      \StringTok{"We assume the error is normally distributed {-} this seems close enough to true."}\NormalTok{,}
+      \StringTok{""}\NormalTok{,}
+      \StringTok{"spec is the focal species"}\NormalTok{,}
+      \StringTok{"name is the coefficient name. In the cases where name is a species name, it\textquotesingle{}s an alpha term, and the species named is the competing species"}\NormalTok{,}
+      \StringTok{"est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1."}\NormalTok{,}
+      \StringTok{"se is the standard error from the lienar regression"}\NormalTok{),}
+    \AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{, }\StringTok{"coefficient{-}estimates{-}pH7{-}metadata.txt"}\NormalTok{),}
+    \AttributeTok{sep =} \StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,}
+    \AttributeTok{append=}\NormalTok{T)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{comparing-to-community-data-1}{%
+\subsection{Comparing to community
+data}\label{comparing-to-community-data-1}}
+
+\hypertarget{restructure-data-1}{%
+\subsubsection{restructure data}\label{restructure-data-1}}
+
+We already did this for the pH5 predictions, and we're using the same
+community data. We can just read in \texttt{matrix-form-comdat.csv}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.com }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{)}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{predicting-1}{%
+\subsubsection{predicting}\label{predicting-1}}
+
+Note that we have no estimate for the effect of 135E on JBC since it
+never survives, BUT we don't have it in the final community. I'm
+converting all estimates of interactions coming from X135E to 0 in the
+calculations to avoid NA propogation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{))}
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{na.omit}\NormalTok{(dat.com)}
+\CommentTok{\# read in our fitted coeffients}
+\NormalTok{dat.coefs }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                          \StringTok{"coefficient{-}estimates{-}pH7.csv"}\NormalTok{))}
+\CommentTok{\#make a data fram to store predictions {-} easiest way is to grab existing community data frame and empty it.}
+\NormalTok{dat.pred }\OtherTok{=}\NormalTok{ dat.com}
+\NormalTok{dat.pred[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(dat.com)}\SpecialCharTok{==}\StringTok{"rep"}\NormalTok{)]}\OtherTok{=}\DecValTok{0}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vecfit))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vecfit[i.spec]}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+  \CommentTok{\#some cool manipulating to make it easy to access the right coefficients}
+  \CommentTok{\# ending in coefs.vec: a vector of coefficients labeled by name}
+\NormalTok{  coefs.cur }\OtherTok{=}\NormalTok{ dat.coefs }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec)}
+\NormalTok{  coefs.vec }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{est}
+  \FunctionTok{names}\NormalTok{(coefs.vec) }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{name}
+  \ControlFlowTok{if}\NormalTok{(cur.spec }\SpecialCharTok{==}\StringTok{"JBC"}\NormalTok{)\{}
+\NormalTok{    coefs.vec[}\StringTok{"X135E"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{  \}}
+\NormalTok{  x.cur }\OtherTok{=}\NormalTok{ dat.com[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(dat.com) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(cur.spec, }\StringTok{"rep"}\NormalTok{))]}
+  \CommentTok{\#using element{-}wise multiplication to simplify the coding}
+  \CommentTok{\# (using some transformations (the \textasciigrave{}t()\textasciigrave{} function) to make the right pieces line}
+  \CommentTok{\# up)}
+  \CommentTok{\#This may look opaque, but you can confirm that it\textquotesingle{}s doing the right thing with }
+  \CommentTok{\# a test case:}
+  \CommentTok{\# test.mat = matrix(1:4, 2,2)}
+  \CommentTok{\# t(t(test.mat) * c(1,0))}
+\NormalTok{  pred.cur }\OtherTok{=}\NormalTok{ coefs.vec[}\StringTok{"K"}\NormalTok{] }\SpecialCharTok{{-}} 
+    \FunctionTok{rowSums}\NormalTok{(}\FunctionTok{t}\NormalTok{(}\FunctionTok{t}\NormalTok{(x.cur[,}\FunctionTok{names}\NormalTok{(coefs.vec)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]]) }\SpecialCharTok{*}\NormalTok{ (coefs.vec[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])))}
+\NormalTok{  pred.cur }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(}\DecValTok{0}\NormalTok{,pred.cur)}
+\NormalTok{  dat.pred[,cur.spec] }\OtherTok{=}\NormalTok{ pred.cur}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "X135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{ph }\OtherTok{=} \DecValTok{7}
+\FunctionTok{write.csv}\NormalTok{(dat.pred,}
+          \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}\StringTok{"predictions{-}from{-}pH7.csv"}\NormalTok{),}
+          \AttributeTok{row.names=}\NormalTok{F}
+\NormalTok{)}
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 7 predictions"}
+\NormalTok{pred.all }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(pred.all, dat.pred)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{visualizing-1}{%
+\subsubsection{Visualizing}\label{visualizing-1}}
+
+Adding to our existing set of predictions
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{apply}\NormalTok{(dat.pred,}\DecValTok{2}\NormalTok{, median))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=} \FunctionTok{colnames}\NormalTok{(dat.pred)}
+\NormalTok{dat.plot }\OtherTok{=}\NormalTok{ dat.plot[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{spec }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"rep"}\NormalTok{,}\StringTok{"ph"}\NormalTok{)),]}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{est }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est, }\DecValTok{0}\NormalTok{)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{rel }\OtherTok{=}\NormalTok{ dat.plot}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 7 predictions"}
+\NormalTok{dat.gg }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.gg, dat.plot)}
+
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ dat.gg, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill =}\NormalTok{ spec, }\AttributeTok{x =}\NormalTok{ scenario, }\AttributeTok{y =}\NormalTok{ rel))}\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{ylab}\NormalTok{(}\StringTok{"relative abundance"}\NormalTok{)}\SpecialCharTok{+}
+\NormalTok{  theme.mine}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 16 rows containing missing values (`position_stack()`).
+\end{verbatim}
+
+\includegraphics{succession-analysis-v1.2_files/figure-latex/unnamed-chunk-18-1.pdf}
+
+\hypertarget{other-predictions}{%
+\section{Other predictions}\label{other-predictions}}
+
+pH 7 has better correspondence to our actual community, but it's far
+from correct. Brooke has some hypotheses on this.
+
+\hypertarget{jbc-coefficient-ph-7}{%
+\subsection{JBC coefficient @ pH 7}\label{jbc-coefficient-ph-7}}
+
+What if only JBC had any effects on other species?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{))}
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{na.omit}\NormalTok{(dat.com)}
+\CommentTok{\# read in our fitted coeffients}
+\NormalTok{dat.coefs }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                          \StringTok{"coefficient{-}estimates{-}pH7.csv"}\NormalTok{))}
+\DocumentationTok{\#\# turn anything that\textquotesingle{}s not a K or from JBC to 0}
+\NormalTok{dat.coefs[}\SpecialCharTok{!}\NormalTok{dat.coefs}\SpecialCharTok{$}\NormalTok{name }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"K"}\NormalTok{,}\StringTok{"JBC"}\NormalTok{), }\StringTok{"est"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{dat.pred }\OtherTok{=}\NormalTok{ dat.com}
+\NormalTok{dat.pred[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(dat.com)}\SpecialCharTok{==}\StringTok{"rep"}\NormalTok{)]}\OtherTok{=}\DecValTok{0}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vecfit))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vecfit[i.spec]}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+  \CommentTok{\#some cool manipulating to make it easy to access the right coefficients}
+  \CommentTok{\# ending in coefs.vec: a vector of coefficients labeled by name}
+\NormalTok{  coefs.cur }\OtherTok{=}\NormalTok{ dat.coefs }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec)}
+\NormalTok{  coefs.vec }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{est}
+  \FunctionTok{names}\NormalTok{(coefs.vec) }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{name}
+  \ControlFlowTok{if}\NormalTok{(cur.spec }\SpecialCharTok{==}\StringTok{"JBC"}\NormalTok{)\{}
+\NormalTok{    coefs.vec[}\StringTok{"X135E"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{  \}}
+\NormalTok{  x.cur }\OtherTok{=}\NormalTok{ dat.com[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(dat.com) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(cur.spec, }\StringTok{"rep"}\NormalTok{))]}
+  \CommentTok{\#using element{-}wise multiplication to simplify the coding}
+  \CommentTok{\#This may look opaque, but you can confirm that it\textquotesingle{}s doing the right thing with }
+  \CommentTok{\# a test case:}
+  \CommentTok{\# test.mat = matrix(1:4, 2,2)}
+  \CommentTok{\# t(t(test.mat) * c(1,0))}
+\NormalTok{  pred.cur }\OtherTok{=}\NormalTok{ coefs.vec[}\StringTok{"K"}\NormalTok{] }\SpecialCharTok{{-}} 
+    \FunctionTok{rowSums}\NormalTok{(}\FunctionTok{t}\NormalTok{(}\FunctionTok{t}\NormalTok{(x.cur[,}\FunctionTok{names}\NormalTok{(coefs.vec)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]]) }\SpecialCharTok{*}\NormalTok{ (coefs.vec[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])))}
+\NormalTok{  pred.cur }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(}\DecValTok{0}\NormalTok{,pred.cur)}
+\NormalTok{  dat.pred[,cur.spec] }\OtherTok{=}\NormalTok{ pred.cur}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "X135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{ph }\OtherTok{=} \DecValTok{7}
+
+\FunctionTok{write.csv}\NormalTok{(dat.pred,}
+          \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}\StringTok{"predictions{-}onlyJBC{-}pH7.csv"}\NormalTok{),}
+          \AttributeTok{row.names=}\NormalTok{F}
+\NormalTok{)}
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 7 only{-}JBC predictions"}
+\NormalTok{pred.all }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(pred.all, dat.pred)}
+\end{Highlighting}
+\end{Shaded}
+
+Add to our quick visualization dataframe
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{apply}\NormalTok{(dat.pred,}\DecValTok{2}\NormalTok{, median))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=} \FunctionTok{colnames}\NormalTok{(dat.pred)}
+\NormalTok{dat.plot }\OtherTok{=}\NormalTok{ dat.plot[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{spec }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"rep"}\NormalTok{,}\StringTok{"ph"}\NormalTok{)),]}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{est }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est, }\DecValTok{0}\NormalTok{)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{rel }\OtherTok{=}\NormalTok{ dat.plot}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 7 only{-}JBC predictions"}
+\NormalTok{dat.gg }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.gg, dat.plot)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{jbc-135e-ph-5}{%
+\subsection{JBC + 135E @ pH 5}\label{jbc-135e-ph-5}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{))}
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{na.omit}\NormalTok{(dat.com)}
+\CommentTok{\# read in our fitted coeffients}
+\NormalTok{dat.coefs }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                          \StringTok{"coefficient{-}estimates{-}pH5.csv"}\NormalTok{))}
+\DocumentationTok{\#\# turn anything that\textquotesingle{}s not a K or from JBC to 0}
+\NormalTok{dat.coefs[}\SpecialCharTok{!}\NormalTok{dat.coefs}\SpecialCharTok{$}\NormalTok{name }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"K"}\NormalTok{,}\StringTok{"JBC"}\NormalTok{, }\StringTok{"X135E"}\NormalTok{), }\StringTok{"est"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{dat.pred }\OtherTok{=}\NormalTok{ dat.com}
+\NormalTok{dat.pred[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(dat.com)}\SpecialCharTok{==}\StringTok{"rep"}\NormalTok{)]}\OtherTok{=}\DecValTok{0}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vecfit))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vecfit[i.spec]}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+  \CommentTok{\#some cool manipulating to make it easy to access the right coefficients}
+  \CommentTok{\# ending in coefs.vec: a vector of coefficients labeled by name}
+\NormalTok{  coefs.cur }\OtherTok{=}\NormalTok{ dat.coefs }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec)}
+\NormalTok{  coefs.vec }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{est}
+  \FunctionTok{names}\NormalTok{(coefs.vec) }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{name}
+  \ControlFlowTok{if}\NormalTok{(cur.spec }\SpecialCharTok{==}\StringTok{"JBC"}\NormalTok{)\{}
+\NormalTok{    coefs.vec[}\StringTok{"X135E"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{  \}}
+\NormalTok{  x.cur }\OtherTok{=}\NormalTok{ dat.com[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(dat.com) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(cur.spec, }\StringTok{"rep"}\NormalTok{))]}
+  \CommentTok{\#using element{-}wise multiplication to simplify the coding}
+  \CommentTok{\#This may look opaque, but you can confirm that it\textquotesingle{}s doing the right thing with }
+  \CommentTok{\# a test case:}
+  \CommentTok{\# test.mat = matrix(1:4, 2,2)}
+  \CommentTok{\# t(t(test.mat) * c(1,0))}
+\NormalTok{  pred.cur }\OtherTok{=}\NormalTok{ coefs.vec[}\StringTok{"K"}\NormalTok{] }\SpecialCharTok{{-}} 
+    \FunctionTok{rowSums}\NormalTok{(}\FunctionTok{t}\NormalTok{(}\FunctionTok{t}\NormalTok{(x.cur[,}\FunctionTok{names}\NormalTok{(coefs.vec)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]]) }\SpecialCharTok{*}\NormalTok{ (coefs.vec[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])))}
+\NormalTok{  pred.cur }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(}\DecValTok{0}\NormalTok{,pred.cur)}
+\NormalTok{  dat.pred[,cur.spec] }\OtherTok{=}\NormalTok{ pred.cur}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "X135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{ph }\OtherTok{=} \DecValTok{5}
+
+\FunctionTok{write.csv}\NormalTok{(dat.pred,}
+          \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}\StringTok{"predictions{-}onlyJBC{-}135E{-}pH5.csv"}\NormalTok{),}
+          \AttributeTok{row.names=}\NormalTok{F}
+\NormalTok{)}
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 only{-}JBC+135E predictions"}
+\NormalTok{pred.all }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(pred.all, dat.pred)}
+\end{Highlighting}
+\end{Shaded}
+
+Add to our quick visualization dataframe
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{apply}\NormalTok{(dat.pred,}\DecValTok{2}\NormalTok{, median))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=} \FunctionTok{colnames}\NormalTok{(dat.pred)}
+\NormalTok{dat.plot }\OtherTok{=}\NormalTok{ dat.plot[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{spec }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"rep"}\NormalTok{,}\StringTok{"ph"}\NormalTok{)),]}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{est }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est, }\DecValTok{0}\NormalTok{)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{rel }\OtherTok{=}\NormalTok{ dat.plot}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 only{-}JBC+135E predictions"}
+\NormalTok{dat.gg }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.gg, dat.plot)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{mse}{%
+\section{MSE}\label{mse}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{real }\OtherTok{=}\NormalTok{ dat.gg }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"Actual community"}\NormalTok{)}
+
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 5 all MSE"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 5 all MSE"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ dat.gg }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 5 predictions"}\NormalTok{)}
+\FunctionTok{mean}\NormalTok{((real}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{{-}}\NormalTok{pred.cur}\SpecialCharTok{$}\NormalTok{est)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in real$est - pred.cur$est: longer object length is not a multiple of
+## shorter object length
+\end{verbatim}
+
+\begin{verbatim}
+## [1] NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 7 all MSE"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 7 all MSE"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ dat.gg }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 7 predictions"}\NormalTok{)}
+\FunctionTok{mean}\NormalTok{((real}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{{-}}\NormalTok{pred.cur}\SpecialCharTok{$}\NormalTok{est)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in real$est - pred.cur$est: longer object length is not a multiple of
+## shorter object length
+\end{verbatim}
+
+\begin{verbatim}
+## [1] NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 7 one effector"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 7 one effector"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ dat.gg }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 7 only{-}JBC predictions"}\NormalTok{)}
+\FunctionTok{mean}\NormalTok{((real}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{{-}}\NormalTok{pred.cur}\SpecialCharTok{$}\NormalTok{est)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in real$est - pred.cur$est: longer object length is not a multiple of
+## shorter object length
+\end{verbatim}
+
+\begin{verbatim}
+## [1] NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 5 two effectors"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 5 two effectors"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ dat.gg }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 5 only{-}JBC+135E predictions"}\NormalTok{)}
+\FunctionTok{mean}\NormalTok{((real}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{{-}}\NormalTok{pred.cur}\SpecialCharTok{$}\NormalTok{est)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in real$est - pred.cur$est: longer object length is not a multiple of
+## shorter object length
+\end{verbatim}
+
+\begin{verbatim}
+## [1] NA
+\end{verbatim}
+
+\hypertarget{final-visualization}{%
+\section{Final visualization}\label{final-visualization}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ dat.gg, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill =}\NormalTok{ spec, }\AttributeTok{x =}\NormalTok{ scenario, }\AttributeTok{y =}\NormalTok{ rel))}\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{ylab}\NormalTok{(}\StringTok{"relative abundance"}\NormalTok{)}\SpecialCharTok{+}
+\NormalTok{  theme.mine}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 32 rows containing missing values (`position_stack()`).
+\end{verbatim}
+
+\includegraphics{succession-analysis-v1.2_files/figure-latex/unnamed-chunk-24-1.pdf}
+
+\hypertarget{updated-checking}{%
+\section{Updated checking}\label{updated-checking}}
+
+From Brooke, 2/18/23: \emph{I poked around your modeling code to try
+asking whether ANY taxon capable of deacidifying the media could pair
+with JBC in the pH 5-based model to get the same results as the ph5
+2-effector scenario (JBC, JB370, and BC10 are all deacidifiers, so I
+tried JBC alone @ ph5, JBC+JB370, and JBC+BC10).}
+
+TO check, I'll add in the 3 new scenarios:
+
+\hypertarget{jbc-ph-5}{%
+\subsection{JBC @ pH 5}\label{jbc-ph-5}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{))}
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{na.omit}\NormalTok{(dat.com)}
+\CommentTok{\# read in our fitted coeffients}
+\NormalTok{dat.coefs }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                          \StringTok{"coefficient{-}estimates{-}pH5.csv"}\NormalTok{))}
+\DocumentationTok{\#\# turn anything that\textquotesingle{}s not a K or from JBC to 0}
+\NormalTok{dat.coefs[}\SpecialCharTok{!}\NormalTok{dat.coefs}\SpecialCharTok{$}\NormalTok{name }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"K"}\NormalTok{,}\StringTok{"JBC"}\NormalTok{), }\StringTok{"est"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{dat.pred }\OtherTok{=}\NormalTok{ dat.com}
+\NormalTok{dat.pred[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(dat.com)}\SpecialCharTok{==}\StringTok{"rep"}\NormalTok{)]}\OtherTok{=}\DecValTok{0}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vecfit))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vecfit[i.spec]}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+  \CommentTok{\#some cool manipulating to make it easy to access the right coefficients}
+  \CommentTok{\# ending in coefs.vec: a vector of coefficients labeled by name}
+\NormalTok{  coefs.cur }\OtherTok{=}\NormalTok{ dat.coefs }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec)}
+\NormalTok{  coefs.vec }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{est}
+  \FunctionTok{names}\NormalTok{(coefs.vec) }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{name}
+  \ControlFlowTok{if}\NormalTok{(cur.spec }\SpecialCharTok{==}\StringTok{"JBC"}\NormalTok{)\{}
+\NormalTok{    coefs.vec[}\StringTok{"X135E"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{  \}}
+\NormalTok{  x.cur }\OtherTok{=}\NormalTok{ dat.com[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(dat.com) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(cur.spec, }\StringTok{"rep"}\NormalTok{))]}
+  \CommentTok{\#using element{-}wise multiplication to simplify the coding}
+  \CommentTok{\#This may look opaque, but you can confirm that it\textquotesingle{}s doing the right thing with }
+  \CommentTok{\# a test case:}
+  \CommentTok{\# test.mat = matrix(1:4, 2,2)}
+  \CommentTok{\# t(t(test.mat) * c(1,0))}
+\NormalTok{  pred.cur }\OtherTok{=}\NormalTok{ coefs.vec[}\StringTok{"K"}\NormalTok{] }\SpecialCharTok{{-}} 
+    \FunctionTok{rowSums}\NormalTok{(}\FunctionTok{t}\NormalTok{(}\FunctionTok{t}\NormalTok{(x.cur[,}\FunctionTok{names}\NormalTok{(coefs.vec)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]]) }\SpecialCharTok{*}\NormalTok{ (coefs.vec[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])))}
+\NormalTok{  pred.cur }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(}\DecValTok{0}\NormalTok{,pred.cur)}
+\NormalTok{  dat.pred[,cur.spec] }\OtherTok{=}\NormalTok{ pred.cur}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "X135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{ph }\OtherTok{=} \DecValTok{5}
+
+\FunctionTok{write.csv}\NormalTok{(dat.pred,}
+          \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}\StringTok{"predictions{-}onlyJBC{-}pH5.csv"}\NormalTok{),}
+          \AttributeTok{row.names=}\NormalTok{F}
+\NormalTok{)}
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 only{-}JBC predictions"}
+\NormalTok{pred.all }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(pred.all, dat.pred)}
+\end{Highlighting}
+\end{Shaded}
+
+Add to our quick visualization dataframe
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{apply}\NormalTok{(dat.pred,}\DecValTok{2}\NormalTok{, median))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=} \FunctionTok{colnames}\NormalTok{(dat.pred)}
+\NormalTok{dat.plot }\OtherTok{=}\NormalTok{ dat.plot[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{spec }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"rep"}\NormalTok{,}\StringTok{"ph"}\NormalTok{)),]}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{est }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est, }\DecValTok{0}\NormalTok{)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{rel }\OtherTok{=}\NormalTok{ dat.plot}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 only{-}JBC predictions"}
+\NormalTok{dat.gg }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.gg, dat.plot)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{jbc-jb370-ph-5}{%
+\subsection{JBC + JB370 @ pH 5}\label{jbc-jb370-ph-5}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{))}
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{na.omit}\NormalTok{(dat.com)}
+\CommentTok{\# read in our fitted coeffients}
+\NormalTok{dat.coefs }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                          \StringTok{"coefficient{-}estimates{-}pH5.csv"}\NormalTok{))}
+\DocumentationTok{\#\# turn anything that\textquotesingle{}s not a K or from JBC to 0}
+\NormalTok{dat.coefs[}\SpecialCharTok{!}\NormalTok{dat.coefs}\SpecialCharTok{$}\NormalTok{name }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"K"}\NormalTok{,}\StringTok{"JBC"}\NormalTok{, }\StringTok{"JB370"}\NormalTok{), }\StringTok{"est"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{dat.pred }\OtherTok{=}\NormalTok{ dat.com}
+\NormalTok{dat.pred[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(dat.com)}\SpecialCharTok{==}\StringTok{"rep"}\NormalTok{)]}\OtherTok{=}\DecValTok{0}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vecfit))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vecfit[i.spec]}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+  \CommentTok{\#some cool manipulating to make it easy to access the right coefficients}
+  \CommentTok{\# ending in coefs.vec: a vector of coefficients labeled by name}
+\NormalTok{  coefs.cur }\OtherTok{=}\NormalTok{ dat.coefs }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec)}
+\NormalTok{  coefs.vec }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{est}
+  \FunctionTok{names}\NormalTok{(coefs.vec) }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{name}
+  \ControlFlowTok{if}\NormalTok{(cur.spec }\SpecialCharTok{==}\StringTok{"JBC"}\NormalTok{)\{}
+\NormalTok{    coefs.vec[}\StringTok{"X135E"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{  \}}
+\NormalTok{  x.cur }\OtherTok{=}\NormalTok{ dat.com[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(dat.com) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(cur.spec, }\StringTok{"rep"}\NormalTok{))]}
+  \CommentTok{\#using element{-}wise multiplication to simplify the coding}
+  \CommentTok{\#This may look opaque, but you can confirm that it\textquotesingle{}s doing the right thing with }
+  \CommentTok{\# a test case:}
+  \CommentTok{\# test.mat = matrix(1:4, 2,2)}
+  \CommentTok{\# t(t(test.mat) * c(1,0))}
+\NormalTok{  pred.cur }\OtherTok{=}\NormalTok{ coefs.vec[}\StringTok{"K"}\NormalTok{] }\SpecialCharTok{{-}} 
+    \FunctionTok{rowSums}\NormalTok{(}\FunctionTok{t}\NormalTok{(}\FunctionTok{t}\NormalTok{(x.cur[,}\FunctionTok{names}\NormalTok{(coefs.vec)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]]) }\SpecialCharTok{*}\NormalTok{ (coefs.vec[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])))}
+\NormalTok{  pred.cur }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(}\DecValTok{0}\NormalTok{,pred.cur)}
+\NormalTok{  dat.pred[,cur.spec] }\OtherTok{=}\NormalTok{ pred.cur}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "X135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{ph }\OtherTok{=} \DecValTok{5}
+
+\FunctionTok{write.csv}\NormalTok{(dat.pred,}
+          \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}\StringTok{"predictions{-}onlyJBC{-}JB370{-}pH5.csv"}\NormalTok{),}
+          \AttributeTok{row.names=}\NormalTok{F}
+\NormalTok{)}
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 only{-}JBC+JB370 predictions"}
+\NormalTok{pred.all }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(pred.all, dat.pred)}
+\end{Highlighting}
+\end{Shaded}
+
+Add to our quick visualization dataframe
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{apply}\NormalTok{(dat.pred,}\DecValTok{2}\NormalTok{, median))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=} \FunctionTok{colnames}\NormalTok{(dat.pred)}
+\NormalTok{dat.plot }\OtherTok{=}\NormalTok{ dat.plot[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{spec }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"rep"}\NormalTok{,}\StringTok{"ph"}\NormalTok{)),]}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{est }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est, }\DecValTok{0}\NormalTok{)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{rel }\OtherTok{=}\NormalTok{ dat.plot}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 only{-}JBC+JB370 predictions"}
+\NormalTok{dat.gg }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.gg, dat.plot)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{jbc-bc10-ph-5}{%
+\subsection{JBC + BC10 @ pH 5}\label{jbc-bc10-ph-5}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{))}
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{na.omit}\NormalTok{(dat.com)}
+\CommentTok{\# read in our fitted coeffients}
+\NormalTok{dat.coefs }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                          \StringTok{"coefficient{-}estimates{-}pH5.csv"}\NormalTok{))}
+\DocumentationTok{\#\# turn anything that\textquotesingle{}s not a K or from JBC to 0}
+\NormalTok{dat.coefs[}\SpecialCharTok{!}\NormalTok{dat.coefs}\SpecialCharTok{$}\NormalTok{name }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"K"}\NormalTok{,}\StringTok{"JBC"}\NormalTok{, }\StringTok{"BC10"}\NormalTok{), }\StringTok{"est"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{dat.pred }\OtherTok{=}\NormalTok{ dat.com}
+\NormalTok{dat.pred[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(dat.com)}\SpecialCharTok{==}\StringTok{"rep"}\NormalTok{)]}\OtherTok{=}\DecValTok{0}
+\ControlFlowTok{for}\NormalTok{(i.spec }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spec.vecfit))\{}
+\NormalTok{  cur.spec }\OtherTok{=}\NormalTok{ spec.vecfit[i.spec]}
+  \FunctionTok{print}\NormalTok{(cur.spec)}
+  \CommentTok{\#some cool manipulating to make it easy to access the right coefficients}
+  \CommentTok{\# ending in coefs.vec: a vector of coefficients labeled by name}
+\NormalTok{  coefs.cur }\OtherTok{=}\NormalTok{ dat.coefs }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(spec }\SpecialCharTok{==}\NormalTok{ cur.spec)}
+\NormalTok{  coefs.vec }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{est}
+  \FunctionTok{names}\NormalTok{(coefs.vec) }\OtherTok{=}\NormalTok{ coefs.cur}\SpecialCharTok{$}\NormalTok{name}
+  \ControlFlowTok{if}\NormalTok{(cur.spec }\SpecialCharTok{==}\StringTok{"JBC"}\NormalTok{)\{}
+\NormalTok{    coefs.vec[}\StringTok{"X135E"}\NormalTok{]}\OtherTok{=}\DecValTok{0}
+\NormalTok{  \}}
+\NormalTok{  x.cur }\OtherTok{=}\NormalTok{ dat.com[,}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(dat.com) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(cur.spec, }\StringTok{"rep"}\NormalTok{))]}
+  \CommentTok{\#using element{-}wise multiplication to simplify the coding}
+  \CommentTok{\#This may look opaque, but you can confirm that it\textquotesingle{}s doing the right thing with }
+  \CommentTok{\# a test case:}
+  \CommentTok{\# test.mat = matrix(1:4, 2,2)}
+  \CommentTok{\# t(t(test.mat) * c(1,0))}
+\NormalTok{  pred.cur }\OtherTok{=}\NormalTok{ coefs.vec[}\StringTok{"K"}\NormalTok{] }\SpecialCharTok{{-}} 
+    \FunctionTok{rowSums}\NormalTok{(}\FunctionTok{t}\NormalTok{(}\FunctionTok{t}\NormalTok{(x.cur[,}\FunctionTok{names}\NormalTok{(coefs.vec)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]]) }\SpecialCharTok{*}\NormalTok{ (coefs.vec[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])))}
+\NormalTok{  pred.cur }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(}\DecValTok{0}\NormalTok{,pred.cur)}
+\NormalTok{  dat.pred[,cur.spec] }\OtherTok{=}\NormalTok{ pred.cur}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "BC9"
+## [1] "BC10"
+## [1] "JB5"
+## [1] "JB7"
+## [1] "X135E"
+## [1] "JBC"
+## [1] "JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{ph }\OtherTok{=} \DecValTok{5}
+
+\FunctionTok{write.csv}\NormalTok{(dat.pred,}
+          \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}\StringTok{"predictions{-}onlyJBC{-}BC10{-}pH5.csv"}\NormalTok{),}
+          \AttributeTok{row.names=}\NormalTok{F}
+\NormalTok{)}
+\NormalTok{dat.pred}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 only{-}JBC+BC10 predictions"}
+\NormalTok{pred.all }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(pred.all, dat.pred)}
+\end{Highlighting}
+\end{Shaded}
+
+Add to our quick visualization dataframe
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{est =} \FunctionTok{apply}\NormalTok{(dat.pred,}\DecValTok{2}\NormalTok{, median))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+
+## Warning in mean.default(sort(x, partial = half + 0L:1L)[half + 0L:1L]):
+## argument is not numeric or logical: returning NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{spec }\OtherTok{=} \FunctionTok{colnames}\NormalTok{(dat.pred)}
+\NormalTok{dat.plot }\OtherTok{=}\NormalTok{ dat.plot[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{spec }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"rep"}\NormalTok{,}\StringTok{"ph"}\NormalTok{)),]}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{est }\OtherTok{=} \FunctionTok{pmax}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est, }\DecValTok{0}\NormalTok{)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{rel }\OtherTok{=}\NormalTok{ dat.plot}\SpecialCharTok{$}\NormalTok{est}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(dat.plot}\SpecialCharTok{$}\NormalTok{est)}
+\NormalTok{dat.plot}\SpecialCharTok{$}\NormalTok{scenario }\OtherTok{=} \StringTok{"ph 5 only{-}JBC+BC10 predictions"}
+\NormalTok{dat.gg }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat.gg, dat.plot)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{updated-viz}{%
+\subsection{Updated Viz}\label{updated-viz}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ dat.gg, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill =}\NormalTok{ spec, }\AttributeTok{x =}\NormalTok{ scenario, }\AttributeTok{y =}\NormalTok{ rel))}\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{ylab}\NormalTok{(}\StringTok{"relative abundance"}\NormalTok{)}\SpecialCharTok{+}
+\NormalTok{  theme.mine }\SpecialCharTok{+}
+  \FunctionTok{coord\_flip}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 56 rows containing missing values (`position_stack()`).
+\end{verbatim}
+
+\includegraphics{succession-analysis-v1.2_files/figure-latex/unnamed-chunk-31-1.pdf}
+
+\hypertarget{updated-mse}{%
+\subsection{Updated MSE}\label{updated-mse}}
+
+Note: doing 2 fiddly bits here. Estimating for each replicate
+separately, and also dividing by 1000, so that we're looking at MSE of
+thousands of CFUS. This is identical in theory (lowest MSE is still
+best), but keeps numbers smaller, improving the practicalities.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{scaling }\OtherTok{=} \DecValTok{1000}
+\NormalTok{mse.df}\OtherTok{=}\ConstantTok{NULL}
+
+\NormalTok{dat.real }\OtherTok{=}\NormalTok{ dat.com }\SpecialCharTok{\%\textgreater{}\%}  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{rep)}\SpecialCharTok{/}\NormalTok{scaling}
+
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 5 all MSE"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 5 all MSE"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.all }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 5 predictions"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{rep, }\SpecialCharTok{{-}}\NormalTok{ph, }\SpecialCharTok{{-}}\NormalTok{scenario)}
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.cur}\SpecialCharTok{/}\NormalTok{scaling}
+\NormalTok{sq.er }\OtherTok{=}\NormalTok{(dat.real }\SpecialCharTok{{-}}\NormalTok{ pred.cur[,}\FunctionTok{names}\NormalTok{(dat.real)])}\SpecialCharTok{\^{}}\DecValTok{2}
+\NormalTok{(}\AttributeTok{mse.res =} \FunctionTok{mean}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(sq.er)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1.692738e+17
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mse.df }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(mse.df, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{scenario =} \StringTok{"ph 5 predictions"}\NormalTok{,}
+                                  \AttributeTok{mse =}\NormalTok{ mse.res))}
+
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 7 all MSE"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 7 all MSE"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.all }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 7 predictions"}\NormalTok{)  }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{rep, }\SpecialCharTok{{-}}\NormalTok{ph, }\SpecialCharTok{{-}}\NormalTok{scenario)}
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.cur}\SpecialCharTok{/}\NormalTok{scaling}
+\NormalTok{sq.er }\OtherTok{=}\NormalTok{(dat.real }\SpecialCharTok{{-}}\NormalTok{ pred.cur[,}\FunctionTok{names}\NormalTok{(dat.real)])}\SpecialCharTok{\^{}}\DecValTok{2}
+\NormalTok{(}\AttributeTok{mse.res =} \FunctionTok{mean}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(sq.er)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 384455411322
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mse.df }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(mse.df, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{scenario =} \StringTok{"ph 7 predictions"}\NormalTok{,}
+                                  \AttributeTok{mse =}\NormalTok{ mse.res))}
+
+
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 7 JBC"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 7 JBC"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.all }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 7 only{-}JBC predictions"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{rep, }\SpecialCharTok{{-}}\NormalTok{ph, }\SpecialCharTok{{-}}\NormalTok{scenario)}
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.cur}\SpecialCharTok{/}\NormalTok{scaling}
+\NormalTok{sq.er }\OtherTok{=}\NormalTok{(dat.real }\SpecialCharTok{{-}}\NormalTok{ pred.cur[,}\FunctionTok{names}\NormalTok{(dat.real)])}\SpecialCharTok{\^{}}\DecValTok{2}
+\NormalTok{(}\AttributeTok{mse.res =} \FunctionTok{mean}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(sq.er)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 372834889020
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mse.df }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(mse.df, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{scenario =} \StringTok{"ph 7 only{-}JBC predictions"}\NormalTok{,}
+                                  \AttributeTok{mse =}\NormalTok{ mse.res))}
+
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 5 JBC + 135E effectors"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 5 JBC + 135E effectors"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.all }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 5 only{-}JBC+135E predictions"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{rep, }\SpecialCharTok{{-}}\NormalTok{ph, }\SpecialCharTok{{-}}\NormalTok{scenario)}
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.cur}\SpecialCharTok{/}\NormalTok{scaling}
+\NormalTok{sq.er }\OtherTok{=}\NormalTok{(dat.real }\SpecialCharTok{{-}}\NormalTok{ pred.cur[,}\FunctionTok{names}\NormalTok{(dat.real)])}\SpecialCharTok{\^{}}\DecValTok{2}
+\NormalTok{(}\AttributeTok{mse.res =} \FunctionTok{mean}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(sq.er)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 205281133
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mse.df }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(mse.df, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{scenario =} \StringTok{"ph 5 only{-}JBC+135E predictions"}\NormalTok{,}
+                                  \AttributeTok{mse =}\NormalTok{ mse.res))}
+
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 5 JBC"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 5 JBC"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.all }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 5 only{-}JBC predictions"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{rep, }\SpecialCharTok{{-}}\NormalTok{ph, }\SpecialCharTok{{-}}\NormalTok{scenario)}
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.cur}\SpecialCharTok{/}\NormalTok{scaling}
+\NormalTok{sq.er }\OtherTok{=}\NormalTok{(dat.real }\SpecialCharTok{{-}}\NormalTok{ pred.cur[,}\FunctionTok{names}\NormalTok{(dat.real)])}\SpecialCharTok{\^{}}\DecValTok{2}
+\NormalTok{(}\AttributeTok{mse.res =} \FunctionTok{mean}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(sq.er)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 205281133
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mse.df }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(mse.df, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{scenario =} \StringTok{"ph 5 only{-}JBC predictions"}\NormalTok{,}
+                                  \AttributeTok{mse =}\NormalTok{ mse.res))}
+
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 5 JBC+JB370"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 5 JBC+JB370"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.all }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 5 only{-}JBC+JB370 predictions"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{rep, }\SpecialCharTok{{-}}\NormalTok{ph, }\SpecialCharTok{{-}}\NormalTok{scenario)}
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.cur}\SpecialCharTok{/}\NormalTok{scaling}
+\NormalTok{sq.er }\OtherTok{=}\NormalTok{(dat.real }\SpecialCharTok{{-}}\NormalTok{ pred.cur[,}\FunctionTok{names}\NormalTok{(dat.real)])}\SpecialCharTok{\^{}}\DecValTok{2}
+\NormalTok{(}\AttributeTok{mse.res =} \FunctionTok{mean}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(sq.er)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 205486373
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mse.df }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(mse.df, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{scenario =} \StringTok{"ph 5 only{-}JBC+JB370 predictions"}\NormalTok{,}
+                                  \AttributeTok{mse =}\NormalTok{ mse.res))}
+
+\FunctionTok{print}\NormalTok{(}\StringTok{"ph 5 JBC+BC10"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ph 5 JBC+BC10"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.all }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(scenario }\SpecialCharTok{==} \StringTok{"ph 5 only{-}JBC+BC10 predictions"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{rep, }\SpecialCharTok{{-}}\NormalTok{ph, }\SpecialCharTok{{-}}\NormalTok{scenario)}
+\NormalTok{pred.cur }\OtherTok{=}\NormalTok{ pred.cur}\SpecialCharTok{/}\NormalTok{scaling}
+\NormalTok{sq.er }\OtherTok{=}\NormalTok{(dat.real }\SpecialCharTok{{-}}\NormalTok{ pred.cur[,}\FunctionTok{names}\NormalTok{(dat.real)])}\SpecialCharTok{\^{}}\DecValTok{2}
+\NormalTok{(}\AttributeTok{mse.res =} \FunctionTok{mean}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(sq.er)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 19681024217
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mse.df }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(mse.df, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{scenario =} \StringTok{"ph 5 only{-}JBC+BC10 predictions"}\NormalTok{,}
+                                  \AttributeTok{mse =}\NormalTok{ mse.res))}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{mse-viz}{%
+\subsection{MSE Viz}\label{mse-viz}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(mse.df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \FunctionTok{fct\_rev}\NormalTok{(}\FunctionTok{fct\_reorder}\NormalTok{(scenario, mse)), }\AttributeTok{y =}\NormalTok{ mse))}\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{scale\_y\_log10}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{xlab}\NormalTok{(}\StringTok{"Scenario"}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{ylab}\NormalTok{(}\StringTok{"Mean Squared Error: lowest = most realistic model"}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{coord\_flip}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{succession-analysis-v1.2_files/figure-latex/unnamed-chunk-33-1.pdf}
+
+\hypertarget{quick-visual-check-of-ph-7-jbc-only}{%
+\section{Quick visual check of pH 7
+JBC-only}\label{quick-visual-check-of-ph-7-jbc-only}}
+
+We notice that the pH 7 predictions are almost the same if we only
+include JBC. This would make sense only if the overwhelming majority of
+interactions come from JBC (Penicillium). Remember that the total effect
+of an interaction is the interaction coefficient times the population
+size of the source of interaction. Here we plot this term (as an
+absolute value, on a log scale).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}\StringTok{"matrix{-}form{-}comdat.csv"}\NormalTok{))}
+\NormalTok{dat.com}\OtherTok{=}\FunctionTok{na.omit}\NormalTok{(dat.com)}
+\CommentTok{\# read in our fitted coeffients}
+\NormalTok{dat.coefs }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}
+                          \StringTok{"coefficient{-}estimates{-}pH7.csv"}\NormalTok{))}
+
+\NormalTok{dat.commed }\OtherTok{=} \FunctionTok{apply}\NormalTok{(dat.com, }\DecValTok{2}\NormalTok{, median)}
+\NormalTok{dat.temp }\OtherTok{=}\NormalTok{ dat.coefs }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(name }\SpecialCharTok{!=} \StringTok{"K"}\NormalTok{)}
+\NormalTok{dat.temp}\SpecialCharTok{$}\NormalTok{eff }\OtherTok{=}\NormalTok{ dat.temp}\SpecialCharTok{$}\NormalTok{est }\SpecialCharTok{*}\NormalTok{ dat.commed[dat.temp}\SpecialCharTok{$}\NormalTok{name]}
+\NormalTok{dat.temp}\SpecialCharTok{$}\NormalTok{effab}\OtherTok{=}\FunctionTok{abs}\NormalTok{(dat.temp}\SpecialCharTok{$}\NormalTok{eff)}
+\CommentTok{\# }
+\CommentTok{\# ggplot(dat.temp, aes(x = name, y = est))+}
+\CommentTok{\#   geom\_point()+}
+\CommentTok{\#   scale\_y\_log10()}
+\CommentTok{\# ggplot(dat.temp, aes(x = name, y = eff, col=spec))+}
+\CommentTok{\#   geom\_line(aes(group=spec))+}
+\CommentTok{\#   geom\_point()}
+
+\FunctionTok{ggplot}\NormalTok{(dat.temp, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ name, }\AttributeTok{y =}\NormalTok{ effab, }\AttributeTok{col=}\NormalTok{spec))}\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{group=}\NormalTok{spec))}\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{scale\_y\_log10}\NormalTok{()}\SpecialCharTok{+}\NormalTok{theme.mine}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Transformation introduced infinite values in continuous y-axis
+## Transformation introduced infinite values in continuous y-axis
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Removed 1 row containing missing values (`geom_line()`).
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Removed 1 rows containing missing values (`geom_point()`).
+\end{verbatim}
+
+\includegraphics{succession-analysis-v1.2_files/figure-latex/unnamed-chunk-34-1.pdf}
+
+We see by far the strongest estimated interactions in the pH 7 data are
+expected to come from JBC, so cutting out all other interactions should
+not have any effect.
+
+\hypertarget{which-interactions-change}{%
+\section{Which interactions change}\label{which-interactions-change}}
+
+This is attempt 2, which is excluding the interaction terms for species
+which are at 0 density in pH 5
+
+Note: In addition to identifying the significant changes, we identify
+(a) the original sign of the ALPHA (negative of coefficient estimate)
+(b) the direction of change of THE ALPHA, and the change in the
+magnitude of the alpha.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat}\FloatTok{.7} \OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}
+                      \StringTok{"matrix{-}form{-}pH7.csv"}\NormalTok{))}
+\NormalTok{dat}\FloatTok{.5} \OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"2\_data\_wrangling"}\NormalTok{,}
+                      \StringTok{"matrix{-}form.csv"}\NormalTok{))}
+\NormalTok{dat.full }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(dat}\FloatTok{.7}\NormalTok{, dat}\FloatTok{.5}\NormalTok{)}
+\NormalTok{dat.full}\SpecialCharTok{$}\NormalTok{pH}\OtherTok{=}\FunctionTok{as.character}\NormalTok{(dat.full}\SpecialCharTok{$}\NormalTok{pH)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{findings }\OtherTok{=} \FunctionTok{list}\NormalTok{()}
+\NormalTok{sigfind }\OtherTok{=} \ConstantTok{NULL}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{bc9}{%
+\subsection{BC9}\label{bc9}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.cur }\OtherTok{=}\NormalTok{ dat.full[dat.full}\SpecialCharTok{$}\NormalTok{pres.BC9}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,]}
+\NormalTok{out }\OtherTok{=} \FunctionTok{lm}\NormalTok{(BC9 }\SpecialCharTok{\textasciitilde{}}\NormalTok{ BC10}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB5}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB7 }\SpecialCharTok{+}\NormalTok{ X135E}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JBC}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB370}\SpecialCharTok{*}\NormalTok{pH,}
+         \AttributeTok{data =}\NormalTok{ dat.cur)}
+\FunctionTok{summary}\NormalTok{(out)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = BC9 ~ BC10 * pH + JB5 * pH + JB7 + X135E * pH + 
+##     JBC * pH + JB370 * pH, data = dat.cur)
+## 
+## Residuals:
+##        Min         1Q     Median         3Q        Max 
+## -304110573  -28923023  -10062481   46280718  315530032 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  4.249e+07  3.343e+07   1.271  0.20935    
+## BC10        -1.793e-01  4.843e-01  -0.370  0.71262    
+## pH7          2.341e+08  4.837e+07   4.840 1.16e-05 ***
+## JB5         -1.472e+04  5.443e+04  -0.271  0.78782    
+## JB7          2.835e-02  2.351e-02   1.206  0.23327    
+## X135E        4.365e+00  1.497e+00   2.916  0.00518 ** 
+## JBC         -4.125e-01  9.250e-01  -0.446  0.65749    
+## JB370        2.507e+01  4.494e+00   5.579 8.39e-07 ***
+## BC10:pH7    -7.617e-01  5.413e-01  -1.407  0.16521    
+## pH7:JB5      1.472e+04  5.443e+04   0.271  0.78782    
+## pH7:X135E   -3.698e+00  3.143e+00  -1.177  0.24461    
+## pH7:JBC     -1.801e+00  1.663e+00  -1.083  0.28378    
+## pH7:JB370   -1.358e+02  8.151e+01  -1.667  0.10147    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 108100000 on 53 degrees of freedom
+## Multiple R-squared:  0.6425, Adjusted R-squared:  0.5616 
+## F-statistic: 7.939 on 12 and 53 DF,  p-value: 3.258e-08
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temp }\OtherTok{=} \FunctionTok{Anova}\NormalTok{(out)}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[}\FunctionTok{grep}\NormalTok{(}\StringTok{\textquotesingle{}:\textquotesingle{}}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp)),]}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[temp}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{Pr(\textgreater{}F)}\StringTok{\textasciigrave{}}\SpecialCharTok{\textless{}}\NormalTok{.}\DecValTok{1}\NormalTok{,]}
+\NormalTok{findings}\SpecialCharTok{$}\NormalTok{BC9 }\OtherTok{=} \FunctionTok{list}\NormalTok{(}\AttributeTok{all =} \FunctionTok{Anova}\NormalTok{(out),}
+                    \AttributeTok{sigint =}\NormalTok{ temp,}
+                    \AttributeTok{meta =} \StringTok{"Insufficient variation in JB7 at pH5. Excluding JB7:pH"}\NormalTok{)}
+\CommentTok{\#no terms mattered}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{bc10}{%
+\subsection{BC10}\label{bc10}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.cur }\OtherTok{=}\NormalTok{ dat.full[dat.full}\SpecialCharTok{$}\NormalTok{pres.BC10}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,]}
+\NormalTok{out }\OtherTok{=} \FunctionTok{lm}\NormalTok{(BC10 }\SpecialCharTok{\textasciitilde{}}\NormalTok{ BC9}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB5}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB7}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ X135E}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JBC}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB370}\SpecialCharTok{*}\NormalTok{pH,}
+         \AttributeTok{data =}\NormalTok{ dat.cur)}
+\FunctionTok{summary}\NormalTok{(out)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = BC10 ~ BC9 * pH + JB5 * pH + JB7 * pH + X135E * 
+##     pH + JBC * pH + JB370 * pH, data = dat.cur)
+## 
+## Residuals:
+##        Min         1Q     Median         3Q        Max 
+## -132388910  -44471680   -7298838   12969637  196274416 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  8.591e+07  2.865e+07   2.999  0.00424 ** 
+## BC9          6.087e-01  1.498e+00   0.407  0.68614    
+## pH7          1.691e+08  3.987e+07   4.241 9.84e-05 ***
+## JB5         -4.004e-03  1.848e-02  -0.217  0.82941    
+## JB7          2.403e-03  3.473e-02   0.069  0.94511    
+## X135E        4.502e-01  1.326e+00   0.339  0.73570    
+## JBC         -1.120e+00  8.822e-01  -1.269  0.21032    
+## JB370        2.098e+01  7.064e+00   2.970  0.00460 ** 
+## BC9:pH7     -1.088e+00  1.816e+00  -0.599  0.55207    
+## pH7:JB5      6.773e-03  2.215e-02   0.306  0.76109    
+## pH7:JB7      1.440e-02  3.882e-02   0.371  0.71218    
+## pH7:X135E   -1.999e+00  3.100e+00  -0.645  0.52202    
+## pH7:JBC     -1.093e+00  1.173e+00  -0.932  0.35600    
+## pH7:JB370   -1.948e+02  7.980e+01  -2.442  0.01828 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 83150000 on 49 degrees of freedom
+## Multiple R-squared:  0.5794, Adjusted R-squared:  0.4678 
+## F-statistic: 5.193 on 13 and 49 DF,  p-value: 1.064e-05
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temp }\OtherTok{=} \FunctionTok{Anova}\NormalTok{(out)}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[}\FunctionTok{grep}\NormalTok{(}\StringTok{\textquotesingle{}:\textquotesingle{}}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp)),]}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[temp}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{Pr(\textgreater{}F)}\StringTok{\textasciigrave{}}\SpecialCharTok{\textless{}}\NormalTok{.}\DecValTok{1}\NormalTok{,]}
+
+\NormalTok{findings}\SpecialCharTok{$}\NormalTok{BC10 }\OtherTok{=} \FunctionTok{list}\NormalTok{(}\AttributeTok{all =} \FunctionTok{Anova}\NormalTok{(out),}
+                     \AttributeTok{sigint =}\NormalTok{ temp,}
+                     \AttributeTok{meta =} \StringTok{"All terms included"}\NormalTok{)}
+\CommentTok{\#making piece to add to to overall data frame}
+\NormalTok{sigfind.cur }\OtherTok{=} \FunctionTok{as.data.frame}\NormalTok{(temp)}
+
+\DocumentationTok{\#\# calculating the original interaction coefficient sign}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{, names.temp)}
+\NormalTok{coef.orig }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{coefficients}\NormalTok{(out)[names.temp]}
+\DocumentationTok{\#\# kludgy way of extracting coefficients}
+\DocumentationTok{\#\# Note that Anova gives rownames for coefficients, while out gives rownames for}
+\DocumentationTok{\#\#   the coefficient LEVELS, so we need to turn pH into pH7}
+\NormalTok{coef.temp }\OtherTok{=} \FunctionTok{coefficients}\NormalTok{(out)[}\FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{"pH7"}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))]}
+\NormalTok{coef.new }\OtherTok{=}\NormalTok{coef.orig }\SpecialCharTok{{-}}\NormalTok{ coef.temp}
+\DocumentationTok{\#\# calculate change in the sign}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.orig }\OtherTok{=}\NormalTok{ coef.orig}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.new }\OtherTok{=}\NormalTok{ coef.new}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{sign.change }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{sign}\NormalTok{(coef.temp)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{magnitude.change }\OtherTok{=} \FunctionTok{abs}\NormalTok{(coef.new}\SpecialCharTok{/}\NormalTok{coef.orig)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{source.species }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{,}
+                                  \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(sigfind.cur)))}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{target.species }\OtherTok{=} \StringTok{"BC10"}
+\NormalTok{sigfind }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(sigfind, sigfind.cur)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{jb5}{%
+\subsection{JB5}\label{jb5}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.cur }\OtherTok{=}\NormalTok{ dat.full[dat.full}\SpecialCharTok{$}\NormalTok{pres.JB5}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,]}
+\NormalTok{out }\OtherTok{=} \FunctionTok{lm}\NormalTok{(JB5 }\SpecialCharTok{\textasciitilde{}}\NormalTok{ BC9}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ BC10}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB7}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ X135E}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JBC}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB370}\SpecialCharTok{*}\NormalTok{pH,}
+         \AttributeTok{data =}\NormalTok{ dat.cur)}
+\FunctionTok{summary}\NormalTok{(out)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = JB5 ~ BC9 * pH + BC10 * pH + JB7 * pH + X135E * 
+##     pH + JBC * pH + JB370 * pH, data = dat.cur)
+## 
+## Residuals:
+##        Min         1Q     Median         3Q        Max 
+## -1.791e+09 -3.570e+08 -3.262e+07  4.426e+08  2.520e+09 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  3.571e+08  3.424e+08   1.043 0.302058    
+## BC9         -1.050e+01  1.939e+01  -0.542 0.590509    
+## pH7          3.368e+09  5.259e+08   6.404 5.13e-08 ***
+## BC10         1.774e+01  6.679e+00   2.656 0.010571 *  
+## JB7         -2.892e+05  6.914e+05  -0.418 0.677518    
+## X135E        9.282e+01  3.801e+01   2.442 0.018187 *  
+## JBC         -5.391e+00  9.475e+00  -0.569 0.571948    
+## JB370       -2.905e+01  6.625e+01  -0.438 0.662978    
+## BC9:pH7      8.380e+00  1.948e+01   0.430 0.668874    
+## pH7:BC10    -1.837e+01  7.073e+00  -2.597 0.012326 *  
+## pH7:JB7      2.892e+05  6.914e+05   0.418 0.677518    
+## pH7:X135E   -1.156e+02  6.516e+01  -1.774 0.082171 .  
+## pH7:JBC     -6.359e+01  1.565e+01  -4.063 0.000171 ***
+## pH7:JB370   -2.781e+03  5.883e+02  -4.728 1.89e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.036e+09 on 50 degrees of freedom
+## Multiple R-squared:  0.7172, Adjusted R-squared:  0.6436 
+## F-statistic: 9.753 on 13 and 50 DF,  p-value: 1.119e-09
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temp }\OtherTok{=} \FunctionTok{Anova}\NormalTok{(out)}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[}\FunctionTok{grep}\NormalTok{(}\StringTok{\textquotesingle{}:\textquotesingle{}}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp)),]}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[temp}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{Pr(\textgreater{}F)}\StringTok{\textasciigrave{}}\SpecialCharTok{\textless{}}\NormalTok{.}\DecValTok{1}\NormalTok{,]}
+\CommentTok{\#adding to overall data frame}
+\NormalTok{sigfind.cur }\OtherTok{=}\FunctionTok{as.data.frame}\NormalTok{(temp) }
+\DocumentationTok{\#\# calculating the original interaction coefficient sign}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{, names.temp)}
+\NormalTok{coef.orig }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{coefficients}\NormalTok{(out)[names.temp]}
+\DocumentationTok{\#\# kludgy way of extracting coefficients}
+\DocumentationTok{\#\# Note that Anova gives rownames for coefficients, while out gives rownames for}
+\DocumentationTok{\#\#   the coefficient LEVELS, so we need to turn pH into pH7}
+\NormalTok{coef.temp }\OtherTok{=} \FunctionTok{coefficients}\NormalTok{(out)[}\FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{"pH7"}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))]}
+\NormalTok{coef.new }\OtherTok{=}\NormalTok{coef.orig }\SpecialCharTok{{-}}\NormalTok{coef.temp}
+\DocumentationTok{\#\# calculate change in the sign}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.orig }\OtherTok{=}\NormalTok{ coef.orig}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.new }\OtherTok{=}\NormalTok{ coef.new}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{sign.change }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{sign}\NormalTok{(coef.temp)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{magnitude.change }\OtherTok{=} \FunctionTok{abs}\NormalTok{(coef.new}\SpecialCharTok{/}\NormalTok{coef.orig)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{source.species }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{,}
+                                  \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(sigfind.cur)))}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{target.species }\OtherTok{=} \StringTok{"JB5"}
+\NormalTok{sigfind }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(sigfind, sigfind.cur)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{jb7}{%
+\subsection{JB7}\label{jb7}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.cur }\OtherTok{=}\NormalTok{ dat.full[dat.full}\SpecialCharTok{$}\NormalTok{pres.JB7}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,]}
+\NormalTok{out }\OtherTok{=} \FunctionTok{lm}\NormalTok{(JB7 }\SpecialCharTok{\textasciitilde{}}\NormalTok{ BC9}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ BC10}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB5}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ X135E}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JBC}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB370}\SpecialCharTok{*}\NormalTok{pH,}
+         \AttributeTok{data =}\NormalTok{ dat.cur)}
+\FunctionTok{summary}\NormalTok{(out)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = JB7 ~ BC9 * pH + BC10 * pH + JB5 * pH + X135E * 
+##     pH + JBC * pH + JB370 * pH, data = dat.cur)
+## 
+## Residuals:
+##        Min         1Q     Median         3Q        Max 
+## -1.419e+09 -1.352e+08  1.224e+07  1.857e+08  9.974e+08 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) -2.063e+07  1.278e+08  -0.161    0.872    
+## BC9          7.267e-01  1.015e+01   0.072    0.943    
+## pH7          1.897e+09  2.081e+08   9.118 2.28e-12 ***
+## BC10         1.611e+01  2.741e+00   5.877 3.01e-07 ***
+## JB5          2.850e+01  4.344e+02   0.066    0.948    
+## X135E        1.481e+02  1.271e+01  11.658 4.00e-16 ***
+## JBC          1.435e-01  1.364e+00   0.105    0.917    
+## JB370        3.332e+01  2.893e+01   1.151    0.255    
+## BC9:pH7      5.426e-01  1.017e+01   0.053    0.958    
+## pH7:BC10    -1.363e+01  2.856e+00  -4.771 1.52e-05 ***
+## pH7:JB5     -2.851e+01  4.344e+02  -0.066    0.948    
+## pH7:X135E    4.319e+01  2.309e+01   1.871    0.067 .  
+## pH7:JBC     -7.384e+00  5.676e+00  -1.301    0.199    
+## pH7:JB370   -2.699e+02  1.959e+02  -1.378    0.174    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.21e+08 on 52 degrees of freedom
+## Multiple R-squared:  0.921,  Adjusted R-squared:  0.9012 
+## F-statistic: 46.62 on 13 and 52 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temp }\OtherTok{=} \FunctionTok{Anova}\NormalTok{(out)}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[}\FunctionTok{grep}\NormalTok{(}\StringTok{\textquotesingle{}:\textquotesingle{}}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp)),]}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[temp}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{Pr(\textgreater{}F)}\StringTok{\textasciigrave{}}\SpecialCharTok{\textless{}}\NormalTok{.}\DecValTok{1}\NormalTok{,]}
+
+\NormalTok{findings}\SpecialCharTok{$}\NormalTok{JB7 }\OtherTok{=} \FunctionTok{list}\NormalTok{(}\AttributeTok{all =} \FunctionTok{Anova}\NormalTok{(out),}
+                    \AttributeTok{sigint =}\NormalTok{ temp,}
+                    \AttributeTok{meta =} \StringTok{"All terms included"}\NormalTok{)}
+\CommentTok{\#adding to overall data frame}
+\NormalTok{sigfind.cur }\OtherTok{=}\FunctionTok{as.data.frame}\NormalTok{(temp) }
+\DocumentationTok{\#\# calculating the original interaction coefficient sign}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{, names.temp)}
+\NormalTok{coef.orig }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{coefficients}\NormalTok{(out)[names.temp]}
+\DocumentationTok{\#\# kludgy way of extracting coefficients}
+\DocumentationTok{\#\# Note that Anova gives rownames for coefficients, while out gives rownames for}
+\DocumentationTok{\#\#   the coefficient LEVELS, so we need to turn pH into pH7}
+\NormalTok{coef.temp }\OtherTok{=} \FunctionTok{coefficients}\NormalTok{(out)[}\FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{"pH7"}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))]}
+\NormalTok{coef.new }\OtherTok{=}\NormalTok{coef.orig }\SpecialCharTok{{-}}\NormalTok{coef.temp}
+\DocumentationTok{\#\# calculate change in the sign}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.orig }\OtherTok{=}\NormalTok{ coef.orig}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.new }\OtherTok{=}\NormalTok{ coef.new}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{sign.change }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{sign}\NormalTok{(coef.temp)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{magnitude.change }\OtherTok{=} \FunctionTok{abs}\NormalTok{(coef.new}\SpecialCharTok{/}\NormalTok{coef.orig)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{source.species }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{,}
+                                  \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(sigfind.cur)))}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{target.species }\OtherTok{=} \StringTok{"JB7"}
+\NormalTok{sigfind }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(sigfind, sigfind.cur)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{x135e}{%
+\subsection{X135E}\label{x135e}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.cur }\OtherTok{=}\NormalTok{ dat.full[dat.full}\SpecialCharTok{$}\NormalTok{pres.X135E}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,]}
+\NormalTok{out }\OtherTok{=} \FunctionTok{lm}\NormalTok{(X135E }\SpecialCharTok{\textasciitilde{}}\NormalTok{ BC9}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ BC10}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB5}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB7}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JBC}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB370}\SpecialCharTok{*}\NormalTok{pH,}
+         \AttributeTok{data =}\NormalTok{ dat.cur)}
+\FunctionTok{summary}\NormalTok{(out)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = X135E ~ BC9 * pH + BC10 * pH + JB5 * pH + JB7 * 
+##     pH + JBC * pH + JB370 * pH, data = dat.cur)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -16323810  -4004118   -486141   4122702  26253884 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  1.798e+07  2.490e+06   7.221  2.2e-09 ***
+## BC9          8.187e-02  1.956e-02   4.186 0.000110 ***
+## pH7         -9.148e+06  3.978e+06  -2.299 0.025524 *  
+## BC10         1.455e-01  3.900e-02   3.731 0.000474 ***
+## JB5         -1.207e-03  2.155e-03  -0.560 0.577895    
+## JB7          8.471e-05  1.691e-03   0.050 0.960239    
+## JBC         -1.037e-01  3.813e-02  -2.719 0.008868 ** 
+## JB370       -1.186e+00  1.176e+00  -1.009 0.317683    
+## BC9:pH7     -6.147e-02  2.558e-02  -2.403 0.019851 *  
+## pH7:BC10    -1.424e-01  4.212e-02  -3.382 0.001374 ** 
+## pH7:JB5      1.745e-03  2.529e-03   0.690 0.493304    
+## pH7:JB7      8.276e-04  2.032e-03   0.407 0.685467    
+## pH7:JBC     -5.908e-02  1.008e-01  -0.586 0.560282    
+## pH7:JB370    2.257e+00  3.102e+00   0.728 0.470127    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 8739000 on 52 degrees of freedom
+## Multiple R-squared:  0.6103, Adjusted R-squared:  0.5129 
+## F-statistic: 6.265 on 13 and 52 DF,  p-value: 6.891e-07
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temp }\OtherTok{=} \FunctionTok{Anova}\NormalTok{(out)}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[}\FunctionTok{grep}\NormalTok{(}\StringTok{\textquotesingle{}:\textquotesingle{}}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp)),]}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[temp}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{Pr(\textgreater{}F)}\StringTok{\textasciigrave{}}\SpecialCharTok{\textless{}}\NormalTok{.}\DecValTok{1}\NormalTok{,]}
+\NormalTok{findings}\SpecialCharTok{$}\NormalTok{X135E }\OtherTok{=} \FunctionTok{list}\NormalTok{(}\AttributeTok{all =} \FunctionTok{Anova}\NormalTok{(out),}
+                      \AttributeTok{sigint =}\NormalTok{ temp,}
+                      \AttributeTok{meta =} \StringTok{"All terms included"}\NormalTok{)}
+\CommentTok{\#adding to overall data frame}
+\NormalTok{sigfind.cur }\OtherTok{=}\FunctionTok{as.data.frame}\NormalTok{(temp) }
+\DocumentationTok{\#\# calculating the original interaction coefficient sign}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{, names.temp)}
+\NormalTok{coef.orig }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{coefficients}\NormalTok{(out)[names.temp]}
+\DocumentationTok{\#\# kludgy way of extracting coefficients}
+\DocumentationTok{\#\# Note that Anova gives rownames for coefficients, while out gives rownames for}
+\DocumentationTok{\#\#   the coefficient LEVELS, so we need to turn pH into pH7}
+\NormalTok{coef.temp }\OtherTok{=} \FunctionTok{coefficients}\NormalTok{(out)[}\FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{"pH7"}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))]}
+\NormalTok{coef.new }\OtherTok{=}\NormalTok{coef.orig }\SpecialCharTok{{-}}\NormalTok{coef.temp}
+\DocumentationTok{\#\# calculate change in the sign}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.orig }\OtherTok{=}\NormalTok{ coef.orig}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.new }\OtherTok{=}\NormalTok{ coef.new}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{sign.change }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{sign}\NormalTok{(coef.temp)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{magnitude.change }\OtherTok{=} \FunctionTok{abs}\NormalTok{(coef.new}\SpecialCharTok{/}\NormalTok{coef.orig)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{source.species }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{,}
+                                  \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(sigfind.cur)))}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{target.species }\OtherTok{=} \StringTok{"X135E"}
+
+\NormalTok{sigfind }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(sigfind, sigfind.cur)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{jbc}{%
+\subsection{JBC}\label{jbc}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.cur }\OtherTok{=}\NormalTok{ dat.full[dat.full}\SpecialCharTok{$}\NormalTok{pres.JBC}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,]}
+\CommentTok{\# View(dat.cur)}
+\NormalTok{out }\OtherTok{=} \FunctionTok{lm}\NormalTok{(JBC }\SpecialCharTok{\textasciitilde{}}\NormalTok{ BC9}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ BC10}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB5 }\SpecialCharTok{+}\NormalTok{ JB7}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ X135E }\SpecialCharTok{+}\NormalTok{ JB370}\SpecialCharTok{*}\NormalTok{pH,}
+         \AttributeTok{data =}\NormalTok{ dat.cur)}
+\FunctionTok{summary}\NormalTok{(out)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = JBC ~ BC9 * pH + BC10 * pH + JB5 + JB7 * pH + X135E + 
+##     JB370 * pH, data = dat.cur)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -33439899 -10404664  -1617057   3930022 166560101 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  6.944e+07  6.214e+06  11.174 2.56e-15 ***
+## BC9          8.469e-03  6.166e-01   0.014   0.9891    
+## pH7         -1.309e+07  9.863e+06  -1.327   0.1905    
+## BC10        -5.559e-01  6.349e-01  -0.876   0.3854    
+## JB5         -1.739e-02  1.972e-01  -0.088   0.9301    
+## JB7          1.558e+01  1.814e+00   8.590 1.76e-11 ***
+## X135E       -5.312e+04  2.734e+04  -1.943   0.0576 .  
+## JB370       -3.047e+01  2.899e+01  -1.051   0.2982    
+## BC9:pH7     -5.867e-02  6.212e-01  -0.094   0.9251    
+## pH7:BC10     5.839e-01  6.461e-01   0.904   0.3704    
+## pH7:JB7     -1.559e+01  1.814e+00  -8.594 1.74e-11 ***
+## pH7:JB370    1.322e+03  9.200e+03   0.144   0.8863    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 28320000 on 51 degrees of freedom
+## Multiple R-squared:  0.6427, Adjusted R-squared:  0.5657 
+## F-statistic: 8.341 on 11 and 51 DF,  p-value: 3.871e-08
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temp }\OtherTok{=} \FunctionTok{Anova}\NormalTok{(out)}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[}\FunctionTok{grep}\NormalTok{(}\StringTok{\textquotesingle{}:\textquotesingle{}}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp)),]}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[temp}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{Pr(\textgreater{}F)}\StringTok{\textasciigrave{}}\SpecialCharTok{\textless{}}\NormalTok{.}\DecValTok{1}\NormalTok{,]}
+\NormalTok{findings}\SpecialCharTok{$}\NormalTok{JBC }\OtherTok{=} \FunctionTok{list}\NormalTok{(}\AttributeTok{all =} \FunctionTok{Anova}\NormalTok{(out),}
+                    \AttributeTok{sigint =}\NormalTok{ temp,}
+                    \AttributeTok{meta =} \StringTok{"Insufficient JB5 and X135E at pH 5 {-} both JB5:pH and X135E:pH were removed."}\NormalTok{)}
+\CommentTok{\#adding to overall data frame}
+\NormalTok{sigfind.cur }\OtherTok{=} \FunctionTok{as.data.frame}\NormalTok{(temp) }
+\DocumentationTok{\#\# calculating the original interaction coefficient sign}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{, names.temp)}
+\NormalTok{coef.orig }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{coefficients}\NormalTok{(out)[names.temp]}
+\DocumentationTok{\#\# kludgy way of extracting coefficients}
+\DocumentationTok{\#\# Note that Anova gives rownames for coefficients, while out gives rownames for}
+\DocumentationTok{\#\#   the coefficient LEVELS, so we need to turn pH into pH7}
+\NormalTok{coef.temp }\OtherTok{=} \FunctionTok{coefficients}\NormalTok{(out)[}\FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{"pH7"}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))]}
+\NormalTok{coef.new }\OtherTok{=}\NormalTok{coef.orig }\SpecialCharTok{{-}}\NormalTok{coef.temp}
+\DocumentationTok{\#\# calculate change in the sign}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.orig }\OtherTok{=}\NormalTok{ coef.orig}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.new }\OtherTok{=}\NormalTok{ coef.new}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{sign.change }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{sign}\NormalTok{(coef.temp)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{magnitude.change }\OtherTok{=} \FunctionTok{abs}\NormalTok{(coef.new}\SpecialCharTok{/}\NormalTok{coef.orig)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{source.species }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{,}
+                                  \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(sigfind.cur)))}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{target.species }\OtherTok{=} \StringTok{"JBC"}
+\NormalTok{sigfind }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(sigfind, sigfind.cur)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{jb370}{%
+\subsection{JB370}\label{jb370}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat.cur }\OtherTok{=}\NormalTok{ dat.full[dat.full}\SpecialCharTok{$}\NormalTok{pres.JB370}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,]}
+\NormalTok{out }\OtherTok{=} \FunctionTok{lm}\NormalTok{(JB370 }\SpecialCharTok{\textasciitilde{}}\NormalTok{ BC9}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ BC10}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB5}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JB7}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ X135E}\SpecialCharTok{*}\NormalTok{pH }\SpecialCharTok{+}\NormalTok{ JBC}\SpecialCharTok{*}\NormalTok{pH,}
+         \AttributeTok{data =}\NormalTok{ dat.cur)}
+\FunctionTok{summary}\NormalTok{(out)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = JB370 ~ BC9 * pH + BC10 * pH + JB5 * pH + JB7 * 
+##     pH + X135E * pH + JBC * pH, data = dat.cur)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -7353045  -458549   -53831   350771  8759462 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  6.451e+06  7.697e+05   8.381 5.03e-11 ***
+## BC9          1.445e-02  3.350e-03   4.314 7.75e-05 ***
+## pH7         -5.540e+06  1.092e+06  -5.073 6.02e-06 ***
+## BC10         1.833e-03  6.383e-03   0.287 0.775224    
+## JB5          9.279e-03  1.080e-02   0.859 0.394605    
+## JB7          6.086e-03  4.419e-03   1.377 0.174671    
+## X135E       -1.973e-01  1.127e-01  -1.751 0.086156 .  
+## JBC         -1.277e-01  3.524e-02  -3.624 0.000688 ***
+## BC9:pH7     -1.587e-02  6.234e-03  -2.546 0.014081 *  
+## pH7:BC10    -3.557e-03  1.000e-02  -0.356 0.723725    
+## pH7:JB5     -9.108e-03  1.094e-02  -0.833 0.409072    
+## pH7:JB7     -5.782e-03  4.527e-03  -1.277 0.207534    
+## pH7:X135E    3.098e-01  1.837e-01   1.686 0.098152 .  
+## pH7:JBC      1.144e-01  4.240e-02   2.698 0.009538 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2605000 on 49 degrees of freedom
+## Multiple R-squared:  0.7168, Adjusted R-squared:  0.6417 
+## F-statistic: 9.541 on 13 and 49 DF,  p-value: 1.963e-09
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temp }\OtherTok{=} \FunctionTok{Anova}\NormalTok{(out)}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[}\FunctionTok{grep}\NormalTok{(}\StringTok{\textquotesingle{}:\textquotesingle{}}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp)),]}
+\NormalTok{temp }\OtherTok{=}\NormalTok{ temp[temp}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{Pr(\textgreater{}F)}\StringTok{\textasciigrave{}}\SpecialCharTok{\textless{}}\NormalTok{.}\DecValTok{1}\NormalTok{,]}
+\NormalTok{findings}\SpecialCharTok{$}\NormalTok{JB370 }\OtherTok{=} \FunctionTok{list}\NormalTok{(}\AttributeTok{all =} \FunctionTok{Anova}\NormalTok{(out),}
+                      \AttributeTok{sigint =}\NormalTok{ temp,}
+                      \AttributeTok{meta =} \StringTok{"All terms included"}\NormalTok{)}
+\CommentTok{\#adding to overall data frame}
+\NormalTok{sigfind.cur }\OtherTok{=}\FunctionTok{as.data.frame}\NormalTok{(temp) }
+\DocumentationTok{\#\# calculating the original interaction coefficient sign}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))}
+\NormalTok{names.temp }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{, names.temp)}
+\NormalTok{coef.orig }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{coefficients}\NormalTok{(out)[names.temp]}
+\DocumentationTok{\#\# kludgy way of extracting coefficients}
+\DocumentationTok{\#\# Note that Anova gives rownames for coefficients, while out gives rownames for}
+\DocumentationTok{\#\#   the coefficient LEVELS, so we need to turn pH into pH7}
+\NormalTok{coef.temp }\OtherTok{=} \FunctionTok{coefficients}\NormalTok{(out)[}\FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{"pH7"}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(temp))]}
+\NormalTok{coef.new }\OtherTok{=}\NormalTok{coef.orig }\SpecialCharTok{{-}}\NormalTok{coef.temp}
+\DocumentationTok{\#\# calculate change in the sign}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.orig }\OtherTok{=}\NormalTok{ coef.orig}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{coef.new }\OtherTok{=}\NormalTok{ coef.new}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{sign.change }\OtherTok{=} \SpecialCharTok{{-}}\FunctionTok{sign}\NormalTok{(coef.temp)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{magnitude.change }\OtherTok{=} \FunctionTok{abs}\NormalTok{(coef.new}\SpecialCharTok{/}\NormalTok{coef.orig)}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{source.species }\OtherTok{=} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{""}\NormalTok{,}
+                                  \FunctionTok{gsub}\NormalTok{(}\StringTok{"pH"}\NormalTok{,}\StringTok{""}\NormalTok{,}\FunctionTok{rownames}\NormalTok{(sigfind.cur)))}
+\NormalTok{sigfind.cur}\SpecialCharTok{$}\NormalTok{target.species }\OtherTok{=} \StringTok{"JB370"}
+\NormalTok{sigfind }\OtherTok{=} \FunctionTok{rbind}\NormalTok{(sigfind, sigfind.cur)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{saving}{%
+\subsection{Saving}\label{saving}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{write.csv}\NormalTok{(sigfind,}\FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}\StringTok{"pH{-}interaction{-}estimates.csv"}\NormalTok{), }\AttributeTok{row.names =} \ConstantTok{FALSE}\NormalTok{)}
+
+\FunctionTok{saveRDS}\NormalTok{(findings, }\AttributeTok{file =} \FunctionTok{here}\NormalTok{(}\StringTok{"4\_res"}\NormalTok{,}\StringTok{"ph{-}interactions{-}list{-}obj.RDS"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+
+\end{document}
