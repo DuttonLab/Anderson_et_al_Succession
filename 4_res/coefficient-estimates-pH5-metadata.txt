@@ -502,3 +502,31 @@ spec is the focal species
 name is the coefficient name. In the cases where name is a species name, it's an alpha term, and the species named is the competing species
 est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1.
 se is the standard error from the lienar regression
+Fitting Lotka-Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium
+We assume the error is normally distributed - this seems close enough to true.
+
+spec is the focal species
+name is the coefficient name. In the cases where name is a species name, it's an alpha term, and the species named is the competing species
+est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1.
+se is the standard error from the lienar regression
+Fitting Lotka-Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium
+We assume the error is normally distributed - this seems close enough to true.
+
+spec is the focal species
+name is the coefficient name. In the cases where name is a species name, it's an alpha term, and the species named is the competing species
+est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1.
+se is the standard error from the lienar regression
+Fitting Lotka-Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium
+We assume the error is normally distributed - this seems close enough to true.
+
+spec is the focal species
+name is the coefficient name. In the cases where name is a species name, it's an alpha term, and the species named is the competing species
+est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1.
+se is the standard error from the lienar regression
+Fitting Lotka-Volterra coefficients K and alpha through linear regression (assuming day 21 populations are at equilibrium
+We assume the error is normally distributed - this seems close enough to true.
+
+spec is the focal species
+name is the coefficient name. In the cases where name is a species name, it's an alpha term, and the species named is the competing species
+est is the estimate FOR LOTKA VOLTERRA MODEL. So the K is in units of individuals, and the other terms are the ALPHAs, which are the coefficient estimates times negative 1.
+se is the standard error from the lienar regression

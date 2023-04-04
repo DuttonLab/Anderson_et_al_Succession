@@ -281,6 +281,12 @@ write.csv(dat.mat,
 )
 ```
 
+Make a data frame to store ALL community prediction data for MSE calculations at the end
+```{r}
+pred.all = NULL
+```
+
+
 ## Fitting
 
 Note that we use carrying capacities calculated from the monocultures.
@@ -515,6 +521,8 @@ write.csv(dat.pred,
           here("4_res","predictions-from-pH5.csv"),
           row.names=F
 )
+dat.pred$scenario = "ph 5 predictions"
+pred.all = rbind(pred.all, dat.pred)
 ```
 
 So our predicted community not only doesn't match our actual community very well, it also doesn't really match possible realities very well. We have a lot of negative numbers.
@@ -772,11 +780,12 @@ for(i.spec in 1:length(spec.vecfit)){
 }
 
 dat.pred$ph = 7
-
 write.csv(dat.pred,
           here("4_res","predictions-from-pH7.csv"),
           row.names=F
 )
+dat.pred$scenario = "ph 7 predictions"
+pred.all = rbind(pred.all, dat.pred)
 ```
 
 ### Visualizing
@@ -848,6 +857,8 @@ write.csv(dat.pred,
           here("4_res","predictions-onlyJBC-pH7.csv"),
           row.names=F
 )
+dat.pred$scenario = "ph 7 only-JBC predictions"
+pred.all = rbind(pred.all, dat.pred)
 ```
 
 Add to our quick visualization dataframe
@@ -904,6 +915,8 @@ write.csv(dat.pred,
           here("4_res","predictions-onlyJBC-135E-pH5.csv"),
           row.names=F
 )
+dat.pred$scenario = "ph 5 only-JBC+135E predictions"
+pred.all = rbind(pred.all, dat.pred)
 ```
 
 Add to our quick visualization dataframe
@@ -956,7 +969,294 @@ ggplot(data = dat.gg, aes(fill = spec, x = scenario, y = rel))+
   theme.mine
 ```
 
-## Quick visual check of pH 7 JBC-only
+# Updated checking
+
+From Brooke, 2/18/23: *I poked around your modeling code to try asking whether ANY taxon capable of deacidifying the media could pair with JBC in the pH 5-based model to get the same results as the ph5 2-effector scenario (JBC, JB370, and BC10 are all deacidifiers, so I tried JBC alone @ ph5, JBC+JB370, and JBC+BC10).*
+
+TO check, I'll add in the 3 new scenarios:
+
+## JBC @ pH 5
+
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH5.csv"))
+## turn anything that's not a K or from JBC to 0
+dat.coefs[!dat.coefs$name %in% c("K","JBC"), "est"]=0
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+for(i.spec in 1:length(spec.vecfit)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  if(cur.spec =="JBC"){
+    coefs.vec["X135E"]=0
+  }
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  pred.cur = pmax(0,pred.cur)
+  dat.pred[,cur.spec] = pred.cur
+}
+
+dat.pred$ph = 5
+
+write.csv(dat.pred,
+          here("4_res","predictions-onlyJBC-pH5.csv"),
+          row.names=F
+)
+dat.pred$scenario = "ph 5 only-JBC predictions"
+pred.all = rbind(pred.all, dat.pred)
+```
+
+Add to our quick visualization dataframe
+```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 5 only-JBC predictions"
+dat.gg = rbind(dat.gg, dat.plot)
+```
+
+
+
+## JBC + JB370 @ pH 5
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH5.csv"))
+## turn anything that's not a K or from JBC to 0
+dat.coefs[!dat.coefs$name %in% c("K","JBC", "JB370"), "est"]=0
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+for(i.spec in 1:length(spec.vecfit)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  if(cur.spec =="JBC"){
+    coefs.vec["X135E"]=0
+  }
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  pred.cur = pmax(0,pred.cur)
+  dat.pred[,cur.spec] = pred.cur
+}
+
+dat.pred$ph = 5
+
+write.csv(dat.pred,
+          here("4_res","predictions-onlyJBC-JB370-pH5.csv"),
+          row.names=F
+)
+dat.pred$scenario = "ph 5 only-JBC+JB370 predictions"
+pred.all = rbind(pred.all, dat.pred)
+```
+
+Add to our quick visualization dataframe
+```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 5 only-JBC+JB370 predictions"
+dat.gg = rbind(dat.gg, dat.plot)
+```
+
+
+
+## JBC + BC10 @ pH 5
+
+```{r}
+dat.com=read.csv(here("2_data_wrangling","matrix-form-comdat.csv"))
+dat.com=na.omit(dat.com)
+# read in our fitted coeffients
+dat.coefs = read.csv(here("4_res",
+                          "coefficient-estimates-pH5.csv"))
+## turn anything that's not a K or from JBC to 0
+dat.coefs[!dat.coefs$name %in% c("K","JBC", "BC10"), "est"]=0
+dat.pred = dat.com
+dat.pred[,-which(names(dat.com)=="rep")]=0
+for(i.spec in 1:length(spec.vecfit)){
+  cur.spec = spec.vecfit[i.spec]
+  print(cur.spec)
+  #some cool manipulating to make it easy to access the right coefficients
+  # ending in coefs.vec: a vector of coefficients labeled by name
+  coefs.cur = dat.coefs %>% 
+    filter(spec == cur.spec)
+  coefs.vec = coefs.cur$est
+  names(coefs.vec) = coefs.cur$name
+  if(cur.spec =="JBC"){
+    coefs.vec["X135E"]=0
+  }
+  x.cur = dat.com[,-which(colnames(dat.com) %in% c(cur.spec, "rep"))]
+  #using element-wise multiplication to simplify the coding
+  #This may look opaque, but you can confirm that it's doing the right thing with 
+  # a test case:
+  # test.mat = matrix(1:4, 2,2)
+  # t(t(test.mat) * c(1,0))
+  pred.cur = coefs.vec["K"] - 
+    rowSums(t(t(x.cur[,names(coefs.vec)[-1]]) * (coefs.vec[-1])))
+  pred.cur = pmax(0,pred.cur)
+  dat.pred[,cur.spec] = pred.cur
+}
+
+dat.pred$ph = 5
+
+write.csv(dat.pred,
+          here("4_res","predictions-onlyJBC-BC10-pH5.csv"),
+          row.names=F
+)
+dat.pred$scenario = "ph 5 only-JBC+BC10 predictions"
+pred.all = rbind(pred.all, dat.pred)
+```
+
+Add to our quick visualization dataframe
+```{r}
+dat.plot = data.frame(est = apply(dat.pred,2, median))
+dat.plot$spec = colnames(dat.pred)
+dat.plot = dat.plot[-which(dat.plot$spec %in% c("rep","ph")),]
+dat.plot$est = pmax(dat.plot$est, 0)
+dat.plot$rel = dat.plot$est/sum(dat.plot$est)
+dat.plot$scenario = "ph 5 only-JBC+BC10 predictions"
+dat.gg = rbind(dat.gg, dat.plot)
+```
+
+## Updated Viz
+
+```{r}
+ggplot(data = dat.gg, aes(fill = spec, x = scenario, y = rel))+
+  geom_col()+
+  ylab("relative abundance")+
+  theme.mine +
+  coord_flip()
+```
+
+## Updated MSE
+
+Note: doing 2 fiddly bits here. Estimating for each replicate separately, and also dividing by 1000, so that we're looking at MSE of thousands of CFUS. This is identical in theory (lowest MSE is still best), but keeps numbers smaller, improving the practicalities.
+
+```{r}
+scaling = 1000
+mse.df=NULL
+
+dat.real = dat.com %>%  select(-rep)/scaling
+
+print("ph 5 all MSE")
+pred.cur = pred.all %>% 
+  filter(scenario == "ph 5 predictions") %>% 
+  select(-rep, -ph, -scenario)
+pred.cur = pred.cur/scaling
+sq.er =(dat.real - pred.cur[,names(dat.real)])^2
+(mse.res = mean(as.matrix(sq.er)))
+mse.df = rbind(mse.df, data.frame(scenario = "ph 5 predictions",
+                                  mse = mse.res))
+
+print("ph 7 all MSE")
+pred.cur = pred.all %>% 
+  filter(scenario == "ph 7 predictions")  %>% 
+  select(-rep, -ph, -scenario)
+pred.cur = pred.cur/scaling
+sq.er =(dat.real - pred.cur[,names(dat.real)])^2
+(mse.res = mean(as.matrix(sq.er)))
+mse.df = rbind(mse.df, data.frame(scenario = "ph 7 predictions",
+                                  mse = mse.res))
+
+
+print("ph 7 JBC")
+pred.cur = pred.all %>% 
+  filter(scenario == "ph 7 only-JBC predictions") %>% 
+  select(-rep, -ph, -scenario)
+pred.cur = pred.cur/scaling
+sq.er =(dat.real - pred.cur[,names(dat.real)])^2
+(mse.res = mean(as.matrix(sq.er)))
+mse.df = rbind(mse.df, data.frame(scenario = "ph 7 only-JBC predictions",
+                                  mse = mse.res))
+
+print("ph 5 JBC + 135E effectors")
+pred.cur = pred.all %>% 
+  filter(scenario == "ph 5 only-JBC+135E predictions") %>% 
+  select(-rep, -ph, -scenario)
+pred.cur = pred.cur/scaling
+sq.er =(dat.real - pred.cur[,names(dat.real)])^2
+(mse.res = mean(as.matrix(sq.er)))
+mse.df = rbind(mse.df, data.frame(scenario = "ph 5 only-JBC+135E predictions",
+                                  mse = mse.res))
+
+print("ph 5 JBC")
+pred.cur = pred.all %>% 
+  filter(scenario == "ph 5 only-JBC predictions") %>% 
+  select(-rep, -ph, -scenario)
+pred.cur = pred.cur/scaling
+sq.er =(dat.real - pred.cur[,names(dat.real)])^2
+(mse.res = mean(as.matrix(sq.er)))
+mse.df = rbind(mse.df, data.frame(scenario = "ph 5 only-JBC predictions",
+                                  mse = mse.res))
+
+print("ph 5 JBC+JB370")
+pred.cur = pred.all %>% 
+  filter(scenario == "ph 5 only-JBC+JB370 predictions") %>% 
+  select(-rep, -ph, -scenario)
+pred.cur = pred.cur/scaling
+sq.er =(dat.real - pred.cur[,names(dat.real)])^2
+(mse.res = mean(as.matrix(sq.er)))
+mse.df = rbind(mse.df, data.frame(scenario = "ph 5 only-JBC+JB370 predictions",
+                                  mse = mse.res))
+
+print("ph 5 JBC+BC10")
+pred.cur = pred.all %>% 
+  filter(scenario == "ph 5 only-JBC+BC10 predictions") %>% 
+  select(-rep, -ph, -scenario)
+pred.cur = pred.cur/scaling
+sq.er =(dat.real - pred.cur[,names(dat.real)])^2
+(mse.res = mean(as.matrix(sq.er)))
+mse.df = rbind(mse.df, data.frame(scenario = "ph 5 only-JBC+BC10 predictions",
+                                  mse = mse.res))
+
+```
+
+## MSE Viz
+
+```{r}
+ggplot(mse.df, aes(x = fct_rev(fct_reorder(scenario, mse)), y = mse))+
+  geom_col()+
+  scale_y_log10()+
+  xlab("Scenario")+
+  ylab("Mean Squared Error: lowest = most realistic model")+
+  coord_flip()
+```
+
+
+# Quick visual check of pH 7 JBC-only
 
 We notice that the pH 7 predictions are almost the same if we only include JBC. This would make sense only if the overwhelming majority of interactions come from JBC (Penicillium). Remember that the total effect of an interaction is the interaction coefficient times the population size of the source of interaction. Here we plot this term (as an absolute value, on a log scale).
 
